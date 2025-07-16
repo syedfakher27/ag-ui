@@ -334,6 +334,7 @@ class ADKAgent:
         Yields:
             AG-UI protocol events
         """
+        print('input===>',input)
         # Check if this is a tool result submission for an existing execution
         if self._is_tool_result_submission(input):
             # Handle tool results for existing execution
@@ -406,9 +407,10 @@ class ADKAgent:
         """
         thread_id = input.thread_id
         
-        # Extract tool results first 
+        # Extract tool results that is send by the frontend 
         tool_results = await self._extract_tool_results(input)
         
+        # if the tool results are not send by the fronted then call the tool function
         if not tool_results:
             logger.error(f"Tool result submission without tool results for thread {thread_id}")
             yield RunErrorEvent(
@@ -521,7 +523,7 @@ class ADKAgent:
                     execution.is_complete = True
                     logger.debug(f"Execution complete for thread {execution.thread_id} after {event_count} events")
                     break
-                
+
                 logger.debug(f"Streaming event #{event_count}: {type(event).__name__} (thread {execution.thread_id})")
                 yield event
                 
@@ -714,16 +716,25 @@ class ADKAgent:
         # Create dynamic toolset if tools provided and prepare tool updates
         toolset = None
         if input.tools:
-            toolset = ClientProxyToolset(
-                ag_ui_tools=input.tools,
-                event_queue=event_queue
-            )
             
             # Get existing tools from the agent
             existing_tools = []
             if hasattr(adk_agent, 'tools') and adk_agent.tools:
                 existing_tools = list(adk_agent.tools) if isinstance(adk_agent.tools, (list, tuple)) else [adk_agent.tools]
             
+            # if same tool is defined in frontend and backend then agent will only use the backend tool
+            input_tools = []
+            for input_tool in input.tools:
+                # Check if this input tool's name matches any existing tool
+                if not any(hasattr(existing_tool, '__name__') and input_tool.name == existing_tool.__name__ 
+                        for existing_tool in existing_tools):
+                    input_tools.append(input_tool)
+                        
+            toolset = ClientProxyToolset(
+                ag_ui_tools=input_tools,
+                event_queue=event_queue
+            )
+
             # Combine existing tools with our proxy toolset
             combined_tools = existing_tools + [toolset]
             agent_updates['tools'] = combined_tools
@@ -840,7 +851,7 @@ class ADKAgent:
                 new_message = types.Content(parts=parts, role='user')
             # Create event translator
             event_translator = EventTranslator()
-            
+            print('--------------starting adk runner-------------')
             # Run ADK agent
             async for adk_event in runner.run_async(
                 user_id=user_id,
@@ -848,6 +859,7 @@ class ADKAgent:
                 new_message=new_message,
                 run_config=run_config
             ):
+                print('adk events==>',adk_event)
                 if not adk_event.is_final_response():
                 # Translate and emit events
                     async for ag_ui_event in event_translator.translate(
@@ -859,15 +871,15 @@ class ADKAgent:
                         logger.debug(f"Emitting event to queue: {type(ag_ui_event).__name__} (thread {input.thread_id}, queue size before: {event_queue.qsize()})")
                         await event_queue.put(ag_ui_event)
                         logger.debug(f"Event queued: {type(ag_ui_event).__name__} (thread {input.thread_id}, queue size after: {event_queue.qsize()})")
-                else:
-                    final_state = await self._session_manager.get_session_state(input.thread_id,app_name,user_id)
-                    ag_ui_event =  event_translator._create_state_snapshot_event(final_state)                    
-                    await event_queue.put(ag_ui_event)
+             
 
             # Force close any streaming messages
             async for ag_ui_event in event_translator.force_close_streaming_message():
                 await event_queue.put(ag_ui_event)
-            
+            final_state = await self._session_manager.get_session_state(input.thread_id,app_name,user_id)
+            if final_state:
+                ag_ui_event =  event_translator._create_state_snapshot_event(final_state)                    
+                await event_queue.put(ag_ui_event)
             # Signal completion - ADK execution is done
             logger.debug(f"Background task sending completion signal for thread {input.thread_id}")
             await event_queue.put(None)

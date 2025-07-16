@@ -11,6 +11,7 @@ import logging
 from fastapi import FastAPI
 from .tool_based_generative_ui.agent import haiku_generator_agent
 from .human_in_the_loop.agent import human_in_loop_agent
+
 from .shared_state.agent import shared_state_agent
 
 # Basic logging configuration
@@ -57,6 +58,13 @@ try:
     )
     
     adk_human_in_loop_agent = ADKAgent(
+        app_name="demo_app",
+        user_id="demo_user",
+        session_timeout_seconds=3600,
+        use_in_memory_services=True
+    )
+
+    adk_shared_state_agent = ADKAgent(
         app_name="demo_app",
         user_id="demo_user",
         session_timeout_seconds=3600,

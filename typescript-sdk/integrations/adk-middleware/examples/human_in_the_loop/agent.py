@@ -1,6 +1,10 @@
 
 from google.adk.agents import Agent
 from google.genai import types
+from google.adk.tools.base_tool import BaseTool
+from google.adk.tools.tool_context import ToolContext
+from typing import Optional,Dict, Any
+from .tools import filter_transfer_portal_players
 
 DEFINE_TASK_TOOL = {
     "type": "function",
@@ -35,41 +39,67 @@ DEFINE_TASK_TOOL = {
     }
 }
 
+def weather(city: str):
+   """
+   Get the current weather condition for a specified city.
+   
+   Args:
+       city (str): The name of the city to get weather information for.
+       
+   Returns:
+       str: The current weather condition. Currently always returns "sunny".
+       
+   Note:
+       This is a placeholder implementation that always returns "sunny" 
+       regardless of the actual weather conditions in the specified city.
+   """
+   print('-----------------calling weather tool-------------------')
+   return "rainy"
+
+
 
 human_in_loop_agent = Agent(
-    model='gemini-1.5-flash',
+    model='gemini-2.5-flash',
     name='human_in_loop_agent',
     instruction=f"""
-        You are a human-in-the-loop task planning assistant that helps break down complex tasks into manageable steps with human oversight and approval.
+        You are a College Basketball Transfer Portal Analysis Assistant. Your primary role is to help coaches, recruiters, and basketball analysts identify and evaluate transfer portal players that match their specific team needs and criteria.
 
-**Your Primary Role:**
-- Generate clear, actionable task steps for any user request
-- Facilitate human review and modification of generated steps
-- Execute only human-approved steps
+        Your responsibilities include:
+        
+        1. **Player Search & Filtering**: Use the filter_transfer_portal_players function to search for players based on:
+           - Positional needs (PG, SG, SF, PF, C)
+           - Playing style compatibility (fast-break, half-court, defensive, etc.)
+           - Development timeline (immediate impact, 1-year development, 2-year project)
+           - Performance thresholds (minutes, efficiency ratings, rebounds/blocks/assists)
+           - Availability status (still available, commitment status, draft intentions)
 
-**When a user requests a task:**
-1. ALWAYS call the `generate_task_steps` function to create 10 step breakdown
-2. Each step must be:
-   - Written in imperative form (e.g., "Open file", "Check settings", "Send email")
-   - Concise (2-4 words maximum)
-   - Actionable and specific
-   - Logically ordered from start to finish
-3. Initially set all steps to "enabled" status
+        2. **Intelligent Recommendations**: 
+           - Ask clarifying questions to understand team needs and priorities
+           - Suggest appropriate filter criteria based on team context
+           - Provide alternative search parameters if initial results are limited
 
+        3. **Analysis & Insights**:
+           - Explain why certain players match the specified criteria
+           - Highlight key strengths and potential concerns for each player
+           - Compare multiple players when presenting options
 
-**When executing steps:**
-- Only execute steps with "enabled" status and provide clear instructions how that steps can be executed 
-- Skip any steps marked as "disabled"
+        4. **Interactive Guidance**:
+           - Help users refine their search criteria iteratively
+           - Suggest adjustments to filters for better results
+           - Provide context on transfer portal trends and timing
 
-**Key Guidelines:**
-- Always generate exactly 10 steps
-- Make steps granular enough to be independently enabled/disabled
+        When users ask about transfer portal players, always:
+        - Gather sufficient information about their needs before filtering
+        - Use the filter_transfer_portal_players function with appropriate parameters
+        - Present results in a clear, organized manner
+        - Offer to refine the search based on feedback
 
-Tool reference: {DEFINE_TASK_TOOL}
+        Be conversational, knowledgeable about college basketball, and focused on helping users make informed recruiting decisions.
     """,
     generate_content_config=types.GenerateContentConfig(
-        temperature=0.7,  # Slightly higher temperature for creativity
+        temperature=0.7,
         top_p=0.9,
         top_k=40
     ),
+    tools=[filter_transfer_portal_players]
 )
