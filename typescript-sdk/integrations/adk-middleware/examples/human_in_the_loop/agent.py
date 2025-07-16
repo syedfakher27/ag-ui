@@ -3,6 +3,8 @@ from google.adk.agents import Agent
 from google.genai import types
 from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.tool_context import ToolContext
+from google.adk.models import LlmResponse, LlmRequest
+from google.adk.agents.callback_context import CallbackContext
 from typing import Optional,Dict, Any
 from .tools import filter_transfer_portal_players
 
@@ -56,7 +58,24 @@ def weather(city: str):
    print('-----------------calling weather tool-------------------')
    return "rainy"
 
+# --- Define the Callback Function ---
+def simple_before_model_modifier(
+    callback_context: CallbackContext, llm_request: LlmRequest
+) -> Optional[LlmResponse]:
+    """Inspects/modifies the LLM request or skips the call."""
+    agent_name = callback_context.agent_name
+    if agent_name == "human_in_loop_agent":
+        if llm_request.contents and llm_request.contents[-1].role == 'user':
+            last_message = llm_request.contents[-1]
+            if last_message.parts and hasattr(last_message.parts[0],'text') and last_message.parts[0].text !="" and last_message.parts[0].function_response.__class__.__name__ != 'FunctionResponse' :
+                # Get the original text and add prefix
+                original_text = last_message.parts[0].text or ""
+                modified_user_text = original_text + f"\n here are the current filters state for the required players {callback_context.state.get('filters')}"
+                # Update the message content
+                last_message.parts[0].text = modified_user_text
 
+ 
+    return None
 
 human_in_loop_agent = Agent(
     model='gemini-2.5-flash',
@@ -101,5 +120,7 @@ human_in_loop_agent = Agent(
         top_p=0.9,
         top_k=40
     ),
-    tools=[filter_transfer_portal_players]
+    before_model_callback=simple_before_model_modifier,
+    tools=[filter_transfer_portal_players],
+    sub_agents=[]
 )

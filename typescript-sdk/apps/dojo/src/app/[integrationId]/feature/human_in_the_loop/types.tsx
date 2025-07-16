@@ -35,6 +35,10 @@ export interface TransferPortalFilters {
   availability: AvailabilityStatus;
 }
 
+export interface FilterState {
+  filters : TransferPortalFilters
+}
+
 // Example usage:
 
 
