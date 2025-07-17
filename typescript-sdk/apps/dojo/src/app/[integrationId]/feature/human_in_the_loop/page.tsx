@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import "@copilotkit/react-ui/styles.css";
 import "./style.css";
 import { CopilotKit, useCopilotAction, useLangGraphInterrupt, useCoAgent } from "@copilotkit/react-core";
-import { FilterState, FilterChangeHandler, AvailabilityChangeHandler } from './types';
+import { FilterState, FilterChangeHandler, AvailabilityChangeHandler, TEAM_OPTIONS } from './types';
 import { CopilotChat } from "@copilotkit/react-ui";
 
 interface HumanInTheLoopProps {
@@ -113,19 +113,21 @@ const TransferPortalAssistant = () => {
   const initialFilters: FilterState = {
     filters: {
       positionGap: "PF",
-      styleOfPlay: "Transition offense",
-      developmentReadiness: "Multi-year potential",
-      minutesPerGame: 22,
+      // styleOfPlay: "Transition offense",
+      // developmentReadiness: "Multi-year potential",
+      // minutesPerGame: 22,
       efficiencyRating: 54,
-      reboundBlockAssist: 55,
-      availability: {
-        stillAvailable: true,
-        committed: false,
-        draftBound: false
-      }
+      team: "",
+      class_ : "JR"
+
+      // reboundBlockAssist: 55,
+      // availability: {
+      //   stillAvailable: true,
+      //   committed: false,
+      //   draftBound: false
+      // }
     }
   };
-
   const { state: filters, setState: setFilters } = useCoAgent<FilterState>(
     {
       name: "human_in_the_loop",
@@ -136,53 +138,62 @@ const TransferPortalAssistant = () => {
   useLangGraphInterrupt({
     render: ({ event, resolve }) => <InterruptHumanInTheLoop event={event} resolve={resolve} />,
   });
-
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
   useCopilotAction({
     name: "filter_transfer_portal_players",
     parameters: [
       {
-        name: "city",
-        type: "string",
-      },
-      {
         name: "positionGap",
         type: "string",
       },
-      {
-        name: "styleOfPlay",
-        type: "string",
-      },
-      {
-        name: "developmentReadiness",
-        type: "string",
-      },
-      {
-        name: "minutesPerGame",
-        type: "number",
-      },
+      // {
+      //   name: "styleOfPlay",
+      //   type: "string",
+      // },
+      // {
+      //   name: "developmentReadiness",
+      //   type: "string",
+      // },
+      // {
+      //   name: "minutesPerGame",
+      //   type: "number",
+      // },
       {
         name: "efficiencyRating",
         type: "number",
       },
-      {
-        name: "reboundBlockAssist",
-        type: "number",
-      },
-      {
-        name: "stillAvailable",
-        type: "boolean",
-      },
-      {
-        name: "committed",
-        type: "boolean",
-      },
-      {
-        name: "draftBound",
-        type: "boolean",
-      },
+      // {
+      //   name: "reboundBlockAssist",
+      //   type: "number",
+      // },
+      // {
+      //   name: "stillAvailable",
+      //   type: "boolean",
+      // },
+      // {
+      //   name: "committed",
+      //   type: "boolean",
+      // },
+      // {
+      //   name: "draftBound",
+      //   type: "boolean",
+      // },
+      // API-based filters (new)
+    {
+      name: "team",
+      type: "string",
+      description: "Filter by specific team name (e.g., 'Montana State', 'Duke')",
+    },
+    {
+      name: "class_",
+      type: "string",
+      description: "Filter by class level",
+      enum: ["FR", "SO", "JR", "SR"],
+    },
+    
     ],
     render: ({ args, result, status }) => {
-      return <StepsFeedback args={args} result={result} status={status} />;
+      return <StepsFeedback args={args} result={result} status={status} selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} />;
     },
   });
 
@@ -202,12 +213,47 @@ const TransferPortalAssistant = () => {
       }
     }));
   };
-
+  const handleCloseDetails = () => {
+    setSelectedPlayer(null);
+  };
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Left Sidebar - Filters */}
       <div className="w-80 bg-white border-r border-gray-200 p-4 overflow-y-auto">
         <div className="space-y-6">
+          {/* Team Filter */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Team</h3>
+            <select
+              className="w-full p-2 border border-gray-300 rounded-md text-sm"
+              value={filters.filters.team || ''}
+              onChange={(e) => handleFilterChange('team', e.target.value)}
+            >
+              <option value="">All Teams</option>
+              {TEAM_OPTIONS.map((team) => (
+                <option key={team} value={team}>
+                  {team}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Class Filter */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Class</h3>
+            <select
+              className="w-full p-2 border border-gray-300 rounded-md text-sm"
+              value={filters.filters.class_ || ''}
+              onChange={(e) => handleFilterChange('class_', e.target.value)}
+            >
+              <option value="">All Classes</option>
+              <option value="FR">Freshman (FR)</option>
+              <option value="SO">Sophomore (SO)</option>
+              <option value="JR">Junior (JR)</option>
+              <option value="SR">Senior (SR)</option>
+            </select>
+          </div>
+
           {/* Team Needs Focus */}
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-2">Team Needs Focus</h3>
@@ -222,60 +268,9 @@ const TransferPortalAssistant = () => {
               <option value="PF">PF</option>
               <option value="C">C</option>
             </select>
-          </div>
+          </div> 
 
-          {/* Style of Play */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Style of Play</h3>
-            <select
-              className="w-full p-2 border border-gray-300 rounded-md text-sm"
-              value={filters.filters.styleOfPlay}
-              onChange={(e) => handleFilterChange('styleOfPlay', e.target.value)}
-            >
-              <option value="Transition offense">Transition offense</option>
-              <option value="Half-court offense">Half-court offense</option>
-              <option value="Defense-first">Defense-first</option>
-              <option value="Balanced">Balanced</option>
-            </select>
-          </div>
-
-          {/* Development Readiness */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Development Readiness</h3>
-            <select
-              className="w-full p-2 border border-gray-300 rounded-md text-sm"
-              value={filters.filters.developmentReadiness}
-              onChange={(e) => handleFilterChange('developmentReadiness', e.target.value)}
-            >
-              <option value="Immediate impact">Immediate impact</option>
-              <option value="Multi-year potential">Multi-year potential</option>
-              <option value="Project player">Project player</option>
-            </select>
-          </div>
-
-          {/* Performance Section */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-4">Performance</h3>
-
-            {/* Minutes/game slider */}
-            <div className="mb-4">
-              <label className="text-xs text-gray-600 mb-2 block">Minutes/game</label>
-              <input
-                type="range"
-                min="0"
-                max="40"
-                value={filters.filters.minutesPerGame}
-                onChange={(e) => handleFilterChange('minutesPerGame', parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>0</span>
-                <span>{filters.filters.minutesPerGame}</span>
-                <span>40</span>
-              </div>
-            </div>
-
-            {/* Efficiency rating slider */}
+          {/* Efficiency rating slider */}
             <div className="mb-4">
               <label className="text-xs text-gray-600 mb-2 block">Efficiency rating</label>
               <input
@@ -292,59 +287,6 @@ const TransferPortalAssistant = () => {
                 <span>100</span>
               </div>
             </div>
-
-            {/* Rebound/block/assist % slider */}
-            <div className="mb-4">
-              <label className="text-xs text-gray-600 mb-2 block">Rebound/block/assist %</label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={filters.filters.reboundBlockAssist}
-                onChange={(e) => handleFilterChange('reboundBlockAssist', [0, parseInt(e.target.value)])}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>0</span>
-                <span>{filters.filters.reboundBlockAssist}</span>
-                <span>100</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Availability Status */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Availability Status</h3>
-            <div className="space-y-2">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={filters.filters.availability.stillAvailable}
-                  onChange={(e) => handleAvailabilityChange('stillAvailable', e.target.checked)}
-                  className="mr-2"
-                />
-                <span className="text-sm text-gray-700">Still available</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={filters.filters.availability.committed}
-                  onChange={(e) => handleAvailabilityChange('committed', e.target.checked)}
-                  className="mr-2"
-                />
-                <span className="text-sm text-gray-700">Committed</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={filters.filters.availability.draftBound}
-                  onChange={(e) => handleAvailabilityChange('draftBound', e.target.checked)}
-                  className="mr-2"
-                />
-                <span className="text-sm text-gray-700">Draft-bound</span>
-              </label>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -373,165 +315,292 @@ const TransferPortalAssistant = () => {
             />
           </div>
 
-          {/* Player Card */}
-          <div className="w-80 bg-white border-l border-gray-200 p-4">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Player X</h3>
-                <span className="text-sm text-gray-500">C</span>
-              </div>
+          {/* Player Details Sidebar */}
 
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gray-300 rounded-full mr-3"></div>
-                <div>
-                  <div className="text-sm font-medium">2 YRs</div>
-                  <div className="text-xs text-gray-500">Past Team</div>
-                </div>
-                <div className="ml-auto">
-                  <div className="text-sm font-medium">2 yo</div>
-                </div>
-              </div>
+          {selectedPlayer && (
+            <div className="w-96">
+              <PlayerDetails
+                player={selectedPlayer}
+                onClose={handleCloseDetails}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="text-center">
-                  <div className="text-lg font-bold">10.5</div>
-                  <div className="text-xs text-gray-500">PPG</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold">9.4</div>
-                  <div className="text-xs text-gray-500">RPG</div>
-                </div>
-              </div>
 
-              <div className="space-y-2 mb-4">
-                <div className="text-xs text-gray-600">Multi-year fit</div>
-                <div className="text-xs text-gray-600">High rebound rate</div>
-                <div className="text-xs text-gray-600">NIL value undervalued</div>
-              </div>
 
-              <div className="space-y-2">
-                <button className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm hover:bg-gray-50">
-                  Compare to URI roster
-                </button>
-                <button className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm hover:bg-gray-50">
-                  Flag for recruiting
-                </button>
-                <button className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm hover:bg-gray-50">
-                  View HS video
-                </button>
+const PlayerCard = ({ player, onPlayerClick }) => {
+  return (
+    <div 
+      className="bg-white rounded-lg shadow-md border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200"
+      onClick={() => onPlayerClick(player)}
+    >
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold text-gray-900 truncate">
+          {player.name || 'Unknown Player'}
+        </h3>
+        
+        <div className="flex items-center justify-between text-sm text-gray-600">
+          <span className="font-medium">{player.class_ || 'N/A'}</span>
+          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+            {player.position || 'N/A'}
+          </span>
+        </div>
+        
+        <div className="text-sm text-gray-500 truncate">
+          {player.team || 'N/A'}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PlayerDetails = ({ player, onClose }) => {
+  // Helper function to safely get numeric values and handle 'nan' strings
+  const getNumericValue = (value, defaultValue = 0) => {
+    if (value === 'nan' || value === null || value === undefined) {
+      return defaultValue;
+    }
+    const numValue = parseFloat(value);
+    return isNaN(numValue) ? defaultValue : numValue;
+  };
+
+  // Helper function to format BPR values with proper colors
+  const formatBPR = (value) => {
+    const numValue = getNumericValue(value);
+    const formatted = numValue.toFixed(2);
+    if (numValue > 0) {
+      return { value: `+${formatted}`, color: 'text-green-600' };
+    } else if (numValue < 0) {
+      return { value: formatted, color: 'text-red-600' };
+    }
+    return { value: formatted, color: 'text-gray-600' };
+  };
+
+  // Helper function to get height in feet and inches
+  const formatHeight = (heightInInches) => {
+    const inches = getNumericValue(heightInInches);
+    if (inches === 0) return 'N/A';
+    const feet = Math.floor(inches / 12);
+    const remainingInches = inches % 12;
+    return `${feet}'${remainingInches}"`;
+  };
+
+  // Helper function to get availability status color
+  const getAvailabilityColor = (eligible) => {
+    if (eligible === 'True' || eligible === true) {
+      return 'bg-green-100 text-green-800';
+    }
+    return 'bg-red-100 text-red-800';
+  };
+
+  // Helper function to get availability status text
+  const getAvailabilityText = (eligible, newTeam) => {
+    if (eligible === 'True' || eligible === true) {
+      return newTeam && newTeam !== 'nan' && newTeam !== 'N/A' ? 'Committed' : 'Available';
+    }
+    return 'Not Available';
+  };
+
+  const bprPredicted = formatBPR(player.bpr_predicted);
+  const obprPredicted = formatBPR(player.obpr_predicted);
+  const dbprPredicted = formatBPR(player.dbpr_predicted);
+
+  return (
+    <div className="w-96 bg-white border-l border-gray-200 h-full overflow-y-auto">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 sticky top-0 z-10">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <h3 className="text-xl font-bold mb-1">{player.name || 'Unknown Player'}</h3>
+            <p className="text-blue-100 text-sm">
+              {player.position || 'N/A'} • {player.team || 'N/A'}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="ml-2 p-1 hover:bg-white hover:bg-opacity-20 rounded"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="mt-2 text-right">
+          <div className="text-sm text-blue-100">Rank</div>
+          <div className="text-lg font-bold">#{player.Rank || 'N/A'}</div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4 space-y-6">
+        {/* Basic Info */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center">
+            <div className="text-lg font-bold text-gray-800">
+              {formatHeight(player.height)}
+            </div>
+            <div className="text-sm text-gray-600">Height</div>
+          </div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-gray-800">
+              {player.weight && player.weight !== 'nan' ? `${player.weight} lbs` : 'N/A'}
+            </div>
+            <div className="text-sm text-gray-600">Weight</div>
+          </div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-gray-800">
+              {player.class_ || 'N/A'}
+            </div>
+            <div className="text-sm text-gray-600">Class</div>
+          </div>
+        </div>
+
+        {/* BPR Performance Metrics */}
+        <div>
+          <h4 className="font-semibold text-gray-800 mb-3">Performance Metrics</h4>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-gray-50 p-3 rounded text-center">
+              <div className={`text-lg font-semibold ${bprPredicted.color}`}>
+                {bprPredicted.value}
+              </div>
+              <div className="text-xs text-gray-600">BPR</div>
+            </div>
+            <div className="bg-gray-50 p-3 rounded text-center">
+              <div className={`text-lg font-semibold ${obprPredicted.color}`}>
+                {obprPredicted.value}
+              </div>
+              <div className="text-xs text-gray-600">OBPR</div>
+            </div>
+            <div className="bg-gray-50 p-3 rounded text-center">
+              <div className={`text-lg font-semibold ${dbprPredicted.color}`}>
+                {dbprPredicted.value}
+              </div>
+              <div className="text-xs text-gray-600">DBPR</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Team Performance */}
+        <div>
+          <h4 className="font-semibold text-gray-800 mb-3">Team Performance</h4>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-blue-50 p-3 rounded">
+              <div className="text-sm font-medium text-blue-800">Off Efficiency</div>
+              <div className="text-xl font-bold text-blue-600">
+                {getNumericValue(player.adj_team_off_eff).toFixed(1)}
+              </div>
+            </div>
+            <div className="bg-red-50 p-3 rounded">
+              <div className="text-sm font-medium text-red-800">Def Efficiency</div>
+              <div className="text-xl font-bold text-red-600">
+                {getNumericValue(player.adj_team_def_eff).toFixed(1)}
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
-};
 
-const PlayerCard = ({ player }) => {
-  return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow duration-300">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
-        <h3 className="text-xl font-bold">{player.name}</h3>
-        <p className="text-blue-100">{player.position} • {player.previous_team}</p>
-      </div>
-
-      {/* Main Info */}
-      <div className="p-4">
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-800">{player.height}</div>
-            <div className="text-sm text-gray-600">Height</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-800">{player.weight} lbs</div>
-            <div className="text-sm text-gray-600">Weight</div>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="bg-gray-50 p-2 rounded text-center">
-            <div className="font-semibold text-blue-600">{player.ppg}</div>
-            <div className="text-xs text-gray-600">PPG</div>
-          </div>
-          <div className="bg-gray-50 p-2 rounded text-center">
-            <div className="font-semibold text-green-600">{player.rpg}</div>
-            <div className="text-xs text-gray-600">RPG</div>
-          </div>
-          <div className="bg-gray-50 p-2 rounded text-center">
-            <div className="font-semibold text-purple-600">{player.apg}</div>
-            <div className="text-xs text-gray-600">APG</div>
-          </div>
-        </div>
-
-        {/* Efficiency Metrics */}
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          <div className="bg-yellow-50 p-2 rounded">
-            <div className="text-sm font-medium text-yellow-800">Efficiency</div>
-            <div className="text-lg font-bold text-yellow-600">{player.efficiency_rating}</div>
-          </div>
-          <div className="bg-orange-50 p-2 rounded">
-            <div className="text-sm font-medium text-orange-800">RBA %</div>
-            <div className="text-lg font-bold text-orange-600">{player.rebound_block_assist_percentage}%</div>
-          </div>
-        </div>
-
-        {/* Key Info */}
-        <div className="space-y-2 mb-4">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Years Remaining:</span>
-            <span className="font-medium">{player.years_remaining}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Style:</span>
-            <span className="font-medium">{player.style_of_play}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Development:</span>
-            <span className="font-medium">{player.development_readiness}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">NIL Value:</span>
-            <span className="font-medium text-green-600">{player.nil_value}</span>
-          </div>
-        </div>
-
-        {/* Status Badge */}
-        <div className="mb-4">
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${player.availability_status === 'Still available'
-              ? 'bg-green-100 text-green-800'
-              : 'bg-red-100 text-red-800'
-            }`}>
-            {player.availability_status}
-          </span>
-        </div>
-
-        {/* Highlights */}
-        <div className="mb-4">
-          <h4 className="font-medium text-gray-800 mb-2">Highlights:</h4>
-          <div className="flex flex-wrap gap-1">
-            {player.highlights.map((highlight, index) => (
-              <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                {highlight}
+        {/* Additional Stats */}
+        <div>
+          <h4 className="font-semibold text-gray-800 mb-3">Statistics</h4>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-600">Possessions</span>
+              <span className="font-medium">{player.possessions || 'N/A'}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-600">Plus/Minus</span>
+              <span className={`font-medium ${getNumericValue(player.plus_minus) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {getNumericValue(player.plus_minus) >= 0 ? '+' : ''}{getNumericValue(player.plus_minus).toFixed(1)}
               </span>
-            ))}
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-600">Role</span>
+              <span className="font-medium">{getNumericValue(player.role).toFixed(1)}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-600">Team Margin</span>
+              <span className={`font-medium ${getNumericValue(player.adj_team_eff_margin) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {getNumericValue(player.adj_team_eff_margin) >= 0 ? '+' : ''}{getNumericValue(player.adj_team_eff_margin).toFixed(1)}
+              </span>
+            </div>
           </div>
+        </div>
+
+        {/* Transfer Status */}
+        <div>
+          <h4 className="font-semibold text-gray-800 mb-3">Transfer Status</h4>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Status</span>
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getAvailabilityColor(player.eligible)}`}>
+                {getAvailabilityText(player.eligible, player.new_team)}
+              </span>
+            </div>
+            
+            {player.new_team && player.new_team !== 'nan' && player.new_team !== 'N/A' && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">New Team</span>
+                <span className="font-medium text-green-600">{player.new_team}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* NIL Value */}
+        {player.dollar_value_string && player.dollar_value_string !== 'nan' && (
+          <div>
+            <h4 className="font-semibold text-gray-800 mb-3">NIL Value</h4>
+            <div className="bg-green-50 p-3 rounded text-center">
+              <div className="text-xl font-bold text-green-600">{player.dollar_value_string}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Notes */}
+        {player.notes && player.notes !== 'nan' && (
+          <div>
+            <h4 className="font-semibold text-gray-800 mb-3">Notes</h4>
+            <div className="bg-gray-50 p-3 rounded">
+              <p className="text-sm text-gray-700">{player.notes}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Recent Updates */}
+        {player.recent && player.recent !== '' && (
+          <div>
+            <h4 className="font-semibold text-gray-800 mb-3">Recent Updates</h4>
+            <div className="flex flex-wrap gap-2">
+              <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                {player.recent}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="space-y-2 pt-4 border-t border-gray-200">
+          <button className="w-full py-3 px-4 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors">
+            Compare to URI roster
+          </button>
+          <button className="w-full py-3 px-4 bg-orange-500 text-white rounded-md font-medium hover:bg-orange-600 transition-colors">
+            Flag for recruiting
+          </button>
+          <button className="w-full py-3 px-4 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors">
+            View HS video
+          </button>
         </div>
 
         {/* Footer */}
-        <div className="pt-3 border-t border-gray-200">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">📍 {player.hometown}</span>
-            <a
-              href={player.video_link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-            >
-              View Highlights →
-            </a>
+        <div className="pt-4 border-t border-gray-100">
+          <div className="flex justify-between items-center text-xs text-gray-500">
+            <span>ID: {player.players || 'N/A'}</span>
+            <span>Updated: {new Date().toLocaleDateString()}</span>
           </div>
         </div>
       </div>
@@ -539,12 +608,20 @@ const PlayerCard = ({ player }) => {
   );
 };
 
-const StepsFeedback = ({ args, result, status }) => {
+const StepsFeedback = ({ args, result, status, selectedPlayer, setSelectedPlayer }) => {
   const [accepted, setAccepted] = useState(null);
 
   const players = result?.result || [];
   console.log('players===>', players);
+  // const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const handlePlayerClick = (player) => {
+    console.log('selected player', player)
+    setSelectedPlayer(player);
+  };
 
+  const handleCloseDetails = () => {
+    setSelectedPlayer(null);
+  };
   // Handle case where players is undefined or not an array
   if (!players || !Array.isArray(players)) {
     return (
@@ -577,13 +654,84 @@ const StepsFeedback = ({ args, result, status }) => {
     <div className="flex flex-col gap-4 w-full max-w-6xl bg-gray-100 rounded-lg p-8 mb-4">
       <div className="text-black space-y-2">
         <h2 className="text-lg font-bold mb-4">Player Results</h2>
-
-        {/* Player Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {players.map((player) => (
-            <PlayerCard key={player.id} player={player} />
-          ))}
+        {/* Table View */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Player
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Class
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Position
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Team
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Rank
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {players.map((player, index) => (
+                  <tr key={index} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => handlePlayerClick(player)}
+                        className="text-blue-600 hover:text-blue-800 font-medium text-left"
+                      >
+                        {player.name || 'Unknown Player'}
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {player.class_ || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                        {player.position || 'N/A'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {player.team || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      #{player.Rank || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        player.eligible === 'True' || player.eligible === true
+                          ? (player.new_team && player.new_team !== 'nan' && player.new_team !== 'N/A' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-yellow-100 text-yellow-800')
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {player.eligible === 'True' || player.eligible === true
+                          ? (player.new_team && player.new_team !== 'nan' && player.new_team !== 'N/A' 
+                              ? 'Committed' 
+                              : 'Available')
+                          : 'Not Available'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
+        {/* Player Cards Grid */}
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {players.map((player, index) => (
+            <PlayerCard key={index} player={player}  onPlayerClick={handlePlayerClick} />
+          ))}
+        </div> */}
 
         {/* Raw Data (collapsed by default) */}
         <details className="mt-6">

@@ -1,0 +1,1 @@
+https://slam-all-python-359065791766.us-central1.run.app/MBB/tp-players/?class=JR&position=PF&min_possessions=30&page=1&page_size=20&schema=MBB
