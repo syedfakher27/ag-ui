@@ -1,119 +1,7 @@
-
-from .tp_models import generate_mock_players
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from google.adk.tools import ToolContext
 from urllib.parse import quote
 import requests
-
-def filter_transfer_portal_players_v1(tool_context: ToolContext,positionGap:str , styleOfPlay: str , developmentReadiness :str , minutesPerGame:int , efficiencyRating: int , reboundBlockAssist: int , stillAvailable: bool , committed: bool , draftBound:bool) :
-    """
-    Filter transfer portal players based on team needs and player attributes.
-    
-    Searches the transfer portal database to find players that match specific
-    team requirements including positional needs, playing style compatibility,
-    development timeline, and performance metrics.
-    
-    Args:
-        positionGap (str): Position need (e.g., "PG", "SG", "SF", "PF", "C")
-        styleOfPlay (str): Required playing style (e.g., "Transition offense", "Half-court offense", "Defense-first", "Balanced")
-        developmentReadiness (str): Timeline for contribution (e.g., "Immediate impact", "Multi-year potential", "Project player")
-        minutesPerGame (int): Minimum minutes per game requirement
-        efficiencyRating (int): Minimum efficiency rating threshold
-        reboundBlockAssist (int): Minimum combined rebounds/blocks/assists per game
-        stillAvailable (bool): Filter for players still available in portal
-        committed (bool): Include/exclude already committed players
-        draftBound (bool): Include/exclude players likely to enter NBA draft
-    
-    Returns:
-        List of players matching the specified criteria
-        
-    Raises:
-        ValueError: If invalid position or style parameters are provided
-    """
-    print('-------------filter_transfer_portal_players---------------')
-    current_filters = tool_context.state.get("filters", {})
-    current_filters['positionGap'] = positionGap
-    current_filters['styleOfPlay'] = styleOfPlay
-    current_filters['developmentReadiness'] = developmentReadiness
-    current_filters['minutesPerGame'] = minutesPerGame
-    current_filters['efficiencyRating'] = efficiencyRating
-    current_filters['reboundBlockAssist'] = reboundBlockAssist
-    current_filters['availability']['stillAvailable'] = stillAvailable
-    current_filters['availability']['committed'] = committed
-    current_filters['availability']['draftBound'] = draftBound
-
-        
-    tool_context.state["filters"] = current_filters
-    # Get all mock players
-    all_players = generate_mock_players()
-    
-    # Filter players based on criteria
-    filtered_players = []
-    
-    for player in all_players:
-        # Check position match
-        if player['position'] != positionGap :
-            continue
-        
-        # Check style of play match
-        if player['style_of_play'] != styleOfPlay:
-            continue
-        
-        # Check development readiness match
-        if player['development_readiness'] != developmentReadiness:
-            continue
-        
-        # Check minutes per game (player should meet or exceed minimum)
-        if player['minutes_per_game'] < minutesPerGame:
-            continue
-        
-        # Check efficiency rating (player should meet or exceed minimum)
-        if player['efficiency_rating'] < efficiencyRating:
-            continue
-        
-        # Check rebound/block/assist percentage (player should meet or exceed minimum)
-        if player['rebound_block_assist_percentage'] < reboundBlockAssist:
-            continue
-        
-        # Check availability status
-        player_available = player['availability_status'] == "Still available"
-        player_committed = player['availability_status'] == "Committed"
-        player_draft_bound = player['availability_status'] == "Draft-bound"
-        
-        if not (
-            (stillAvailable and player_available) or
-            (committed and player_committed) or
-            (draftBound and player_draft_bound)
-        ):
-            continue
-        
-        # If all filters pass, add to results
-    filtered_players.append({
-        "id": 3,
-        "name": "Darius Washington",
-        "position": "SF",
-        "previous_team": "Kansas State",
-        "years_remaining": 3,
-        "height": "6'7\"",
-        "weight": 220,
-        "ppg": 12.4,
-        "rpg": 6.8,
-        "apg": 2.9,
-        "minutes_per_game": 25.6,
-        "efficiency_rating": 71.2,
-        "rebound_block_assist_percentage": 72.4,
-        "style_of_play": "Defense-first",
-        "development_readiness": "Multi-year potential",
-        "availability_status": "Still available",
-        "nil_value": "Undervalued",
-        "hometown": "Memphis, TN",
-        "highlights": ["Lockdown defender", "High basketball IQ", "Improving offensive game"],
-        "video_link": "https://example.com/darius-highlights"
-    
-    })
-
-    return filtered_players
-
 
 def filter_transfer_portal_players(
     tool_context: ToolContext,
@@ -123,7 +11,12 @@ def filter_transfer_portal_players(
     efficiencyRating: Optional[int] = None,
     page: int = 1,
     page_size: int = 20,
-    schema: str = "MBB"
+    schema: str = "MBB",
+    filtered_players: Optional[List[Dict[str, Any]]] = None,
+    filter_criteria: Optional[Dict[str, Any]] = None,
+    sort_by: Optional[str] = None,
+    limit: Optional[int] = None
+
 ):
     """
     Filter transfer portal players based on team needs and player attributes.
@@ -161,6 +54,16 @@ def filter_transfer_portal_players(
     })
     tool_context.state["filters"] = current_filters
     
+    if filtered_players:
+        print("Applying local refinement to provided player list...")
+        refined = refine_player_results(
+            players=filtered_players,
+            filter_criteria=filter_criteria or {},
+            sort_by=sort_by,
+            limit=limit
+        )
+        tool_context.state["player_info"] = refined
+        return refined
     # Base API URL
     base_url = "https://slam-all-python-359065791766.us-central1.run.app/MBB/tp-players/"
     
@@ -207,6 +110,7 @@ def filter_transfer_portal_players(
         
         # Extract player data
         players_data = api_response.get('data', [])
+        tool_context.state["player_info"] = players_data
         return players_data
     except requests.exceptions.RequestException as e:
         print(f"API request failed: {e}")
@@ -219,3 +123,240 @@ def filter_transfer_portal_players(
     except Exception as e:
         print(f"Unexpected error: {e}")
         raise Exception(f"Error filtering transfer portal players: {str(e)}")
+
+
+def refine_player_results(
+    players: List[Dict[str, Any]],
+    filter_criteria: Dict[str, Any],
+    sort_by: Optional[str] = None,
+    limit: Optional[int] = None
+) -> List[Dict[str, Any]]:
+    """
+    Refine a given list of player results with flexible filtering criteria.
+    
+    Args:
+        players (list): List of player dictionaries to filter.
+        filter_criteria (dict): Dynamic filtering criteria based on user intent.
+        sort_by (str, optional): Sort field and direction ("rank_asc", "bpr_desc").
+        limit (int, optional): Maximum number of results to return.
+
+    Returns:
+        List of filtered and sorted player dictionaries.
+    """
+    
+    filtered_players = players.copy()
+    
+    # Apply dynamic filtering based on criteria
+    for field, criteria in filter_criteria.items():
+        if isinstance(criteria, dict):
+            # Range-based filtering
+            if "min" in criteria:
+                min_val = criteria["min"]
+                filtered_players = [
+                    player for player in filtered_players 
+                    if player.get(field) is not None and _safe_numeric_compare(player.get(field), min_val, ">=")
+                ]
+            
+            if "max" in criteria:
+                max_val = criteria["max"]
+                filtered_players = [
+                    player for player in filtered_players 
+                    if player.get(field) is not None and _safe_numeric_compare(player.get(field), max_val, "<=")
+                ]
+            
+            if "exclude" in criteria:
+                exclude_vals = criteria["exclude"]
+                filtered_players = [
+                    player for player in filtered_players 
+                    if player.get(field) not in exclude_vals
+                ]
+                
+            if "include" in criteria:
+                include_vals = criteria["include"]
+                filtered_players = [
+                    player for player in filtered_players 
+                    if player.get(field) in include_vals
+                ]
+        else:
+            # Direct value matching
+            filtered_players = [
+                player for player in filtered_players 
+                if str(player.get(field, "")).lower() == str(criteria).lower()
+            ]
+    
+    # Apply sorting
+    if sort_by:
+        field, direction = _parse_sort_criteria(sort_by)
+        reverse = direction == "desc"
+        try:
+            filtered_players = sorted(
+                filtered_players,
+                key=lambda x: _safe_sort_key(x.get(field)),
+                reverse=reverse
+            )
+        except Exception as e:
+            print(f"Sorting error: {e}")
+    
+    # Apply limit
+    if limit:
+        filtered_players = filtered_players[:limit]
+    
+    return filtered_players
+
+def _safe_numeric_compare(value, target, operator):
+    """Safely compare numeric values, handling 'nan' and string numbers."""
+    if value in ['nan', 'N/A', None, '']:
+        return False
+    
+    try:
+        num_value = float(value)
+        target_num = float(target)
+        
+        if operator == ">=":
+            return num_value >= target_num
+        elif operator == "<=":
+            return num_value <= target_num
+        elif operator == ">":
+            return num_value > target_num
+        elif operator == "<":
+            return num_value < target_num
+        elif operator == "==":
+            return num_value == target_num
+    except (ValueError, TypeError):
+        return False
+    
+    return False
+
+
+def _parse_sort_criteria(sort_by):
+    """Parse sort criteria like 'rank_asc' or 'bpr_desc'."""
+    if "_" in sort_by:
+        field, direction = sort_by.rsplit("_", 1)
+        direction = direction.lower()
+        if direction not in ["asc", "desc"]:
+            direction = "asc"
+    else:
+        field = sort_by
+        direction = "asc"
+    
+    return field, direction
+
+
+def _safe_sort_key(value):
+    """Safe sorting key that handles various data types."""
+    if value in ['nan', 'N/A', None, '']:
+        return float('inf')  # Put invalid values at the end
+    
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return str(value).lower()
+    
+
+players=[
+  {
+    "Rank": "1340",
+    "name": "Jace Howard",
+    "team": "Michigan",
+    "new_team": "Fordham",
+    "class_": "SR",
+    "position": "SF",
+    "obpr_predicted": "-0.555123396169723",
+    "dbpr_predicted": "0.208566434467989",
+    "bpr_predicted": "-0.346556961701734",
+    "notes": "nan",
+    "recruit_rating_icon": "&#9734 &#9734 &#9734;",
+    "dollar_value_string": "nan",
+    "height": "80.0",
+    "weight": "225.0",
+    "possessions": "20",
+    "obpr_prev": "-0.655144",
+    "dbpr_prev": "0.175151",
+    "bpr_prev": "-0.479993",
+    "box_obpr_prev": "-0.225428486424348",
+    "box_dbpr_prev": "0.0531151750044668",
+    "box_bpr_prev": "-0.172313311419882",
+    "plus_minus": "1.0",
+    "adj_team_off_eff": "78.0470080051323",
+    "adj_team_def_eff": "83.0332944797162",
+    "adj_team_eff_margin": "-4.98628647458385",
+    "role": "5.0",
+    "eligible": "True",
+    "color_O_pred": "#DFEBF6",
+    "color_D_pred": "#FFF9F3",
+    "color_Diff_pred": "#EFF5FA",
+    "recent": "",
+    "color_recent": "#000000",
+    "players": "10002386"
+  },
+  {
+    "Rank": "2093",
+    "name": "Lazar Grbovic",
+    "team": "Eastern Illinois",
+    "new_team": "nan",
+    "class_": "SR",
+    "position": "PF",
+    "obpr_predicted": "-1.43849175464737",
+    "dbpr_predicted": "-0.0154158523532764",
+    "bpr_predicted": "-1.45390760700065",
+    "notes": "nan",
+    "recruit_rating_icon": "&#9734 &#9734;",
+    "dollar_value_string": "nan",
+    "height": "80.0",
+    "weight": "240.0",
+    "possessions": "243",
+    "obpr_prev": "-2.18527",
+    "dbpr_prev": "0.459066",
+    "bpr_prev": "-1.726204",
+    "box_obpr_prev": "-1.97740156264635",
+    "box_dbpr_prev": "0.14355007467043",
+    "box_bpr_prev": "-1.83385148797592",
+    "plus_minus": "-23.0",
+    "adj_team_off_eff": "85.731407031188",
+    "adj_team_def_eff": "100.136239759723",
+    "adj_team_eff_margin": "-14.4048327285351",
+    "role": "5.0",
+    "eligible": "True",
+    "color_O_pred": "#AECDE7",
+    "color_D_pred": "#FDFEFE",
+    "color_Diff_pred": "#BFD7EC",
+    "recent": "",
+    "color_recent": "#000000",
+    "players": "10021846"
+  },
+  {
+    "Rank": "104",
+    "name": "Quincy Ballard",
+    "team": "Wichita State",
+    "new_team": "Mississippi State",
+    "class_": "SR",
+    "position": "C",
+    "obpr_predicted": "1.56117799488453",
+    "dbpr_predicted": "1.767391007789",
+    "bpr_predicted": "3.32856900267353",
+    "notes": "nan",
+    "recruit_rating_icon": "&#9734 &#9734 &#9734;",
+    "dollar_value_string": "nan",
+    "height": "83.0",
+    "weight": "251.0",
+    "possessions": "1545",
+    "obpr_prev": "2.15816",
+    "dbpr_prev": "1.71853",
+    "bpr_prev": "3.87669",
+    "box_obpr_prev": "1.97286505921641",
+    "box_dbpr_prev": "1.36564634523557",
+    "box_bpr_prev": "3.33851140445198",
+    "plus_minus": "69.0",
+    "adj_team_off_eff": "109.199647812401",
+    "adj_team_def_eff": "96.9656405895482",
+    "adj_team_eff_margin": "12.2340072228525",
+    "role": "3.15056382458105",
+    "eligible": "True",
+    "color_O_pred": "#FFE0BA",
+    "color_D_pred": "#FFD299",
+    "color_Diff_pred": "#FFD095",
+    "recent": "",
+    "color_recent": "#000000",
+    "players": "10022583"
+  },
+]
