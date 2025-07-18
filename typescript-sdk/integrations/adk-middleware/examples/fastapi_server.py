@@ -10,7 +10,7 @@ import uvicorn
 import logging
 from fastapi import FastAPI
 from .tool_based_generative_ui.agent import haiku_generator_agent
-from .human_in_the_loop.agent import human_in_loop_agent
+from .human_in_the_loop.agent import player_shortlist_agent
 
 from .shared_state.agent import shared_state_agent
 
@@ -40,7 +40,7 @@ try:
     # Register the agent
     registry.set_default_agent(sample_agent)
     registry.register_agent('adk-tool-based-generative-ui', haiku_generator_agent)
-    registry.register_agent('adk-human-in-loop-agent', human_in_loop_agent)
+    registry.register_agent('adk-human-in-loop-agent', player_shortlist_agent)
     registry.register_agent('adk-shared-state-agent', shared_state_agent)
     # Create ADK middleware agent
     adk_agent = ADKAgent(

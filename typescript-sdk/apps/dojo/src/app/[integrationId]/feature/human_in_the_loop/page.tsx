@@ -140,57 +140,12 @@ const TransferPortalAssistant = () => {
   });
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   useCopilotAction({
-    name: "filter_transfer_portal_players",
+    name: "shortlist_players",
     parameters: [
       {
-        name: "positionGap",
-        type: "string",
-      },
-      // {
-      //   name: "styleOfPlay",
-      //   type: "string",
-      // },
-      // {
-      //   name: "developmentReadiness",
-      //   type: "string",
-      // },
-      // {
-      //   name: "minutesPerGame",
-      //   type: "number",
-      // },
-      {
-        name: "efficiencyRating",
-        type: "number",
-      },
-      // {
-      //   name: "reboundBlockAssist",
-      //   type: "number",
-      // },
-      // {
-      //   name: "stillAvailable",
-      //   type: "boolean",
-      // },
-      // {
-      //   name: "committed",
-      //   type: "boolean",
-      // },
-      // {
-      //   name: "draftBound",
-      //   type: "boolean",
-      // },
-      // API-based filters (new)
-    {
-      name: "team",
-      type: "string",
-      description: "Filter by specific team name (e.g., 'Montana State', 'Duke')",
-    },
-    {
-      name: "class_",
-      type: "string",
-      description: "Filter by class level",
-      enum: ["FR", "SO", "JR", "SR"],
-    },
-    
+        name: "player_ids",
+        type: "array",
+      }
     ],
     render: ({ args, result, status }) => {
       return <StepsFeedback args={args} result={result} status={status} selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} />;
@@ -345,7 +300,7 @@ const PlayerCard = ({ player, onPlayerClick }) => {
         </h3>
         
         <div className="flex items-center justify-between text-sm text-gray-600">
-          <span className="font-medium">{player.class_ || 'N/A'}</span>
+          <span className="font-medium">{player.class || 'N/A'}</span>
           <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
             {player.position || 'N/A'}
           </span>

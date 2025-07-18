@@ -11,11 +11,9 @@ def filter_transfer_portal_players(
     efficiencyRating: Optional[int] = None,
     page: int = 1,
     page_size: int = 20,
-    schema: str = "MBB",
-    filtered_players: Optional[List[Dict[str, Any]]] = None,
-    filter_criteria: Optional[Dict[str, Any]] = None,
     sort_by: Optional[str] = None,
-    limit: Optional[int] = None
+    limit: Optional[int] = None,
+    additional_filter:Optional[str] = ""
 
 ):
     """
@@ -31,7 +29,7 @@ def filter_transfer_portal_players(
         efficiencyRating (int, optional): Minimum possessions threshold
         page (int): Page number for pagination (default: 1)
         page_size (int): Number of results per page (default: 20)
-        schema (str): Database schema (default: "MBB")
+        additional_filter (str, optional) : if there is any extra filter use this param like this "rank:80"
     
     Returns:
         dict: Contains filtered players list and pagination info
@@ -40,7 +38,7 @@ def filter_transfer_portal_players(
         Exception: If API request fails or invalid parameters are provided
     """
     print('-------------filter_transfer_portal_players---------------')
-    
+    schema = "MBB"
     # Store current filters in tool context
     current_filters = tool_context.state.get("filters", {})
     current_filters.update({
@@ -54,16 +52,7 @@ def filter_transfer_portal_players(
     })
     tool_context.state["filters"] = current_filters
     
-    if filtered_players:
-        print("Applying local refinement to provided player list...")
-        refined = refine_player_results(
-            players=filtered_players,
-            filter_criteria=filter_criteria or {},
-            sort_by=sort_by,
-            limit=limit
-        )
-        tool_context.state["player_info"] = refined
-        return refined
+
     # Base API URL
     base_url = "https://slam-all-python-359065791766.us-central1.run.app/MBB/tp-players/"
     
@@ -124,6 +113,39 @@ def filter_transfer_portal_players(
         print(f"Unexpected error: {e}")
         raise Exception(f"Error filtering transfer portal players: {str(e)}")
 
+def shortlist_players(player_ids: List[str]) -> Optional[Dict[Any, Any]]:
+    """
+    Confirm the shortlisted players that fullfills the given criteria.
+    
+    Args:
+        player_ids (List[str]): List of player IDs
+    
+    Returns:
+        JSON confirmation response from the tool
+
+    """
+    schema = "MBB"
+    url = f"https://slam-all-python-359065791766.us-central1.run.app/MBB/tp-players/stats?schema={schema}"
+    
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json'
+    }
+    
+    payload = {
+        "player_ids": player_ids
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        player_stats =  response.json()
+        print('player_stats===>',player_stats)
+        return player_stats
+    
+    except requests.exceptions.RequestException as e:
+        print(f"Error making API request: {e}")
+        return None
 
 def refine_player_results(
     players: List[Dict[str, Any]],

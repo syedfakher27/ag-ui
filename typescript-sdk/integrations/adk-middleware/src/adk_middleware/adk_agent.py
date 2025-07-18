@@ -859,7 +859,7 @@ class ADKAgent:
                 new_message=new_message,
                 run_config=run_config
             ):
-                print('adk events==>',adk_event)
+  
                 if not adk_event.is_final_response():
                 # Translate and emit events
                     async for ag_ui_event in event_translator.translate(

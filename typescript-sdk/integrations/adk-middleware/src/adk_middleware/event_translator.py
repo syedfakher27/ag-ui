@@ -100,7 +100,6 @@ class EventTranslator:
             # Handle function responses
             if hasattr(adk_event, 'get_function_responses'):
                 function_responses = adk_event.get_function_responses()
-                print('function_responses===>',function_responses)
                 if function_responses:
                     # Function responses should be emmitted to frontend so it can render the response as well
                     async for event in self._translate_function_response(function_responses):
