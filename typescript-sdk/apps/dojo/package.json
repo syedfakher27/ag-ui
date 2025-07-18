@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build --no-lint",
     "build:ignore-ts": "SKIP_TYPE_CHECK=true next build",
-    "start": "next start",
+    "start": "next start -p 3000",
     "lint": "next lint",
     "mastra:dev": "mastra dev"
   },

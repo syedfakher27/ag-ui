@@ -15,8 +15,12 @@ WORKDIR /app
 # Copy all project files (monorepo)
 COPY . .
 
-# Install all workspace dependencies
+# Change to typescript-sdk directory where package.json exists
+WORKDIR /app/typescript-sdk
+
+# Install dependencies
 RUN pnpm install
+
 
 WORKDIR /app/typescript-sdk/packages/cli
 RUN pnpm install && pnpm build
@@ -42,15 +46,21 @@ RUN pnpm install && pnpm build
 # ---------------------------------------------
 # Stage 2: Serve frontend
 # ---------------------------------------------
+# ---------------------------------------------
+# Stage 2: Serve frontend
+# ---------------------------------------------
 FROM node:18-slim
 
+# Install pnpm globally
 RUN npm install -g pnpm
 
-WORKDIR /app
+# Set working directory to where dojo package.json lives
+WORKDIR /app/apps/dojo
 
-COPY --from=builder /app .
+# Copy only the built frontend from builder
+COPY --from=builder /app/typescript-sdk/apps/dojo /app/apps/dojo
 
 ENV PORT=3000
 EXPOSE 3000
 
-CMD ["sh", "-c", "pnpm start"]
+CMD ["pnpm", "start"]
