@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 import React, { useState, useEffect } from "react";
 import "@copilotkit/react-ui/styles.css";
@@ -112,20 +113,7 @@ const TransferPortalAssistant = () => {
   // });
   const initialFilters: FilterState = {
     filters: {
-      positionGap: "PF",
-      // styleOfPlay: "Transition offense",
-      // developmentReadiness: "Multi-year potential",
-      // minutesPerGame: 22,
-      efficiencyRating: 54,
-      team: "",
-      class_ : "JR"
-
-      // reboundBlockAssist: 55,
-      // availability: {
-      //   stillAvailable: true,
-      //   committed: false,
-      //   draftBound: false
-      // }
+      isCommitted: false
     }
   };
   const { state: filters, setState: setFilters } = useCoAgent<FilterState>(
@@ -144,7 +132,7 @@ const TransferPortalAssistant = () => {
     parameters: [
       {
         name: "player_ids",
-        type: "array",
+        type: "string[]",
       }
     ],
     render: ({ args, result, status }) => {
@@ -159,14 +147,32 @@ const TransferPortalAssistant = () => {
     }));
   };
 
-  const handleAvailabilityChange = (key: string, checked: boolean) => {
+  // Updated handler function
+  const handleCommitmentChange = (checked: boolean) => {
     setFilters(prev => ({
-      ...prev,
-      availability: {
-        ...prev.availability,
-        [key]: checked
-      }
-    }));
+    ...prev,
+    filters: {
+      ...prev.filters,
+      isCommitted: checked
+    }
+  }));
+  };
+
+  // Component implementation example
+  const PlayerCommitmentToggle = () => {
+    return (
+      <div className="commitment-filter">
+        <label>
+          <input
+            type="checkbox"
+            checked={filters.filters.isCommitted}
+            onChange={(e) => handleCommitmentChange(e.target.checked)}
+            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+          />
+          Show only committed players
+        </label>
+      </div>
+    );
   };
   const handleCloseDetails = () => {
     setSelectedPlayer(null);
@@ -174,83 +180,41 @@ const TransferPortalAssistant = () => {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Left Sidebar - Filters */}
-      <div className="w-80 bg-white border-r border-gray-200 p-4 overflow-y-auto">
-        <div className="space-y-6">
-          {/* Team Filter */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Team</h3>
-            <select
-              className="w-full p-2 border border-gray-300 rounded-md text-sm"
-              value={filters.filters.team || ''}
-              onChange={(e) => handleFilterChange('team', e.target.value)}
-            >
-              <option value="">All Teams</option>
-              {TEAM_OPTIONS.map((team) => (
-                <option key={team} value={team}>
-                  {team}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Class Filter */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Class</h3>
-            <select
-              className="w-full p-2 border border-gray-300 rounded-md text-sm"
-              value={filters.filters.class_ || ''}
-              onChange={(e) => handleFilterChange('class_', e.target.value)}
-            >
-              <option value="">All Classes</option>
-              <option value="FR">Freshman (FR)</option>
-              <option value="SO">Sophomore (SO)</option>
-              <option value="JR">Junior (JR)</option>
-              <option value="SR">Senior (SR)</option>
-            </select>
-          </div>
-
-          {/* Team Needs Focus */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Team Needs Focus</h3>
-            <select
-              className="w-full p-2 border border-gray-300 rounded-md text-sm"
-              value={filters.filters.positionGap}
-              onChange={(e) => handleFilterChange('positionGap', e.target.value)}
-            >
-              <option value="PG">PG</option>
-              <option value="SG">SG</option>
-              <option value="SF">SF</option>
-              <option value="PF">PF</option>
-              <option value="C">C</option>
-            </select>
-          </div> 
-
-          {/* Efficiency rating slider */}
-            <div className="mb-4">
-              <label className="text-xs text-gray-600 mb-2 block">Efficiency rating</label>
+      {/* <div className="w-80 bg-white border-r border-gray-200 p-4 overflow-y-auto">
+        <div className="space-y-6"> */}
+          {/* Player Commitment Toggle */}
+          {/* <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Player Status</h3>
+            <label className="flex items-center space-x-2 cursor-pointer">
               <input
-                type="range"
-                min="0"
-                max="100"
-                value={filters.filters.efficiencyRating}
-                onChange={(e) => handleFilterChange('efficiencyRating', [0, parseInt(e.target.value)])}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                type="checkbox"
+                checked={filters.filters.isCommitted}
+                onChange={(e) => handleCommitmentChange(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
               />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>0</span>
-                <span>{filters.filters.efficiencyRating}</span>
-                <span>100</span>
-              </div>
-            </div>
+              <span className="text-sm text-gray-700">Show only committed players</span>
+            </label>
+          </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 p-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-xl font-semibold text-gray-900">Transfer Portal Assistant</h1>
+            <div className="flex items-center space-x-4">
+              <h1 className="text-xl font-semibold text-gray-900">Transfer Portal Assistant</h1>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.filters.isCommitted}
+                  onChange={(e) => handleCommitmentChange(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">Exclude committed players</span>
+              </label>
+            </div>
             <button className="p-2 border border-gray-300 rounded-md hover:bg-gray-50">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />

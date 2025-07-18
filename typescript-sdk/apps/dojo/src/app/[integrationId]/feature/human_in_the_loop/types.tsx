@@ -95,13 +95,14 @@ export interface AvailabilityStatus {
 
 // Main filters interface
 export interface TransferPortalFilters {
-  positionGap: Position;
-  // styleOfPlay: StyleOfPlay;
-  // developmentReadiness: DevelopmentReadiness;
-  // minutesPerGame: number;
-  efficiencyRating: number;
-  team: Team;
-  class_: Class 
+  // positionGap: Position;
+  // // styleOfPlay: StyleOfPlay;
+  // // developmentReadiness: DevelopmentReadiness;
+  // // minutesPerGame: number;
+  // efficiencyRating: number;
+  // team: Team;
+  // class_: Class;
+  isCommitted: boolean;
   // reboundBlockAssist: number;
   // availability: AvailabilityStatus;
 }

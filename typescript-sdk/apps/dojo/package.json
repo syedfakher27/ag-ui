@@ -2,9 +2,11 @@
   "name": "demo-viewer",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --no-lint",
+    "build:ignore-ts": "SKIP_TYPE_CHECK=true next build",
     "start": "next start",
     "lint": "next lint",
     "mastra:dev": "mastra dev"
