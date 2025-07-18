@@ -93,6 +93,22 @@ class EventTranslator:
                 function_calls = adk_event.get_function_calls()
                 if function_calls:
                     logger.debug(f"ADK function calls detected: {len(function_calls)} calls")
+                    
+                    # CRITICAL FIX: End any active text message stream before starting tool calls
+                    # Per AG-UI protocol: TEXT_MESSAGE_END must be sent before TOOL_CALL_START
+                    if self._is_streaming and self._streaming_message_id:
+                        logger.info("🔄 Ending active text message stream before tool calls")
+                        end_event = TextMessageEndEvent(
+                            type=EventType.TEXT_MESSAGE_END,
+                            message_id=self._streaming_message_id
+                        )
+                        logger.info(f"📤 TEXT_MESSAGE_END (before tool calls): {end_event.model_dump_json()}")
+                        yield end_event
+                        
+                        # Reset streaming state
+                        self._streaming_message_id = None
+                        self._is_streaming = False
+                    
                     # NOW ACTUALLY YIELD THE EVENTS
                     async for event in self._translate_function_calls(function_calls):
                         yield event
