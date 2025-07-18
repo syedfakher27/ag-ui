@@ -5,7 +5,6 @@ import requests
 
 def filter_transfer_portal_players(
     tool_context: ToolContext,
-    team: Optional[str] = None,
     class_: Optional[str] = None,
     positionGap: Optional[str] = None,
     efficiencyRating: Optional[int] = None,
@@ -39,6 +38,7 @@ def filter_transfer_portal_players(
     """
     print('-------------filter_transfer_portal_players---------------')
     schema = "MBB"
+    team=None
     # Store current filters in tool context
     current_filters = tool_context.state.get("filters", {})
     current_filters.update({
