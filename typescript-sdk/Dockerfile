@@ -44,12 +44,13 @@ RUN pnpm install && pnpm build
 # ---------------------------------------------
 FROM node:18-slim
 
+RUN npm install -g pnpm
+
 WORKDIR /app
 
-# Copy built frontend app from previous stage
-COPY --from=builder /app/typescript-sdk/apps/dojo .
+COPY --from=builder /app .
 
-# Expose port
+ENV PORT=3000
 EXPOSE 3000
 
-CMD ["pnpm", "start"]
+CMD ["sh", "-c", "pnpm start"]
