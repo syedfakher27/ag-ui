@@ -91,8 +91,11 @@ const AgentTransferUI = ({ args, result, status }) => {
         <div className="flex items-center space-x-3">
           {getStatusIcon(status)}
           <div>
-            <div className="text-sm font-medium text-gray-900">
-              {getStatusText(status)}
+            <div className="text-sm font-medium text-gray-900 flex items-center space-x-2">
+              <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full font-semibold">
+                🤖 AGENT TRANSFER
+              </span>
+              <span>{getStatusText(status)}</span>
             </div>
             <div className="text-xs text-gray-600">
               Transferring to <span className="font-semibold text-purple-600">{formatAgentName(agentName)}</span>

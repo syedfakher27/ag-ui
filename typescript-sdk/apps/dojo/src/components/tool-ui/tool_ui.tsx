@@ -154,6 +154,9 @@ const ToolExecutionUI = ({ toolName, args, result, status }) => {
             </div>
             <div>
               <div className="text-sm font-medium text-gray-900 flex items-center space-x-2">
+                <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full font-semibold">
+                  🔧 TOOL CALL
+                </span>
                 <span>{formatToolName(toolName)}</span>
                 {getStatusIcon(status)}
               </div>
