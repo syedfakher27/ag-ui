@@ -264,7 +264,7 @@ const PlayerCard = ({ player, onPlayerClick }) => {
         </h3>
         
         <div className="flex items-center justify-between text-sm text-gray-600">
-          <span className="font-medium">{player.class || 'N/A'}</span>
+          <span className="font-medium">{player.class || player.class_ || 'N/A'}</span>
           <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
             {player.position || 'N/A'}
           </span>
@@ -373,7 +373,7 @@ const PlayerDetails = ({ player, onClose }) => {
           </div>
           <div className="text-center">
             <div className="text-lg font-bold text-gray-800">
-              {player.class_ || 'N/A'}
+              {player.class_ || player.class || 'N/A'}
             </div>
             <div className="text-sm text-gray-600">Class</div>
           </div>
