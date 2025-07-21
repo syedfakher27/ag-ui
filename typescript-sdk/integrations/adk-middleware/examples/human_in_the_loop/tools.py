@@ -5,9 +5,8 @@ import requests
 
 def filter_transfer_portal_players(
     tool_context: ToolContext,
-    team: Optional[str] = None,
     class_: Optional[str] = None,
-    positionGap: Optional[str] = None,
+    position: Optional[str] = None,
     efficiencyRating: Optional[int] = None,
     page: int = 1,
     page_size: int = 20,
@@ -25,7 +24,12 @@ def filter_transfer_portal_players(
     Args:
         team (str, optional): Team name to filter by (e.g., "Montana State")
         class_ (str, optional): Class level (e.g., "JR", "SR", "SO", "FR")
-        position (str, optional): Position (e.g., "PG", "SG", "SF", "PF", "C")
+        position (str, optional):
+            PF - Match: "power forward", "power", "forward" (if "small" not present), "PF", "4"
+            PG - Match: "point guard", "point", "guard" (if "shooting" not present), "PG", "1", "primary guard"
+            SG - Match: "shooting guard", "shooting", "two guard", "SG", "2", "off guard"
+            SF - Match: "small forward", "small", "forward" (if "power" not present), "SF", "3", "wing"
+            C - Match: "center", "centre", "C", "5", "big", "pivot"
         efficiencyRating (int, optional): Minimum possessions threshold
         page (int): Page number for pagination (default: 1)
         page_size (int): Number of results per page (default: 20)
@@ -39,12 +43,13 @@ def filter_transfer_portal_players(
     """
     print('-------------filter_transfer_portal_players---------------')
     schema = "MBB"
+    team=None
     # Store current filters in tool context
     current_filters = tool_context.state.get("filters", {})
     current_filters.update({
         'team': team,
         'class_': class_,
-        'position': positionGap,
+        'position': position,
         'min_possessions': efficiencyRating,
         'page': page,
         'page_size': page_size,
@@ -65,8 +70,8 @@ def filter_transfer_portal_players(
     if class_:
         params.append(f"class={quote(class_)}")
     
-    if positionGap:
-        params.append(f"position={quote(positionGap)}")
+    if position:
+        params.append(f"position={quote(position)}")
     
     if efficiencyRating is not None:
         params.append(f"min_possessions={efficiencyRating}")
