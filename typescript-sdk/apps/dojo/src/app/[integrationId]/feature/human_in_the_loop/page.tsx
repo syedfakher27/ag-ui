@@ -6,6 +6,8 @@ import "./style.css";
 import { CopilotKit, useCopilotAction, useLangGraphInterrupt, useCoAgent } from "@copilotkit/react-core";
 import { FilterState, FilterChangeHandler, AvailabilityChangeHandler, TEAM_OPTIONS } from './types';
 import { CopilotChat } from "@copilotkit/react-ui";
+import AgentTransferUI from "@/components/agent-ui/agent_ui";
+import ToolExecutionUI from "@/components/tool-ui/tool_ui";
 
 interface HumanInTheLoopProps {
   params: Promise<{
@@ -137,9 +139,111 @@ const TransferPortalAssistant = () => {
       }
     ],
     render: ({ args, result, status }) => {
-      return <StepsFeedback args={args} result={result} status={status} selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} />;
+      return (
+      <div className="space-y-4">
+        {/* Tool Execution UI */}
+        <ToolExecutionUI
+          toolName="shortlist_players"
+          args={args}
+          result={result}
+          status={status}
+        />
+        
+        {/* Steps Feedback UI */}
+        <StepsFeedback 
+          args={args} 
+          result={result} 
+          status={status} 
+          selectedPlayer={selectedPlayer} 
+          setSelectedPlayer={setSelectedPlayer} 
+        />
+      </div>
+    );
     },
   });
+
+  useCopilotAction({
+    name: "transfer_to_agent",
+    parameters: [
+      {
+        name: "agent_name",
+        type: "string",
+      }
+    ],
+    render: ({ args, result, status }) => {
+      return <AgentTransferUI args={args} result={result} status={status} />;
+    },
+  });
+
+  useCopilotAction({
+    name: "fetch_team_basketball_data",
+    parameters: [
+      {
+        name: "university_team",
+        type: "string",
+      }
+    ],
+    render: ({ args, result, status }) => {
+      return <ToolExecutionUI
+        toolName="fetch_team_basketball_data"
+        args={args}
+        result={result}
+        status={status}
+      />
+    },
+  });
+
+  useCopilotAction({
+    name: "filter_transfer_portal_players",
+    parameters: [
+      {
+        name: "class_",
+        type: "string",
+      },
+      {
+        name: "position",
+        type: "string",
+      },
+      {
+        name: "efficiencyRating",
+        type: "integer",
+      },
+      {
+        name: "excludeCommitted",
+        type: "boolean",
+      },
+      {
+        name: "additional_filter",
+        type: "string",
+      },
+    ],
+    render: ({ args, result, status }) => {
+      return <ToolExecutionUI
+        toolName="filter_transfer_portal_players"
+        args={args}
+        result={result}
+        status={status}
+      />
+    },
+  });
+
+  // useCopilotAction({
+  //   name: "shortlist_players",
+  //   parameters: [
+  //     {
+  //       name: "player_ids",
+  //       type: "string[]",
+  //     }
+  //   ],
+  //   render: ({ args, result, status }) => {
+  //     return <ToolExecutionUI
+  //       toolName="shortlist_players"
+  //       args={args}
+  //       result={result}
+  //       status={status}
+  //     />
+  //   },
+  // });
 
   const handleFilterChange = (filterType: string, value: any) => {
     setFilters(prev => ({
@@ -151,12 +255,12 @@ const TransferPortalAssistant = () => {
   // Updated handler function
   const handleCommitmentChange = (checked: boolean) => {
     setFilters(prev => ({
-    ...prev,
-    filters: {
-      ...prev.filters,
-      excludeCommitted: checked
-    }
-  }));
+      ...prev,
+      filters: {
+        ...prev.filters,
+        excludeCommitted: checked
+      }
+    }));
   };
 
   // Component implementation example
@@ -180,24 +284,6 @@ const TransferPortalAssistant = () => {
   };
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Left Sidebar - Filters */}
-      {/* <div className="w-80 bg-white border-r border-gray-200 p-4 overflow-y-auto">
-        <div className="space-y-6"> */}
-          {/* Player Commitment Toggle */}
-          {/* <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Player Status</h3>
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.filters.excludeCommitted}
-                onChange={(e) => handleCommitmentChange(e.target.checked)}
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-              />
-              <span className="text-sm text-gray-700">Show only committed players</span>
-            </label>
-          </div>
-        </div>
-      </div> */}
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
@@ -255,7 +341,7 @@ const TransferPortalAssistant = () => {
 
 const PlayerCard = ({ player, onPlayerClick }) => {
   return (
-    <div 
+    <div
       className="bg-white rounded-lg shadow-md border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200"
       onClick={() => onPlayerClick(player)}
     >
@@ -263,14 +349,14 @@ const PlayerCard = ({ player, onPlayerClick }) => {
         <h3 className="text-lg font-semibold text-gray-900 truncate">
           {player.name || 'Unknown Player'}
         </h3>
-        
+
         <div className="flex items-center justify-between text-sm text-gray-600">
           <span className="font-medium">{player.class || player.class_ || 'N/A'}</span>
           <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
             {player.position || 'N/A'}
           </span>
         </div>
-        
+
         <div className="text-sm text-gray-500 truncate">
           {player.team || 'N/A'}
         </div>
@@ -461,7 +547,7 @@ const PlayerDetails = ({ player, onClose }) => {
                 {getAvailabilityText(player.eligible, player.new_team)}
               </span>
             </div>
-            
+
             {player.new_team && player.new_team !== 'nan' && player.new_team !== 'N/A' && (
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">New Team</span>
@@ -532,7 +618,6 @@ const StepsFeedback = ({ args, result, status, selectedPlayer, setSelectedPlayer
   const [accepted, setAccepted] = useState(null);
 
   const players = result?.result || [];
-  console.log('players===>', players);
   // const [selectedPlayer, setSelectedPlayer] = useState(null);
   const handlePlayerClick = (player) => {
     console.log('selected player', player)
@@ -626,17 +711,16 @@ const StepsFeedback = ({ args, result, status, selectedPlayer, setSelectedPlayer
                       #{player.Rank || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        player.eligible === 'True' || player.eligible === true
-                          ? (player.new_team && player.new_team !== 'nan' && player.new_team !== 'N/A' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800')
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${player.eligible === 'True' || player.eligible === true
+                          ? (player.new_team && player.new_team !== 'nan' && player.new_team !== 'N/A'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800')
                           : 'bg-red-100 text-red-800'
-                      }`}>
+                        }`}>
                         {player.eligible === 'True' || player.eligible === true
-                          ? (player.new_team && player.new_team !== 'nan' && player.new_team !== 'N/A' 
-                              ? 'Committed' 
-                              : 'Available')
+                          ? (player.new_team && player.new_team !== 'nan' && player.new_team !== 'N/A'
+                            ? 'Committed'
+                            : 'Available')
                           : 'Not Available'}
                       </span>
                     </td>

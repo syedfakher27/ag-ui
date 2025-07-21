@@ -726,10 +726,11 @@ class ADKAgent:
             input_tools = []
             for input_tool in input.tools:
                 # Check if this input tool's name matches any existing tool
-                if not any(hasattr(existing_tool, '__name__') and input_tool.name == existing_tool.__name__ 
-                        for existing_tool in existing_tools):
+                # exclude this specific tool call transfer_to_agent which is used internally by the adk to handoff to other agents
+                if (not any(hasattr(existing_tool, '__name__') and input_tool.name == existing_tool.__name__
+                        for existing_tool in existing_tools) and input_tool.name != 'transfer_to_agent'):
                     input_tools.append(input_tool)
-                        
+      
             toolset = ClientProxyToolset(
                 ag_ui_tools=input_tools,
                 event_queue=event_queue
