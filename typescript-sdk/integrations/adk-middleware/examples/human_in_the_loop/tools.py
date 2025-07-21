@@ -156,10 +156,10 @@ def shortlist_players(tool_context: ToolContext, player_ids: List[str]) -> Optio
     }
     
     try:
-        tool_context.state["shortlisted_player_ids"] = player_ids
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()  # Raises an HTTPError for bad responses
         player_stats =  response.json()
+        tool_context.state["shortlisted_player_ids"] = player_ids
         # print('player_stats===>',player_stats)
         return player_stats
     
