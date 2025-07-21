@@ -9,6 +9,7 @@ from google.adk.tools import agent_tool
 from typing import Optional,Dict, Any
 from google.adk.agents import LlmAgent
 from ..team_analysis.agent import team_gap_analysis_agent
+from ..player_evaluation.agent import player_evaluation_agent
 from .tools import filter_transfer_portal_players , shortlist_players
 
 # --- Define the Callback Function ---
@@ -91,6 +92,7 @@ You are a Player Shortlist Agent specialized in analyzing transfer portal player
 
 team_gap_analysis_child_agent = agent_tool.AgentTool(agent=team_gap_analysis_agent)
 player_shortlist_child_agent_based_on_gaps = agent_tool.AgentTool(agent=player_shortlist_agent_based_on_gaps)
+player_evaluation_child_agent = agent_tool.AgentTool(agent=player_evaluation_agent)
 
 # player_shortlist_agent = SequentialAgent(
 #     name="player_shortlist_agent",
@@ -145,7 +147,6 @@ Intelligently route basketball-related queries to the most appropriate specializ
 - Creating shortlists based on criteria
 - Player recommendations for identified gaps
 - Transfer portal searches with specific requirements
-- Player comparisons and evaluations
 - Position-specific player searches
 - Players meeting certain statistical thresholds
 
@@ -155,6 +156,26 @@ Intelligently route basketball-related queries to the most appropriate specializ
 - Specific position requirements (PG, SG, SF, PF, C)
 - Statistical criteria or performance thresholds
 - "Find me players who...", "Who are the best...", "Shortlist players..."
+
+### 3. Player Evaluation Agent (`player_evaluation_agent`)
+**Purpose**: Detailed player performance analysis and scoring
+**Use When User Asks About**:
+- Comprehensive player evaluation reports
+- Player performance scores and rankings
+- Statistical analysis and breakdowns
+- Player comparisons and assessments
+- Detailed scouting reports with scoring metrics
+- Performance trends and consistency analysis
+- Player development potential evaluation
+- Recruitment priority recommendations
+
+**Key Indicators**:
+- Mentions "evaluate", "analysis", "score", "assessment", "report"
+- Requests for player performance evaluation or detailed analysis
+- Questions about specific player statistics or performance
+- Comparisons between players with detailed metrics
+- "How good is [player]?", "Evaluate [player]", "Player report on..."
+- Requests for scoring or ranking specific players
 
 ## Routing Decision Framework
 
@@ -181,10 +202,21 @@ Carefully analyze the user query to identify:
 - Query includes specific player criteria or requirements
 - User asks about available players for certain positions or needs
 
+**Route to Player Evaluation Agent if**:
+- Query focuses on evaluating specific players in detail
+- User wants comprehensive player analysis or performance scores
+- Request involves detailed statistical breakdowns or scouting reports
+- Query asks for player comparisons with metrics and rankings
+- User needs evaluation reports for recruitment decisions
+- Request involves assessing player development potential or fit
+
 ### Step 3: Context Consideration
 - **Sequential Queries**: Consider if this is a follow-up that should maintain agent continuity
-- **Hybrid Requests**: If query involves both team analysis AND player search, start with gap analysis first
-- **Ambiguous Cases**: Default to the agent that can best provide initial value, typically team analysis for team-focused queries
+- **Hybrid Requests**: Handle multi-faceted queries appropriately:
+  - Team analysis + Player search: Start with gap analysis, then shortlist
+  - Player search + Evaluation: Start with shortlist, then evaluation
+  - Team analysis + Player evaluation: Start with gap analysis, then evaluation
+- **Ambiguous Cases**: Default to the agent that can best provide initial value based on primary intent
 
 ## Communication Protocol
 
@@ -202,13 +234,28 @@ Carefully analyze the user query to identify:
 **For Player Shortlist Route**:
 "I'll help you find transfer portal players that meet your specific requirements. Let me connect you with our Player Shortlist specialist who will search the transfer portal and create a targeted shortlist for you."
 
+**For Player Evaluation Route**:
+"I'll provide you with comprehensive player evaluation reports including performance scores and detailed analysis. Let me connect you with our Player Evaluation specialist who will analyze player statistics and generate detailed assessment reports."
+
 ## Special Handling Cases
 
 ### Hybrid Queries
-If a query involves both team analysis AND player recommendations:
+Handle complex queries involving multiple agent capabilities:
+
+**Team Analysis + Player Search**:
 1. **First**: Route to Team Gap Analysis Agent to identify specific needs
 2. **Then**: Use those results to inform the Player Shortlist Agent for targeted recommendations
 3. **Coordinate**: Ensure smooth handoff between agents with context preservation
+
+**Player Search + Evaluation**:
+1. **First**: Route to Player Shortlist Agent to identify candidates
+2. **Then**: Route to Player Evaluation Agent for detailed analysis of shortlisted players
+3. **Integrate**: Combine search results with comprehensive evaluations
+
+**Team Analysis + Player Evaluation**:
+1. **First**: Route to Team Gap Analysis Agent to understand team needs
+2. **Then**: Route to Player Evaluation Agent to assess specific players against those needs
+3. **Synthesize**: Provide recommendations based on team fit and player quality
 
 ### Follow-up Queries
 - Maintain continuity with the currently active agent when appropriate
@@ -217,7 +264,7 @@ If a query involves both team analysis AND player recommendations:
 
 ### Ambiguous Queries
 - Ask clarifying questions when intent is unclear
-- Provide options: "Would you like me to analyze your team's gaps or find players from the transfer portal?"
+- Provide options: "Would you like me to analyze your team's gaps, find players from the transfer portal, or evaluate specific players?"
 - Default to the most logical starting point based on available context
 
 ## Quality Assurance
@@ -235,5 +282,5 @@ Always prioritize providing the most relevant and actionable assistance by selec
     ),
     before_model_callback=simple_before_model_modifier,
     tools=[],  # Router agent typically doesn't need direct tools
-    sub_agents=[team_gap_analysis_agent, player_shortlist_agent_based_on_gaps]
+    sub_agents=[team_gap_analysis_agent, player_shortlist_agent_based_on_gaps, player_evaluation_agent]
 )
