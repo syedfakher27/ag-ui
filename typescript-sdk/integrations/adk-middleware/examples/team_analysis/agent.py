@@ -5,7 +5,9 @@ from google.adk.tools.tool_context import ToolContext
 from google.adk.models import LlmResponse, LlmRequest
 from google.adk.agents.callback_context import CallbackContext
 from typing import Optional, Dict, Any
+from google.adk.agents import LlmAgent
 from .tools import fetch_team_basketball_data
+
 
 
 def team_analysis_modifier(
@@ -35,7 +37,7 @@ def team_analysis_modifier(
     return None
 
 
-team_gap_analysis_agent = Agent(
+team_gap_analysis_agent = LlmAgent(
     model='gemini-2.5-flash',
     name='team_gap_analysis_agent',
     instruction="""

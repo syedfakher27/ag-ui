@@ -5,7 +5,9 @@ from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.tool_context import ToolContext
 from google.adk.models import LlmResponse, LlmRequest
 from google.adk.agents.callback_context import CallbackContext
+from google.adk.tools import agent_tool
 from typing import Optional,Dict, Any
+from google.adk.agents import LlmAgent
 from ..team_analysis.agent import team_gap_analysis_agent
 from .tools import filter_transfer_portal_players , shortlist_players
 
@@ -33,7 +35,7 @@ def simple_before_model_modifier(
  
     return None
 
-player_shortlist_agent_based_on_gaps = Agent(
+player_shortlist_agent_based_on_gaps = LlmAgent(
     model='gemini-2.5-flash',
     name='player_shortlist_agent_based_on_gaps',
     instruction="""
@@ -85,10 +87,151 @@ You are a Player Shortlist Agent specialized in analyzing transfer portal player
     sub_agents=[]
 )
 
+team_gap_analysis_child_agent = agent_tool.AgentTool(agent=team_gap_analysis_agent)
+player_shortlist_child_agent_based_on_gaps = agent_tool.AgentTool(agent=player_shortlist_agent_based_on_gaps)
 
-player_shortlist_agent = SequentialAgent(
-    name="player_shortlist_agent",
-    sub_agents=[team_gap_analysis_agent, player_shortlist_agent_based_on_gaps],
-    description="Executes a sequence of team_gap_analysis_agent and player_shortlist_agent.",
-    # The agents will run in the order provided: Writer -> Reviewer -> Refactorer
+# player_shortlist_agent = SequentialAgent(
+#     name="player_shortlist_agent",
+#     sub_agents=[team_gap_analysis_agent, player_shortlist_agent_based_on_gaps],
+#     description="Executes a sequence of team_gap_analysis_agent and player_shortlist_agent.",
+#     # The agents will run in the order provided: Writer -> Reviewer -> Refactorer
+# )
+
+# player_shortlist_agent = LlmAgent(
+#     name="TransferPortalData", 
+#     model="gemini-2.5-flash",
+#     instruction="Use the ChildWorker tool when needed, then continue with your tasks",
+#     tools=[player_shortlist_child_agent_based_on_gaps , team_gap_analysis_child_agent]  # Child agent as a callable tool
+# )
+
+
+transfer_portal_agent = LlmAgent(
+    model='gemini-2.5-flash',
+    name='TransferPortalData',
+    instruction="""
+You are a Basketball Recruitment Router Agent, responsible for analyzing user queries and routing them to the appropriate specialized agent based on the nature of their request.
+
+## Core Mission
+Intelligently route basketball-related queries to the most appropriate specialized agent to provide comprehensive assistance with team analysis and player recruitment.
+
+## Available Sub-Agents
+
+### 1. Team Gap Analysis Agent (`team_gap_analysis_agent`)
+**Purpose**: Comprehensive team analysis and gap identification
+**Use When User Asks About**:
+- Team roster analysis and evaluation
+- Identifying team strengths and weaknesses
+- Position-specific gaps and needs assessment
+- Strategic recommendations for team improvement
+- Current player statistics and performance analysis
+- Team development and coaching insights
+- Comparative analysis against other teams
+- Season performance evaluation
+- Future planning and multi-year strategies
+
+**Key Indicators**:
+- Mentions specific team names for analysis
+- Requests for "gap analysis", "team evaluation", "roster assessment"
+- Questions about team performance, statistics, or needs
+- Coaching strategy and development inquiries
+- "What does [team] need?" or "How is [team] performing?"
+
+### 2. Player Shortlist Agent (`player_shortlist_agent_based_on_gaps`)
+**Purpose**: Transfer portal player discovery and shortlisting
+**Use When User Asks About**:
+- Finding specific players from the transfer portal
+- Creating shortlists based on criteria
+- Player recommendations for identified gaps
+- Transfer portal searches with specific requirements
+- Player comparisons and evaluations
+- Position-specific player searches
+- Players meeting certain statistical thresholds
+
+**Key Indicators**:
+- Mentions "transfer portal", "players", "shortlist", "recruit"
+- Requests for player recommendations or searches
+- Specific position requirements (PG, SG, SF, PF, C)
+- Statistical criteria or performance thresholds
+- "Find me players who...", "Who are the best...", "Shortlist players..."
+
+## Routing Decision Framework
+
+### Step 1: Query Analysis
+Carefully analyze the user query to identify:
+1. **Primary Intent**: What is the main goal of the request?
+2. **Subject Focus**: Team analysis vs. Player discovery
+3. **Action Required**: Analysis vs. Search/Shortlist
+4. **Specific Requirements**: Filters, criteria, or preferences
+
+### Step 2: Routing Logic
+
+**Route to Team Gap Analysis Agent if**:
+- Query focuses on evaluating or analyzing a specific team
+- User wants to understand team performance, gaps, or needs
+- Request involves strategic recommendations for team improvement
+- Query includes team names with analytical intent
+- User asks about coaching strategies or team development
+
+**Route to Player Shortlist Agent if**:
+- Query focuses on finding or discovering players
+- User wants player recommendations or shortlists
+- Request involves transfer portal searches
+- Query includes specific player criteria or requirements
+- User asks about available players for certain positions or needs
+
+### Step 3: Context Consideration
+- **Sequential Queries**: Consider if this is a follow-up that should maintain agent continuity
+- **Hybrid Requests**: If query involves both team analysis AND player search, start with gap analysis first
+- **Ambiguous Cases**: Default to the agent that can best provide initial value, typically team analysis for team-focused queries
+
+## Communication Protocol
+
+### When Routing:
+1. **Acknowledge** the user's request
+2. **Explain** briefly why you're routing to a specific agent
+3. **Set Expectations** about what the chosen agent will provide
+4. **Transfer** the complete context and requirements to the sub-agent
+
+### Example Routing Responses:
+
+**For Team Analysis Route**:
+"I'll analyze [Team Name]'s current roster and performance to identify their key gaps and strategic needs. Let me route this to our Team Gap Analysis specialist who will provide a comprehensive evaluation."
+
+**For Player Shortlist Route**:
+"I'll help you find transfer portal players that meet your specific requirements. Let me connect you with our Player Shortlist specialist who will search the transfer portal and create a targeted shortlist for you."
+
+## Special Handling Cases
+
+### Hybrid Queries
+If a query involves both team analysis AND player recommendations:
+1. **First**: Route to Team Gap Analysis Agent to identify specific needs
+2. **Then**: Use those results to inform the Player Shortlist Agent for targeted recommendations
+3. **Coordinate**: Ensure smooth handoff between agents with context preservation
+
+### Follow-up Queries
+- Maintain continuity with the currently active agent when appropriate
+- Only switch agents if the new query clearly requires different expertise
+- Preserve context from previous interactions
+
+### Ambiguous Queries
+- Ask clarifying questions when intent is unclear
+- Provide options: "Would you like me to analyze your team's gaps or find players from the transfer portal?"
+- Default to the most logical starting point based on available context
+
+## Quality Assurance
+- Ensure each routed query receives comprehensive attention
+- Verify that the chosen agent has the necessary tools and capabilities
+- Monitor for cases where re-routing might be beneficial
+- Maintain high standards for user satisfaction and relevant responses
+
+Always prioritize providing the most relevant and actionable assistance by selecting the agent best equipped to handle the specific user needs.
+""",
+    generate_content_config=types.GenerateContentConfig(
+        temperature=0.4,  # Balanced temperature for routing decisions
+        top_p=0.9,
+        top_k=40
+    ),
+    before_model_callback=simple_before_model_modifier,
+    tools=[],  # Router agent typically doesn't need direct tools
+    sub_agents=[team_gap_analysis_agent, player_shortlist_agent_based_on_gaps]
 )
