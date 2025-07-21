@@ -110,11 +110,15 @@ def filter_transfer_portal_players(
         if excludeCommitted:
             print("filtering non-committed players")
             players_data = [
-                player for player in players_data
+                {"player_id": player.get('players'), "player_name":player.get('name')} for player in players_data
                 if not player.get("new_team") or str(player.get("new_team")).strip().lower() in ["", "nan"]
             ]
+        else:
+            players_data = [
+                {"player_id": player.get('players'), "player_name":player.get('name')} for player in players_data      
+            ]
 
-        tool_context.state["player_info"] = players_data
+        tool_context.state["transfer_portal_player_info"] = players_data
         return players_data
     except requests.exceptions.RequestException as e:
         print(f"API request failed: {e}")
@@ -128,7 +132,7 @@ def filter_transfer_portal_players(
         print(f"Unexpected error: {e}")
         raise Exception(f"Error filtering transfer portal players: {str(e)}")
 
-def shortlist_players(player_ids: List[str]) -> Optional[Dict[Any, Any]]:
+def shortlist_players(tool_context: ToolContext, player_ids: List[str]) -> Optional[Dict[Any, Any]]:
     """
     Confirm the shortlisted players that fullfills the given criteria.
     
@@ -152,6 +156,7 @@ def shortlist_players(player_ids: List[str]) -> Optional[Dict[Any, Any]]:
     }
     
     try:
+        tool_context.state["shortlisted_player_ids"] = player_ids
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()  # Raises an HTTPError for bad responses
         player_stats =  response.json()
