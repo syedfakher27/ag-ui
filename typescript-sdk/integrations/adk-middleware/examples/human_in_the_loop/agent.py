@@ -10,7 +10,8 @@ from typing import Optional,Dict, Any
 from google.adk.agents import LlmAgent
 from ..team_analysis.agent import team_gap_analysis_agent
 from .tools import filter_transfer_portal_players , shortlist_players
-
+import os
+os.environ["GOOGLE_API_KEY"] = 'AIzaSyDFK0MpCNbEs370EKFobNVBM5_uT7VyMhM'
 
 # --- Define the Callback Function ---
 def simple_before_model_modifier(
@@ -50,6 +51,9 @@ You are a Player Shortlist Agent specialized in analyzing transfer portal player
    - Class level requirements (FR, SO, JR, SR)
    - Position needs (PG, SG, SF, PF, C)
    - Minimum efficiency rating thresholds
+   - Commitment Status (`excludeCommitted`):
+     * `excludeCommitted=True` (RECOMMENDED DEFAULT): Show only uncommitted/available players
+     * `excludeCommitted=False`: Show all players including committed ones
    - Use pagination to explore comprehensive results
 ##Important Note
     if there are any extra filters required then ignore that filter parameter and always call that tool filter_transfer_portal_players 

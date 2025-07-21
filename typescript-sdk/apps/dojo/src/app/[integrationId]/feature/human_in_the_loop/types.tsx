@@ -102,7 +102,7 @@ export interface TransferPortalFilters {
   // efficiencyRating: number;
   // team: Team;
   // class_: Class;
-  isCommitted: boolean;
+  excludeCommitted: boolean;
   // reboundBlockAssist: number;
   // availability: AvailabilityStatus;
 }

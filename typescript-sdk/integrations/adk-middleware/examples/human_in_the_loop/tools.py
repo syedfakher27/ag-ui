@@ -8,6 +8,7 @@ def filter_transfer_portal_players(
     class_: Optional[str] = None,
     position: Optional[str] = None,
     efficiencyRating: Optional[int] = None,
+    excludeCommitted: Optional[bool] = False,
     page: int = 1,
     page_size: int = 20,
     sort_by: Optional[str] = None,
@@ -31,6 +32,7 @@ def filter_transfer_portal_players(
             SF - Match: "small forward", "small", "forward" (if "power" not present), "SF", "3", "wing"
             C - Match: "center", "centre", "C", "5", "big", "pivot"
         efficiencyRating (int, optional): Minimum possessions threshold
+        excludeCommitted (bool, optional) : if enabled, then filter players who are not commmitted to any team
         page (int): Page number for pagination (default: 1)
         page_size (int): Number of results per page (default: 20)
         additional_filter (str, optional) : if there is any extra filter use this param like this "rank:80"
@@ -53,7 +55,8 @@ def filter_transfer_portal_players(
         'min_possessions': efficiencyRating,
         'page': page,
         'page_size': page_size,
-        'schema': schema
+        'schema': schema,
+        'excludeCommitted': excludeCommitted
     })
     tool_context.state["filters"] = current_filters
     
@@ -104,6 +107,13 @@ def filter_transfer_portal_players(
         
         # Extract player data
         players_data = api_response.get('data', [])
+        if excludeCommitted:
+            print("filtering non-committed players")
+            players_data = [
+                player for player in players_data
+                if not player.get("new_team") or str(player.get("new_team")).strip().lower() in ["", "nan"]
+            ]
+
         tool_context.state["player_info"] = players_data
         return players_data
     except requests.exceptions.RequestException as e:
@@ -145,7 +155,7 @@ def shortlist_players(player_ids: List[str]) -> Optional[Dict[Any, Any]]:
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()  # Raises an HTTPError for bad responses
         player_stats =  response.json()
-        print('player_stats===>',player_stats)
+        # print('player_stats===>',player_stats)
         return player_stats
     
     except requests.exceptions.RequestException as e:
@@ -278,7 +288,7 @@ def _safe_sort_key(value):
         return float(value)
     except (ValueError, TypeError):
         return str(value).lower()
-    
+
 
 players=[
   {

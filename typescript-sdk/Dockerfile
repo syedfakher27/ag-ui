@@ -15,10 +15,6 @@ COPY . .
 # Install all workspace dependencies
 RUN pnpm install && pnpm build
 
-# Finally build frontend (dojo)
-WORKDIR /app/apps/dojo
-RUN pnpm install && pnpm build
-
 WORKDIR /app/apps/dojo 
 
 # # Expose port

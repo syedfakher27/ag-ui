@@ -113,7 +113,7 @@ const TransferPortalAssistant = () => {
   // });
   const initialFilters: FilterState = {
     filters: {
-      isCommitted: false
+      excludeCommitted: false
     }
   };
   const { state: filters, setState: setFilters } = useCoAgent<FilterState>(
@@ -127,6 +127,7 @@ const TransferPortalAssistant = () => {
     render: ({ event, resolve }) => <InterruptHumanInTheLoop event={event} resolve={resolve} />,
   });
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  console.log('Current filters:', filters.filters);
   useCopilotAction({
     name: "shortlist_players",
     parameters: [
@@ -153,7 +154,7 @@ const TransferPortalAssistant = () => {
     ...prev,
     filters: {
       ...prev.filters,
-      isCommitted: checked
+      excludeCommitted: checked
     }
   }));
   };
@@ -165,7 +166,7 @@ const TransferPortalAssistant = () => {
         <label>
           <input
             type="checkbox"
-            checked={filters.filters.isCommitted}
+            checked={filters.filters.excludeCommitted}
             onChange={(e) => handleCommitmentChange(e.target.checked)}
             className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
           />
@@ -188,7 +189,7 @@ const TransferPortalAssistant = () => {
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={filters.filters.isCommitted}
+                checked={filters.filters.excludeCommitted}
                 onChange={(e) => handleCommitmentChange(e.target.checked)}
                 className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
               />
@@ -208,7 +209,7 @@ const TransferPortalAssistant = () => {
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={filters.filters.isCommitted}
+                  checked={filters.filters.excludeCommitted}
                   onChange={(e) => handleCommitmentChange(e.target.checked)}
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                 />
@@ -518,7 +519,7 @@ const PlayerDetails = ({ player, onClose }) => {
         {/* Footer */}
         <div className="pt-4 border-t border-gray-100">
           <div className="flex justify-between items-center text-xs text-gray-500">
-            <span>ID: {player.players || 'N/A'}</span>
+            <span>ID: {player.player_id || 'N/A'}</span>
             <span>Updated: {new Date().toLocaleDateString()}</span>
           </div>
         </div>
