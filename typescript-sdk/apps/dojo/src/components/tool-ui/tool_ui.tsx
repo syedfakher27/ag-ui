@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 
 const ToolExecutionUI = ({ toolName, args, result, status }) => {

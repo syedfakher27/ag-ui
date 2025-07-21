@@ -21,3 +21,11 @@ WORKDIR /app/apps/dojo
 EXPOSE 3000
 
 CMD ["pnpm", "start"]
+
+# gcloud builds submit -t gcr.io/slamsportsai/slams-agui-app
+
+# gcloud run deploy slams-agui-app \
+#   --image gcr.io/slamsportsai/slams-agui-app \
+#   --platform managed \
+#   --region us-central1 \
+#   --allow-unauthenticated
