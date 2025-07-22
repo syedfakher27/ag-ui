@@ -107,6 +107,7 @@ def filter_transfer_portal_players(
         
         # Extract player data
         players_data = api_response.get('data', [])
+        players_info = api_response.get('data', [])
         if excludeCommitted:
             print("filtering non-committed players")
             players_data = [
@@ -119,7 +120,7 @@ def filter_transfer_portal_players(
             ]
 
         tool_context.state["transfer_portal_player_info"] = players_data
-        return players_data
+        return players_info
     except requests.exceptions.RequestException as e:
         print(f"API request failed: {e}")
         raise Exception(f"Failed to fetch transfer portal data: {str(e)}")

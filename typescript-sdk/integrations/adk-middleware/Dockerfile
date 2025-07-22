@@ -36,8 +36,4 @@ CMD ["uvicorn", "examples.fastapi_server:app", "--host", "0.0.0.0", "--port", "8
 
 # gcloud builds submit -t us-central1-docker.pkg.dev/slamsportsai/slams/agui_adk
 
-# gcloud run deploy agui-adk \
-#   --image us-central1-docker.pkg.dev/slamsportsai/slams/agui_adk \
-#   --platform managed \
-#   --region us-central1 \
-#   --allow-unauthenticated
+# gcloud run deploy agui-adk --image us-central1-docker.pkg.dev/slamsportsai/slams/agui_adk --platform managed --region us-central1 --allow-unauthenticated
