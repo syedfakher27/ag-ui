@@ -48,17 +48,17 @@ def filter_transfer_portal_players(
     team=None
     # Store current filters in tool context
     current_filters = tool_context.state.get("filters", {})
-    current_filters.update({
-        'team': team,
-        'class_': class_,
-        'position': position,
-        'min_possessions': efficiencyRating,
-        'page': page,
-        'page_size': page_size,
-        'schema': schema,
-        'excludeCommitted': excludeCommitted
-    })
-    tool_context.state["filters"] = current_filters
+    # current_filters.update({
+    #     'team': team,
+    #     'class_': class_,
+    #     'position': position,
+    #     'min_possessions': efficiencyRating,
+    #     'page': page,
+    #     'page_size': page_size,
+    #     'schema': schema,
+    #     'excludeCommitted': excludeCommitted
+    # })
+    tool_context.state["filters"]["excludeCommitted"] = current_filters.get('excludeCommitted',False)
     
 
     # Base API URL
@@ -78,9 +78,10 @@ def filter_transfer_portal_players(
     
     if efficiencyRating is not None:
         params.append(f"min_possessions={efficiencyRating}")
-    
     if excludeCommitted:
-        params.append(f"isavailable={excludeCommitted}")
+        params.append("isavailable=true")
+    else:
+        params.append("isavailable=false")
     
     # Add pagination parameters
     params.append(f"page={page}")
@@ -111,10 +112,16 @@ def filter_transfer_portal_players(
         # Extract player data
         players_data = api_response.get('data', [])
         players_info = api_response.get('data', [])
-        
-        players_data = [
+        if excludeCommitted:
+            print("filtering non-committed players")
+            players_data = [
+                {"player_id": player.get('players'), "player_name":player.get('name')} for player in players_data
+                if not player.get("new_team") or str(player.get("new_team")).strip().lower() in ["", "nan"]
+            ]
+        else:
+            players_data = [
                 {"player_id": player.get('players'), "player_name":player.get('name')} for player in players_data      
-        ]
+            ]
 
         tool_context.state["transfer_portal_player_info"] = players_data
         return players_info
