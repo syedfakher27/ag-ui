@@ -24,7 +24,7 @@ def simple_before_model_modifier(
             if last_message.parts and hasattr(last_message.parts[0],'text') and last_message.parts[0].text !="" and last_message.parts[0].function_response.__class__.__name__ != 'FunctionResponse' :
                 # Get the original text and add prefix
                 original_text = last_message.parts[0].text or ""
-                modified_user_text = original_text + f"\n here are the current filters state for the required players {callback_context.state.get('filters')}\n\n Here is the summary of the current URI team gap analsyis report\n\n##Team Gap Analysis:\n{callback_context.state.get('team_gap_analysis')}"
+                modified_user_text = original_text + f"\n here are the current filters state for the required players {callback_context.state.get('filters')}\n\n Here is the summary of the current URI team gap analsyis report\n\n##Team Gap Analysis:\n{callback_context.state.get('team_gap_analysis')}\n\nIMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only."
                 # Update the message content
                 last_message.parts[0].text = modified_user_text
                 if not isinstance(original_instruction, types.Content):
@@ -79,6 +79,8 @@ You are a Player Shortlist Agent specialized in analyzing transfer portal player
    
 2. **Use `shortlist_players`** tool to confirm the final shortlisted players
 3. Provide detailed justification for each selection
+
+IMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only.
    """,
     generate_content_config=types.GenerateContentConfig(
         temperature=0.7,
@@ -274,6 +276,8 @@ Handle complex queries involving multiple agent capabilities:
 - Maintain high standards for user satisfaction and relevant responses
 
 Always prioritize providing the most relevant and actionable assistance by selecting the agent best equipped to handle the specific user needs.
+
+IMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only.
 """,
     generate_content_config=types.GenerateContentConfig(
         temperature=0.4,  # Balanced temperature for routing decisions

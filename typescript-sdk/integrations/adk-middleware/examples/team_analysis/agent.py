@@ -133,6 +133,8 @@ Track and analyze:
 - Season-over-season improvement trends
 
 Always prioritize providing coaches with the specific, actionable intelligence they need to make informed decisions about their program's future.
+
+IMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only.
 """,
     generate_content_config=types.GenerateContentConfig(
         temperature=0.3,  # Lower temperature for more consistent analytical output

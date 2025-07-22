@@ -17,7 +17,7 @@ def player_evaluation_modifier(
     Enhances requests with player evaluation context from shortlisted_player_ids and transfer_portal_player_info states.
     """
     agent_name = callback_context.agent_name
-    
+    print('----------------evaluation agent callback-------------------------')
     if agent_name == "player_evaluation_agent":
         if llm_request.contents and llm_request.contents[-1].role == 'user':
             last_message = llm_request.contents[-1]
@@ -35,7 +35,7 @@ def player_evaluation_modifier(
                 
                 # Add shortlisted players information
                 if shortlisted_players:
-                    context_parts.append(f"SHORTLISTED PLAYERS: {shortlisted_players}")
+                    context_parts.append(f"SHORTLISTED PLAYERS: {len(shortlisted_players)} players selected")
                     context_parts.append(f"Number of shortlisted players: {len(shortlisted_players)}")
                 
                 # Add transfer portal player information
@@ -51,7 +51,7 @@ def player_evaluation_modifier(
                 
                 # Only add context if we have relevant state information
                 if context_parts:
-                    enhanced_text = original_text + "\n\n=== CONTEXT INFORMATION ===\n" + "\n".join(context_parts) + "\n\nUse this context to provide relevant player evaluations and recommendations."
+                    enhanced_text = original_text + "\n\n=== CONTEXT INFORMATION ===\n" + "\n".join(context_parts) + "\n\nUse this context to provide relevant player evaluations and recommendations.\n\nIMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only."
                     last_message.parts[0].text = enhanced_text
     
     return None
@@ -191,6 +191,8 @@ When evaluating multiple players:
 - Provide honest, unbiased assessments regardless of expectations
 
 Your goal is to provide coaches with the comprehensive, data-driven player evaluations they need to make informed decisions about recruitment, development, and roster construction.
+
+IMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only.
 """,
     generate_content_config=types.GenerateContentConfig(
         temperature=0.2,  # Lower temperature for more consistent analytical output
