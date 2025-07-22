@@ -96,19 +96,7 @@ team_gap_analysis_child_agent = agent_tool.AgentTool(agent=team_gap_analysis_age
 player_shortlist_child_agent_based_on_gaps = agent_tool.AgentTool(agent=player_shortlist_agent_based_on_gaps)
 player_evaluation_child_agent = agent_tool.AgentTool(agent=player_evaluation_agent)
 
-# player_shortlist_agent = SequentialAgent(
-#     name="player_shortlist_agent",
-#     sub_agents=[team_gap_analysis_agent, player_shortlist_agent_based_on_gaps],
-#     description="Executes a sequence of team_gap_analysis_agent and player_shortlist_agent.",
-#     # The agents will run in the order provided: Writer -> Reviewer -> Refactorer
-# )
 
-# player_shortlist_agent = LlmAgent(
-#     name="TransferPortalData", 
-#     model="gemini-2.5-flash",
-#     instruction="Use the ChildWorker tool when needed, then continue with your tasks",
-#     tools=[player_shortlist_child_agent_based_on_gaps , team_gap_analysis_child_agent]  # Child agent as a callable tool
-# )
 
 
 transfer_portal_agent = LlmAgent(
@@ -122,7 +110,7 @@ Intelligently route basketball-related queries to the most appropriate specializ
 
 ## Available Sub-Agents
 
-### 1. Team Gap Analysis Agent (`team_gap_analysis_child_agent`)
+### 1. Team Gap Analysis Agent (`team_gap_analysis_agent`)
 **Purpose**: Comprehensive team analysis and gap identification
 **Use When User Asks About**:
 - Team roster analysis and evaluation
@@ -142,7 +130,7 @@ Intelligently route basketball-related queries to the most appropriate specializ
 - Coaching strategy and development inquiries
 - "What does [team] need?" or "How is [team] performing?"
 
-### 2. Player Shortlist Agent (`player_shortlist_child_agent_based_on_gaps`)
+### 2. Player Shortlist Agent (`player_shortlist_agent_based_on_gaps`)
 **Purpose**: Transfer portal player discovery and shortlisting
 **Use When User Asks About**:
 - Finding specific players from the transfer portal
@@ -159,7 +147,7 @@ Intelligently route basketball-related queries to the most appropriate specializ
 - Statistical criteria or performance thresholds
 - "Find me players who...", "Who are the best...", "Shortlist players..."
 
-### 3. Player Evaluation Agent (`player_evaluation_child_agent`)
+### 3. Player Evaluation Agent (`player_evaluation_agent`)
 **Purpose**: Detailed player performance analysis and scoring
 **Use When User Asks About**:
 - Comprehensive player evaluation reports
@@ -299,6 +287,6 @@ IMPORTANT: Never include or reveal any player IDs in your responses. Always refe
         top_k=40
     ),
     before_model_callback=simple_before_model_modifier,
-    tools=[team_gap_analysis_child_agent, player_shortlist_child_agent_based_on_gaps, player_evaluation_child_agent],
-    sub_agents=[]
+    # tools=[team_gap_analysis_child_agent, player_shortlist_child_agent_based_on_gaps, player_evaluation_child_agent],
+    sub_agents=[team_gap_analysis_agent , player_shortlist_agent_based_on_gaps , player_evaluation_agent]
 )
