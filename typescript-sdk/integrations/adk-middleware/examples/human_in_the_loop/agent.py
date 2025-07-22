@@ -122,7 +122,7 @@ Intelligently route basketball-related queries to the most appropriate specializ
 
 ## Available Sub-Agents
 
-### 1. Team Gap Analysis Agent (`team_gap_analysis_agent`)
+### 1. Team Gap Analysis Agent (`team_gap_analysis_child_agent`)
 **Purpose**: Comprehensive team analysis and gap identification
 **Use When User Asks About**:
 - Team roster analysis and evaluation
@@ -142,7 +142,7 @@ Intelligently route basketball-related queries to the most appropriate specializ
 - Coaching strategy and development inquiries
 - "What does [team] need?" or "How is [team] performing?"
 
-### 2. Player Shortlist Agent (`player_shortlist_agent_based_on_gaps`)
+### 2. Player Shortlist Agent (`player_shortlist_child_agent_based_on_gaps`)
 **Purpose**: Transfer portal player discovery and shortlisting
 **Use When User Asks About**:
 - Finding specific players from the transfer portal
@@ -159,7 +159,7 @@ Intelligently route basketball-related queries to the most appropriate specializ
 - Statistical criteria or performance thresholds
 - "Find me players who...", "Who are the best...", "Shortlist players..."
 
-### 3. Player Evaluation Agent (`player_evaluation_agent`)
+### 3. Player Evaluation Agent (`player_evaluation_child_agent`)
 **Purpose**: Detailed player performance analysis and scoring
 **Use When User Asks About**:
 - Comprehensive player evaluation reports
@@ -178,14 +178,15 @@ Intelligently route basketball-related queries to the most appropriate specializ
 - Comparisons between players with detailed metrics
 - "How good is [player]?", "Evaluate [player]", "Player report on..."
 - Requests for scoring or ranking specific players
+- Mentions specific player names for detailed evaluation
 
 ## Routing Decision Framework
 
 ### Step 1: Query Analysis
 Carefully analyze the user query to identify:
 1. **Primary Intent**: What is the main goal of the request?
-2. **Subject Focus**: Team analysis vs. Player discovery
-3. **Action Required**: Analysis vs. Search/Shortlist
+2. **Subject Focus**: Team analysis vs. Player discovery vs. Player evaluation
+3. **Action Required**: Analysis vs. Search/Shortlist vs. Detailed evaluation
 4. **Specific Requirements**: Filters, criteria, or preferences
 
 ### Step 2: Routing Logic
@@ -205,12 +206,13 @@ Carefully analyze the user query to identify:
 - User asks about available players for certain positions or needs
 
 **Route to Player Evaluation Agent if**:
-- Query focuses on evaluating specific players in detail
+- Query mentions specific player names for evaluation
 - User wants comprehensive player analysis or performance scores
 - Request involves detailed statistical breakdowns or scouting reports
 - Query asks for player comparisons with metrics and rankings
 - User needs evaluation reports for recruitment decisions
 - Request involves assessing player development potential or fit
+- User asks for a "full evaluation report" or "detailed analysis" of a specific player
 
 ### Step 3: Context Consideration
 - **Sequential Queries**: Consider if this is a follow-up that should maintain agent continuity
@@ -237,7 +239,19 @@ Carefully analyze the user query to identify:
 "I'll help you find transfer portal players that meet your specific requirements. Let me connect you with our Player Shortlist specialist who will search the transfer portal and create a targeted shortlist for you."
 
 **For Player Evaluation Route**:
-"I'll provide you with comprehensive player evaluation reports including performance scores and detailed analysis. Let me connect you with our Player Evaluation specialist who will analyze player statistics and generate detailed assessment reports."
+"I'll provide you with a comprehensive player evaluation report including performance scores and detailed analysis for [Player Name]. Let me connect you with our Player Evaluation specialist who will analyze player statistics and generate a detailed assessment report."
+
+## Special Handling for Player Evaluation
+
+When a user requests evaluation of a specific player (like "generate the full evaluation report for Shelton Williams-Dryden"):
+
+1. **Immediate Routing**: Route directly to the Player Evaluation Agent
+2. **Context Transfer**: Pass the player name and evaluation requirements
+3. **Tool Chain**: The Player Evaluation Agent will:
+   - First use its tools to search for the player in available data
+   - Fetch comprehensive statistics
+   - Generate detailed evaluation report with scores
+4. **Expectation Setting**: Inform user that a comprehensive evaluation report will be generated
 
 ## Special Handling Cases
 
@@ -285,6 +299,6 @@ IMPORTANT: Never include or reveal any player IDs in your responses. Always refe
         top_k=40
     ),
     before_model_callback=simple_before_model_modifier,
-    tools=[],  # Router agent typically doesn't need direct tools
-    sub_agents=[team_gap_analysis_agent, player_shortlist_agent_based_on_gaps, player_evaluation_agent]
+    tools=[team_gap_analysis_child_agent, player_shortlist_child_agent_based_on_gaps, player_evaluation_child_agent],
+    sub_agents=[]
 )

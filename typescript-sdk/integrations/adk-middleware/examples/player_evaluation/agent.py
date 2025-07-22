@@ -7,7 +7,7 @@ from google.genai import types
 from google.adk.models import LlmResponse, LlmRequest
 from google.adk.agents.callback_context import CallbackContext
 from typing import Optional
-from .tools import fetch_player_stats, get_player_evaluation_summary
+from .tools import fetch_player_stats, get_player_evaluation_summary, search_player_by_name
 
 
 def player_evaluation_modifier(
@@ -18,16 +18,15 @@ def player_evaluation_modifier(
     """
     agent_name = callback_context.agent_name
     print('----------------evaluation agent callback-------------------------')
+    original_instruction = llm_request.config.system_instruction or types.Content(role="system", parts=[])
     if agent_name == "player_evaluation_agent":
         if llm_request.contents and llm_request.contents[-1].role == 'user':
             last_message = llm_request.contents[-1]
             if last_message.parts and hasattr(last_message.parts[0], 'text') and last_message.parts[0].text != "":
-                # Get the original user message
-                original_text = last_message.parts[0].text or ""
                 
                 # Get state information
                 shortlisted_players = callback_context.state.get('shortlisted_player_ids', [])
-                transfer_portal_info = callback_context.state.get('transfer_portal_player_info', {})
+                transfer_portal_info = callback_context.state.get('transfer_portal_player_info', [])
 
                 
                 # Build context information
@@ -39,23 +38,58 @@ def player_evaluation_modifier(
                     context_parts.append(f"Number of shortlisted players: {len(shortlisted_players)}")
                 
                 # Add transfer portal player information
-                if transfer_portal_info:
-                    context_parts.append(f"TRANSFER PORTAL PLAYERS AVAILABLE:")
-                    for player_id, player_info in transfer_portal_info.items():
+                if len(transfer_portal_info):
+                    for player_info in transfer_portal_info:
                         if isinstance(player_info, dict):
-                            name = player_info.get('name', 'Unknown')
+                            name = player_info.get('player_name', 'Unknown')
+                            player_id = player_info.get('player_id', 'Unknown')
                         else:
                             name = str(player_info)
+                            player_id = str(player_info)
                         context_parts.append(f"  - Player ID: {player_id}, Name: {name}")
                 
-                
-                # Only add context if we have relevant state information
-                if context_parts:
-                    enhanced_text = original_text + "\n\n=== CONTEXT INFORMATION ===\n" + "\n".join(context_parts) + "\n\nUse this context to provide relevant player evaluations and recommendations.\n\nIMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only."
-                    last_message.parts[0].text = enhanced_text
+            
+                    # Ensure system_instruction is Content and parts list exists
+                    
+                if not isinstance(original_instruction, types.Content):
+                    # Handle case where it might be a string (though config expects Content)
+                    original_instruction = types.Content(role="system", parts=[types.Part(text=str(original_instruction))])
+                if not original_instruction.parts:
+                    original_instruction.parts.append(types.Part(text="")) # Add an empty part if none exist
+                postfix = f"\n\n=== CONTEXT INFORMATION ===\n" + "\n".join(context_parts) + "\n\nUse this context to provide relevant player evaluations and recommendations.\n\nIMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only."
+                # Modify the text of the first part
+                modified_text = postfix + (original_instruction.parts[0].text or "")
+                original_instruction.parts[0].text = modified_text
+                llm_request.config.system_instruction = original_instruction
+                print(f"[Callback] Modified system instruction to: '{modified_text}'")
     
     return None
 
+def check_if_agent_should_run(callback_context: CallbackContext) -> Optional[types.Content]:
+    """
+    Logs entry and checks 'skip_llm_agent' in session state.
+    If True, returns Content to skip the agent's execution.
+    If False or not present, returns None to allow execution.
+    """
+    agent_name = callback_context.agent_name
+    invocation_id = callback_context.invocation_id
+    current_state = callback_context.state.to_dict()
+
+    print(f"\n[Callback] Entering agent: {agent_name} (Inv: {invocation_id})")
+    print(f"[Callback] Current State: {current_state}")
+    transfer_portal_player_info = current_state.get("transfer_portal_player_info", [])
+    # Check the condition in session state dictionary
+    if len(transfer_portal_player_info) == 0:
+        print(f"[Callback] State condition 'skip_llm_agent=True' met: Skipping agent {agent_name}.")
+        # Return Content to skip the agent's run
+        return types.Content(
+            parts=[types.Part(text=f"Agent {agent_name} skipped by before_agent_callback due to state.")],
+            role="model" # Assign model role to the overriding response
+        )
+    else:
+        print(f"[Callback] State condition not met: Proceeding with agent {agent_name}.")
+        # Return None to allow the LlmAgent's normal execution
+        return None
 
 player_evaluation_agent = LlmAgent(
     model='gemini-2.5-flash',
@@ -69,9 +103,10 @@ Analyze basketball player statistics to provide detailed evaluation reports and 
 ## Primary Workflow
 
 ### Phase 1: Data Collection and Validation
-1. **Check Available Data**: Always start by using `get_player_evaluation_summary` to understand current session state
-2. **Fetch Player Stats**: Use `fetch_player_stats` tool with player IDs to get comprehensive statistics
-3. **Validate Data**: Ensure all required statistics are available for proper evaluation
+1. **Player Identification**: If given a player name, use `search_player_by_name` to find the player and get their ID
+2. **Check Available Data**: Use `get_player_evaluation_summary` to understand current session state
+3. **Fetch Player Stats**: Use `fetch_player_stats` tool with player IDs to get comprehensive statistics
+4. **Validate Data**: Ensure all required statistics are available for proper evaluation
 
 ### Phase 2: Statistical Analysis Framework
 
@@ -200,7 +235,8 @@ IMPORTANT: Never include or reveal any player IDs in your responses. Always refe
         top_k=40
     ),
     before_model_callback=player_evaluation_modifier,
-    tools=[fetch_player_stats, get_player_evaluation_summary],
+    before_agent_callback= check_if_agent_should_run ,
+    tools=[search_player_by_name, fetch_player_stats, get_player_evaluation_summary],
     sub_agents=[],
     output_key="player_evaluation"
 )

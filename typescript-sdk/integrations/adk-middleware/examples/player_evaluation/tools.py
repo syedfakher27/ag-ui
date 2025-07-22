@@ -111,6 +111,129 @@ def fetch_player_stats(tool_context: ToolContext, player_ids: List[str]) -> Dict
         }
 
 
+def search_player_by_name(tool_context: ToolContext, player_name: str) -> Dict[str, Any]:
+    """
+    Search for a player in the transfer portal by name to get their player ID and basic info.
+    
+    Args:
+        player_name: Name of the player to search for (e.g., "Shelton Williams-Dryden")
+    
+    Returns:
+        Dictionary containing player information including player_id needed for stats fetching
+    """
+    try:
+        if not player_name or not player_name.strip():
+            return {
+                "status": "error",
+                "message": "Please provide a player name to search for.",
+                "data": None
+            }
+        
+        # API configuration for searching players
+        schema = "MBB"
+        url = f"https://slam-all-python-359065791766.us-central1.run.app/MBB/tp-players?schema={schema}"
+        
+        headers = {
+            'accept': 'application/json'
+        }
+        
+        # Parameters for player search - using name filter
+        params = {
+            'limit': 50,  # Get more results to increase chance of finding the player
+            'page': 1
+        }
+        
+        logger.info(f"Searching for player: {player_name}")
+        
+        # Make the API request to get transfer portal players
+        response = requests.get(url, headers=headers, params=params, timeout=30)
+        response.raise_for_status()
+        
+        players_data = response.json()
+        
+        # Search through the results to find matching players
+        matching_players = []
+        search_name_lower = player_name.lower().strip()
+        
+        # Handle different response formats
+        players_list = players_data
+        if isinstance(players_data, dict):
+            players_list = players_data.get('data', []) or players_data.get('players', []) or []
+        
+        for player in players_list:
+            if isinstance(player, dict):
+                player_name_field = player.get('player_name', '') or player.get('name', '')
+                if player_name_field:
+                    if search_name_lower in player_name_field.lower() or player_name_field.lower() in search_name_lower:
+                        matching_players.append({
+                            'player_id': player.get('player_id'),
+                            'player_name': player_name_field,
+                            'team': player.get('team', ''),
+                            'position': player.get('position', ''),
+                            'class': player.get('class', ''),
+                            'height': player.get('height', ''),
+                            'weight': player.get('weight', '')
+                        })
+        
+        if not matching_players:
+            return {
+                "status": "error",
+                "message": f"No players found matching the name '{player_name}'. Please check the spelling or try a different name.",
+                "data": None,
+                "searched_name": player_name
+            }
+        
+        # Store the search results in state for later use
+        tool_context.state['player_search_results'] = matching_players
+        tool_context.state['last_searched_player'] = player_name
+        
+        logger.info(f"Found {len(matching_players)} matching players for '{player_name}'")
+        
+        return {
+            "status": "success",
+            "message": f"Found {len(matching_players)} player(s) matching '{player_name}'",
+            "data": matching_players,
+            "searched_name": player_name,
+            "exact_match": len(matching_players) == 1
+        }
+        
+    except requests.exceptions.Timeout:
+        error_msg = "Request timeout - the player search API took too long to respond"
+        logger.error(error_msg)
+        return {
+            "status": "error",
+            "message": error_msg,
+            "data": None
+        }
+        
+    except requests.exceptions.ConnectionError:
+        error_msg = "Connection error - unable to connect to the player search API"
+        logger.error(error_msg)
+        return {
+            "status": "error",
+            "message": error_msg,
+            "data": None
+        }
+        
+    except requests.exceptions.HTTPError as e:
+        error_msg = f"HTTP error {e.response.status_code}: {e.response.text}"
+        logger.error(error_msg)
+        return {
+            "status": "error",
+            "message": error_msg,
+            "data": None
+        }
+        
+    except Exception as e:
+        error_msg = f"Unexpected error searching for player: {str(e)}"
+        logger.error(error_msg)
+        return {
+            "status": "error",
+            "message": error_msg,
+            "data": None
+        }
+
+
 def get_player_evaluation_summary(tool_context: ToolContext) -> Dict[str, Any]:
     """
     Get a summary of the current player evaluation session including available stats and state.
