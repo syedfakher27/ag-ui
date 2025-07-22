@@ -79,6 +79,9 @@ def filter_transfer_portal_players(
     if efficiencyRating is not None:
         params.append(f"min_possessions={efficiencyRating}")
     
+    if excludeCommitted:
+        params.append(f"isavailable={excludeCommitted}")
+    
     # Add pagination parameters
     params.append(f"page={page}")
     params.append(f"page_size={page_size}")
@@ -108,16 +111,10 @@ def filter_transfer_portal_players(
         # Extract player data
         players_data = api_response.get('data', [])
         players_info = api_response.get('data', [])
-        if excludeCommitted:
-            print("filtering non-committed players")
-            players_data = [
-                {"player_id": player.get('players'), "player_name":player.get('name')} for player in players_data
-                if not player.get("new_team") or str(player.get("new_team")).strip().lower() in ["", "nan"]
-            ]
-        else:
-            players_data = [
+        
+        players_data = [
                 {"player_id": player.get('players'), "player_name":player.get('name')} for player in players_data      
-            ]
+        ]
 
         tool_context.state["transfer_portal_player_info"] = players_data
         return players_info
