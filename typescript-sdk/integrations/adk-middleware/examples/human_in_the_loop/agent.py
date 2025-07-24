@@ -10,6 +10,7 @@ from typing import Optional,Dict, Any
 from google.adk.agents import LlmAgent
 from ..team_analysis.agent import team_gap_analysis_agent
 from ..player_evaluation.agent import player_evaluation_agent
+from .. email_conversation.agent import email_agent
 from .tools import filter_transfer_portal_players , shortlist_players
 
 # --- Define the Callback Function ---
@@ -168,6 +169,24 @@ Intelligently route basketball-related queries to the most appropriate specializ
 - Requests for scoring or ranking specific players
 - Mentions specific player names for detailed evaluation
 
+### 4. Email Agent (`email_agent`)
+**Purpose**: Conversation summary and email communication
+**Use When User Asks About**:
+- Sending conversation summaries via email
+- Emailing analysis reports, player evaluations, or team assessments
+- Sharing recruitment information with colleagues or staff
+- Communicating findings to specific recipients
+- Forwarding basketball-related discussions and insights
+
+**Key Indicators**:
+- Mentions "email to [name/address]", "send to [recipient]"
+- Requests to "email this conversation", "send summary"
+- "Forward this to...", "Share with...", "Send report to..."
+- Specific mention of email addresses or recipient names
+- "Can you email [recipient] about...", "Send this analysis to..."
+- References to communication or sharing findings
+- User asks to "email Samreen" or mentions other specific recipients
+
 ## Routing Decision Framework
 
 ### Step 1: Query Analysis
@@ -202,6 +221,14 @@ Carefully analyze the user query to identify:
 - Request involves assessing player development potential or fit
 - User asks for a "full evaluation report" or "detailed analysis" of a specific player
 
+**Route to Email Agent if**:
+- Query explicitly mentions emailing or sending information to someone
+- User requests to share conversation summaries or reports
+- Query includes phrases like "email to", "send to", "forward to", "share with"
+- User mentions specific recipients by name or email address
+- Request involves communicating findings or analysis to others
+- User asks to "email this conversation" or "send summary to [recipient]"
+
 ### Step 3: Context Consideration
 - **Sequential Queries**: Consider if this is a follow-up that should maintain agent continuity
 - **Hybrid Requests**: Handle multi-faceted queries appropriately:
@@ -229,6 +256,9 @@ Carefully analyze the user query to identify:
 **For Player Evaluation Route**:
 "I'll provide you with a comprehensive player evaluation report including performance scores and detailed analysis for [Player Name]. Let me connect you with our Player Evaluation specialist who will analyze player statistics and generate a detailed assessment report."
 
+**For Email Route**:
+"I'll help you prepare and send this conversation summary/analysis to [Recipient]. Let me connect you with our Email specialist who will format the content appropriately and handle the email delivery."
+
 ## Special Handling for Player Evaluation
 
 When a user requests evaluation of a specific player (like "generate the full evaluation report for Shelton Williams-Dryden"):
@@ -240,6 +270,19 @@ When a user requests evaluation of a specific player (like "generate the full ev
    - Fetch comprehensive statistics
    - Generate detailed evaluation report with scores
 4. **Expectation Setting**: Inform user that a comprehensive evaluation report will be generated
+
+## Special Handling for Email Agent
+
+When a user requests to email conversation summaries or analysis results:
+
+1. **Immediate Routing**: Route directly to the Email Agent when email intent is clear
+2. **Context Transfer**: Pass the recipient information and content to be shared
+3. **Content Preparation**: The Email Agent will:
+   - Generate appropriate conversation summaries
+   - Format analysis results for email delivery
+   - Provide editable email composition interface
+   - Handle the actual email sending process
+4. **Expectation Setting**: Inform user that they'll be able to review and edit before sending
 
 ## Special Handling Cases
 
@@ -288,5 +331,5 @@ IMPORTANT: Never include or reveal any player IDs in your responses. Always refe
     ),
     before_model_callback=simple_before_model_modifier,
     # tools=[team_gap_analysis_child_agent, player_shortlist_child_agent_based_on_gaps, player_evaluation_child_agent],
-    sub_agents=[team_gap_analysis_agent , player_shortlist_agent_based_on_gaps , player_evaluation_agent]
+    sub_agents=[team_gap_analysis_agent , player_shortlist_agent_based_on_gaps , player_evaluation_agent, email_agent]
 )
