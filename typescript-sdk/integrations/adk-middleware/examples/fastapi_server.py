@@ -9,7 +9,8 @@ Note: Requires google.adk to be installed and configured.
 import uvicorn
 import logging
 from fastapi import FastAPI
-from .human_in_the_loop.agent import transfer_portal_agent
+from .human_in_the_loop.agent import transfer_portal_agent 
+from .email_conversation.agent import email_agent
 
 
 # Basic logging configuration
@@ -38,6 +39,8 @@ try:
     # Register the agent
     registry.set_default_agent(sample_agent)
     registry.register_agent('adk-human-in-loop-agent', transfer_portal_agent)
+    registry.register_agent('adk-email-agent', email_agent)
+
     # Create ADK middleware agent
     adk_agent = ADKAgent(
         app_name="demo_app",
@@ -54,7 +57,12 @@ try:
         session_timeout_seconds=3600,
         use_in_memory_services=True
     )
-
+    adk_email_agent = ADKAgent(
+        app_name="demo_app",
+        user_id="demo_user",
+        session_timeout_seconds=3600,
+        use_in_memory_services=True
+    )
 
     
     # Create FastAPI app
@@ -63,7 +71,7 @@ try:
     # Add the ADK endpoint
     add_adk_fastapi_endpoint(app, adk_agent, path="/chat")
     add_adk_fastapi_endpoint(app, adk_human_in_loop_agent, path="/adk-human-in-loop-agent")
-    
+    add_adk_fastapi_endpoint(app, adk_email_agent, path="/adk-email-agent")
     @app.get("/")
     async def root():
         return {"message": "ADK Middleware is running!", "endpoint": "/chat"}

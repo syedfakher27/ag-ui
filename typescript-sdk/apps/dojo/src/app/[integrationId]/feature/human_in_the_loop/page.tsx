@@ -8,6 +8,7 @@ import { FilterState, FilterChangeHandler, AvailabilityChangeHandler, TEAM_OPTIO
 import { CopilotChat } from "@copilotkit/react-ui";
 import AgentTransferUI from "@/components/agent-ui/agent_ui";
 import ToolExecutionUI from "@/components/tool-ui/tool_ui";
+import EmailApprovalComponent from "@/components/email_approval/email_approval";
 
 interface HumanInTheLoopProps {
   params: Promise<{
@@ -236,23 +237,27 @@ const TransferPortalAssistant = () => {
     },
   });
 
-  // useCopilotAction({
-  //   name: "shortlist_players",
-  //   parameters: [
-  //     {
-  //       name: "player_ids",
-  //       type: "string[]",
-  //     }
-  //   ],
-  //   render: ({ args, result, status }) => {
-  //     return <ToolExecutionUI
-  //       toolName="shortlist_players"
-  //       args={args}
-  //       result={result}
-  //       status={status}
-  //     />
-  //   },
-  // });
+  useCopilotAction({
+  name: "prepare_email_for_approval",
+  parameters: [
+    {
+      name: "recipient_name",
+      type: "string",
+    },
+    {
+      name: "recipient_email",
+      type: "string",
+    },
+    {
+      name: "conversation_summary",
+      type: "string",
+    },
+    // Add other parameters from your tool definition if needed
+  ],
+  renderAndWaitForResponse: ({ args, respond, status}) => {
+    return <EmailApprovalComponent args={args} respond={respond} status={status}/>;
+  },
+  });
 
   const handleFilterChange = (filterType: string, value: any) => {
     setFilters(prev => ({

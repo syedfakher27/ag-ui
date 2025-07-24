@@ -12,7 +12,9 @@ from ..team_analysis.agent import team_gap_analysis_agent
 from ..player_evaluation.agent import player_evaluation_agent
 from .. email_conversation.agent import email_agent
 from .tools import filter_transfer_portal_players , shortlist_players
+# from dotenv import load_dotenv
 
+# load_dotenv()
 # --- Define the Callback Function ---
 def simple_before_model_modifier(
     callback_context: CallbackContext, llm_request: LlmRequest
@@ -283,7 +285,9 @@ When a user requests to email conversation summaries or analysis results:
    - Provide editable email composition interface
    - Handle the actual email sending process
 4. **Expectation Setting**: Inform user that they'll be able to review and edit before sending
-
+5. **Email Confirmation**: When you receive function response: 
+    a) Email successfully sent to (user email or name), then simply inform user that email has been sent successfuly. Donot provide email sumamry or other details. 
+    b) Email cancelled by user, donot perform any operation.
 ## Special Handling Cases
 
 ### Hybrid Queries
