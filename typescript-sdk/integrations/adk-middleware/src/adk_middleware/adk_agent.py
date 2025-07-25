@@ -741,10 +741,6 @@ class ADKAgent:
             agent_updates['tools'] = combined_tools
             logger.debug(f"Will combine {len(existing_tools)} existing tools with proxy toolset")
             print(f"Exisiting tools---> {existing_tools} \n Combined Tools: {combined_tools}")
-            with open('combined_tools.txt', 'w') as f:
-                f.write(str(combined_tools))
-            with open('existing_tools.txt', 'w') as f:
-                f.write(str(existing_tools))
         # Create a single copy of the agent with all updates if any modifications needed
         if agent_updates:
             adk_agent = adk_agent.model_copy(update=agent_updates)
@@ -756,8 +752,6 @@ class ADKAgent:
                         if adk_tool.name in ["prepare_email_for_approval", "fetch_email_by_name"]:
                             email_tools.append(adk_tool)
                     subagent.tools = email_tools
-                    with open('email_agent.txt', 'w') as f:
-                        f.write(str(subagent.tools))
             logger.debug(f"Created modified agent copy with updates: {list(agent_updates.keys())}")
         
         # Create background task
