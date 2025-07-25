@@ -6,6 +6,7 @@ from google.adk.tools.tool_context import ToolContext
 from google.adk.models import LlmResponse, LlmRequest
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.tools import agent_tool
+from google.adk.tools import google_search
 from typing import Optional,Dict, Any
 from google.adk.agents import LlmAgent
 from ..team_analysis.agent import team_gap_analysis_agent
@@ -26,7 +27,8 @@ def simple_before_model_modifier(
             if last_message.parts and hasattr(last_message.parts[0],'text') and last_message.parts[0].text !="" and last_message.parts[0].function_response.__class__.__name__ != 'FunctionResponse' :
                 # Get the original text and add prefix
                 original_text = last_message.parts[0].text or ""
-                modified_user_text = original_text + f"\n here are the current filters state for the required players {callback_context.state.get('filters')}\n\n Here is the summary of the current URI team gap analsyis report\n\n##Team Gap Analysis:\n{callback_context.state.get('team_gap_analysis')}\n\nIMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only."
+                web_news_context = callback_context.state.get('web_news', 'No research data available')
+                modified_user_text = original_text + f"\n here are the current filters state for the required players {callback_context.state.get('filters')}\n\n Here is the summary of the current URI team gap analsyis report\n\n##Team Gap Analysis:\n{callback_context.state.get('team_gap_analysis')}\n\n##Web Research Findings:\n{web_news_context}\n\nIMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only."
                 # Update the message content
                 last_message.parts[0].text = modified_user_text
                 if not isinstance(original_instruction, types.Content):
@@ -36,6 +38,72 @@ def simple_before_model_modifier(
 
  
     return None
+
+# --- Define the Callback Function for Research Agent ---
+def research_agent_callback(
+    callback_context: CallbackContext, llm_request: LlmRequest
+) -> Optional[LlmResponse]:
+    """Saves research findings to the agent's state under 'web_news' key."""
+    agent_name = callback_context.agent_name
+    if agent_name == "research_agent":
+        print('llm_request==>',llm_request)
+        if llm_request.contents and llm_request.contents[-1].role == 'user':
+            last_message = llm_request.contents[-1]
+            if last_message.parts and hasattr(last_message.parts[0],'text') and last_message.parts[0].text != "":
+                original_text = last_message.parts[0].text or ""
+                modified_text = original_text + "\n\nIMPORTANT: After conducting your research, you must save your findings to the agent's state using the key 'web_news'. Structure your findings with timestamps, source attribution, and clear organization."
+                last_message.parts[0].text = modified_text
+    
+    return None
+
+# --- Define the Research Agent with Google Search ---
+research_agent = LlmAgent(
+    model='gemini-2.5-flash',
+    name='research_agent',
+    instruction="""
+You are a Research Agent specialized in gathering information from the internet using Google Search. Your primary objective is to search for relevant information based on user queries and save the results to the agent's state.
+
+## Core Workflow
+
+### Phase 1: Information Gathering
+1. **Always Use Google Search** to gather relevant information from the internet
+2. Analyze user queries to determine the most effective search terms
+3. Perform comprehensive searches to gather diverse perspectives and data points
+4. Focus on recent and credible sources when possible
+
+### Phase 2: Information Processing
+1. **Analyze search results** to extract key information:
+   - Identify main themes and topics
+   - Extract relevant facts, statistics, and insights
+   - Note source credibility and publication dates
+   - Synthesize information from multiple sources
+
+
+## Information Organization
+- **Structure findings** in a logical hierarchy
+- **Include source links** and attribution
+- **Timestamp** the research session
+- **Categorize** information by relevance and topic
+- **Highlight** key insights and actionable information
+
+## Search Strategy
+- Use varied search terms to capture different perspectives
+- Search for both general and specific information
+- Include recent news and developments
+- Look for authoritative sources and expert opinions
+- Cross-reference information from multiple sources
+
+   """,
+    generate_content_config=types.GenerateContentConfig(
+        temperature=0.7,
+        top_p=0.9,
+        top_k=40
+    ),
+    # before_model_callback=research_agent_callback,
+    tools=[google_search],
+    output_key="web_news",
+    sub_agents=[]
+)
 
 player_shortlist_agent_based_on_gaps = LlmAgent(
     model='gemini-2.5-flash',
@@ -97,6 +165,7 @@ IMPORTANT: Never include or reveal any player IDs in your responses. Always refe
 team_gap_analysis_child_agent = agent_tool.AgentTool(agent=team_gap_analysis_agent)
 player_shortlist_child_agent_based_on_gaps = agent_tool.AgentTool(agent=player_shortlist_agent_based_on_gaps)
 player_evaluation_child_agent = agent_tool.AgentTool(agent=player_evaluation_agent)
+research_agent_tool = agent_tool.AgentTool(agent=research_agent)
 
 
 
@@ -188,6 +257,26 @@ Intelligently route basketball-related queries to the most appropriate specializ
 - References to communication or sharing findings
 - User asks to "email Samreen" or mentions other specific recipients
 
+### 5. Research Agent Tool (`research_agent_tool`)
+**Purpose**: Internet research and information gathering using Google Search
+**Use When User Asks About**:
+- General research on basketball topics, trends, or news
+- Information gathering from the internet
+- Recent developments in college basketball
+- Market research or background information
+- Current events related to basketball or recruitment
+- Analysis of basketball industry trends
+- Gathering external information to supplement internal data
+
+**Key Indicators**:
+- Mentions "research", "search", "find information about", "look up"
+- Requests for "recent news", "current trends", "what's happening with"
+- "Search for information on...", "Find out about...", "Research..."
+- Questions about industry trends or external developments
+- Requests for background information or context
+- "What's the latest on...", "Can you research...", "Look into..."
+- References to web search, internet research, or external information
+
 ## Routing Decision Framework
 
 ### Step 1: Query Analysis
@@ -230,6 +319,14 @@ Carefully analyze the user query to identify:
 - Request involves communicating findings or analysis to others
 - User asks to "email this conversation" or "send summary to [recipient]"
 
+**Use Research Agent Tool if**:
+- Query focuses on gathering information from the internet
+- User wants background research or external information
+- Request involves current events, trends, or recent developments
+- Query includes search terms like "research", "find information", "look up"
+- User asks about industry trends or external context
+- Request involves supplementing internal data with external information
+
 ### Step 3: Context Consideration
 - **Sequential Queries**: Consider if this is a follow-up that should maintain agent continuity
 - **Hybrid Requests**: Handle multi-faceted queries appropriately:
@@ -260,6 +357,7 @@ Carefully analyze the user query to identify:
 **For Email Route**:
 "I'll help you prepare and send this conversation summary/analysis to [Recipient]. Let me connect you with our Email specialist who will format the content appropriately and handle the email delivery."
 
+
 ## Special Handling for Player Evaluation
 
 When a user requests evaluation of a specific player (like "generate the full evaluation report for Shelton Williams-Dryden"):
@@ -287,6 +385,20 @@ When a user requests to email conversation summaries or analysis results:
 5. **Email Confirmation**: When you receive function response: 
     a) Email successfully sent to (user email or name), then simply inform user that email has been sent successfuly. Do not provide email sumamry or other details. 
     b) Email cancelled by user, donot perform any operation.
+
+## Special Handling for Research Agent
+
+When a user requests internet research or external information gathering:
+
+1. **Immediate Routing**: Route directly to the Research Agent when research intent is clear
+2. **Context Transfer**: Pass the research topic and specific requirements
+3. **Tool Chain**: The Research Agent will:
+   - Use Google Search to gather relevant information from multiple sources
+   - Analyze and synthesize the findings
+   - Save research results to state under the key "web_news"
+   - Provide organized summaries with source attribution
+4. **Expectation Setting**: Inform user that comprehensive research will be conducted and saved to session state
+
 ## Special Handling Cases
 
 ### Hybrid Queries
@@ -335,6 +447,6 @@ b) Simply reply with email agent function response. Do not add additional inform
         top_k=40
     ),
     before_model_callback=simple_before_model_modifier,
-    # tools=[team_gap_analysis_child_agent, player_shortlist_child_agent_based_on_gaps, player_evaluation_child_agent],
+    tools=[research_agent_tool],
     sub_agents=[team_gap_analysis_agent , player_shortlist_agent_based_on_gaps , player_evaluation_agent, email_agent]
 )
