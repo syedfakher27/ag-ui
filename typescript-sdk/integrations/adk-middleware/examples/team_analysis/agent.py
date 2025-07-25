@@ -4,10 +4,10 @@ from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.tool_context import ToolContext
 from google.adk.models import LlmResponse, LlmRequest
 from google.adk.agents.callback_context import CallbackContext
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from google.adk.agents import LlmAgent
 from .tools import fetch_team_basketball_data
-
+import requests
 
 
 def team_analysis_modifier(
@@ -15,24 +15,97 @@ def team_analysis_modifier(
 ) -> Optional[LlmResponse]:
     """Enhances requests with team analysis context and coaching insights."""
     agent_name = callback_context.agent_name
-    # if agent_name == "team_gap_analysis_agent":
-        # if llm_request.contents and llm_request.contents[-1].role == 'user':
-        #     last_message = llm_request.contents[-1]
-        #     if last_message.parts and hasattr(last_message.parts[0], 'text') and last_message.parts[0].text != "":
-        #         # Get the original text and add coaching context
-        #         original_text = last_message.parts[0].text or ""
-                
-        #         # Add current team analysis state if available
-        #         team_state = callback_context.state.get('team_analysis', {})
-        #         analyzed_teams = team_state.get('analyzed_teams', [])
-                
-        #         enhanced_text = original_text
-        #         if analyzed_teams:
-        #             enhanced_text += f"\n\nPreviously analyzed teams: {', '.join(analyzed_teams)}"
-        #             enhanced_text += f"\nCurrent analysis context: {team_state.get('current_focus', 'General team analysis')}"
-                
-        #         # Update the message content
-        #         last_message.parts[0].text = enhanced_text
+    if agent_name == "team_gap_analysis_agent":
+        print("[Callback] Modifying request for team_gap_analysis_agent...")
+
+        # --- Modifier Logic: Fetch and Inject Team Abbreviation Mapping ---
+        try:
+            # 1. Fetch team data from the backend API
+            teams_url = (
+                "https://slam-node-backend-359065791766.us-central1.run.app/api/user/"
+                "99219b23-663f-4090-b3f5-05cf15ed30bc/sports/MBB/teams"
+            )
+            response = requests.get(teams_url, timeout=30)
+            response.raise_for_status()
+            teams_data = response.json()
+
+            # 2. Build the team abbreviation mapping (grouped format)
+            # We'll create a list of strings like '"Name1", "Nickname1", "FullName1": "ABBREV"'
+            mapping_entries: List[str] = []
+            for team in teams_data.get('teams', []):
+                abbrev = team.get('Abbrev')
+                if not abbrev:
+                    continue # Skip teams without an abbreviation
+
+                names_for_team = []
+                name = team.get('Name')
+                nickname = team.get('Nickname')
+                full_name = team.get('FullName')
+
+                # Collect all available names for the team
+                if name:
+                    names_for_team.append(name)
+                if nickname and nickname != name: # Avoid duplicates
+                    names_for_team.append(nickname)
+                if full_name and full_name != name and full_name != nickname: # Avoid duplicates
+                     names_for_team.append(full_name)
+
+                # Create a single entry string for this team
+                # e.g., '"Kansas Jayhawks", "Jayhawks", "Kansas Jayhawks Jayhawks": "KU"'
+                if names_for_team:
+                    # Escape quotes in names if necessary (simple approach)
+                    escaped_names = [f'"{n}"' for n in names_for_team]
+                    names_part = ", ".join(escaped_names)
+                    mapping_entries.append(f'  {names_part}: "{abbrev}"')
+
+            # 3. Format the mapping for injection into the prompt
+            # Join the entries with commas and newlines
+            formatted_mapping_entries = ",\n".join(mapping_entries)
+            # Wrap it in curly braces for a dictionary-like structure in the prompt
+            formatted_mapping = f"{{\n{formatted_mapping_entries}\n}}"
+
+            mapping_context = (
+                f"\n\n=== TEAM NAME TO ABBREVIATION MAPPING ===\n"
+                f"Use this mapping to convert team names or nicknames to their standard abbreviations:\n"
+                f"{formatted_mapping}\n"
+                f"==========================================\n"
+            )
+
+        except Exception as e:
+            print(f"[Callback Error] Failed to fetch or build team mapping: {e}")
+            # Even if mapping fails, we can still proceed, or inject an error message
+            mapping_context = "\n\n[Error: Could not load team abbreviation mapping.]\n"
+
+        # --- Inject Context into System Instruction ---
+        # Get current system instruction
+        original_instruction = llm_request.config.system_instruction
+
+        # Ensure it's a Content object with parts
+        # Handle cases where system_instruction might be None or a string
+        if not original_instruction:
+            original_instruction = types.Content(role="system", parts=[types.Part(text="")])
+        elif isinstance(original_instruction, str):
+            original_instruction = types.Content(role="system", parts=[types.Part(text=original_instruction)])
+        elif not isinstance(original_instruction, types.Content):
+             # If it's an unexpected type, try to stringify it
+             original_instruction = types.Content(role="system", parts=[types.Part(text=str(original_instruction))])
+
+        # Ensure the parts list exists and has at least one text part
+        if not original_instruction.parts:
+            original_instruction.parts.append(types.Part(text=""))
+        if not hasattr(original_instruction.parts[0], 'text'):
+             # If the first part isn't text, add a new text part
+             original_instruction.parts.insert(0, types.Part(text=""))
+
+
+        # Append the team mapping context to the system prompt's first text part
+        original_text = original_instruction.parts[0].text or ""
+        modified_text = original_text + mapping_context
+
+        original_instruction.parts[0].text = modified_text
+        llm_request.config.system_instruction = original_instruction
+
+        print("[Callback] Injected team abbreviation mapping into team_gap_analysis_agent system prompt.")
     
     return None
 
@@ -49,8 +122,9 @@ Analyze college basketball teams to identify strengths, weaknesses, and roster g
 ## Primary Workflow
 
 ### Phase 1: Team Data Collection
-1. **Always start with `fetch_team_basketball_data`** to gather comprehensive team information
-2. Collect and analyze:
+1. Always begin with === TEAM NAME TO ABBREVIATION MAPPING === provided to you. If the user specifies a team name, first try to find the closest matching abbreviation using fuzzy matching or normalization. If a match is found, use the abbreviation. If no match is found, proceed with the original team name as-is.
+2. **Always call `fetch_team_basketball_data`** using the team abbreviation to gather comprehensive team information
+3. Collect and analyze:
    - Current roster composition and player statistics
    - Season performance metrics and game results
    - Team strengths and weaknesses across all positions
