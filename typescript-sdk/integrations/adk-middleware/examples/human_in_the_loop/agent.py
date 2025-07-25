@@ -13,7 +13,6 @@ from ..player_evaluation.agent import player_evaluation_agent
 from .. email_conversation.agent import email_agent
 from .tools import filter_transfer_portal_players , shortlist_players
 # from dotenv import load_dotenv
-
 # load_dotenv()
 # --- Define the Callback Function ---
 def simple_before_model_modifier(
@@ -286,7 +285,7 @@ When a user requests to email conversation summaries or analysis results:
    - Handle the actual email sending process
 4. **Expectation Setting**: Inform user that they'll be able to review and edit before sending
 5. **Email Confirmation**: When you receive function response: 
-    a) Email successfully sent to (user email or name), then simply inform user that email has been sent successfuly. Donot provide email sumamry or other details. 
+    a) Email successfully sent to (user email or name), then simply inform user that email has been sent successfuly. Do not provide email sumamry or other details. 
     b) Email cancelled by user, donot perform any operation.
 ## Special Handling Cases
 
@@ -326,7 +325,9 @@ Handle complex queries involving multiple agent capabilities:
 
 Always prioritize providing the most relevant and actionable assistance by selecting the agent best equipped to handle the specific user needs.
 
-IMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only.
+IMPORTANT: a) Never include or reveal any player IDs in your responses. Always refer to players by name only.
+b) Simply reply with email agent function response. Do not add additional information or share email summary.
+
 """,
     generate_content_config=types.GenerateContentConfig(
         temperature=0.4,  # Balanced temperature for routing decisions
