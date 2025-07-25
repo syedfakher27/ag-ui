@@ -9,30 +9,29 @@ from google.adk.agents import LlmAgent
 from .tools import fetch_team_basketball_data
 import requests
 
-
 def team_analysis_modifier(
     callback_context: CallbackContext, llm_request: LlmRequest
 ) -> Optional[LlmResponse]:
     """Enhances requests with team analysis context and coaching insights."""
     agent_name = callback_context.agent_name
+
+    # Check if the callback is for the specific agent
     if agent_name == "team_gap_analysis_agent":
         print("[Callback] Modifying request for team_gap_analysis_agent...")
 
         # --- Modifier Logic: Fetch and Inject Team Abbreviation Mapping ---
         try:
-            # 1. Fetch team data from the backend API
-            teams_url = (
-                "https://slam-node-backend-359065791766.us-central1.run.app/api/user/"
-                "99219b23-663f-4090-b3f5-05cf15ed30bc/sports/MBB/teams"
-            )
+            teams_url = "https://slam-all-python-359065791766.us-central1.run.app/MBB/teams/?skip=0&limit=800&schema=MBB"
+            
             response = requests.get(teams_url, timeout=30)
             response.raise_for_status()
-            teams_data = response.json()
+            # The new API returns a list directly, not a dict with 'teams' key
+            teams_data_list = response.json() 
 
             # 2. Build the team abbreviation mapping (grouped format)
             # We'll create a list of strings like '"Name1", "Nickname1", "FullName1": "ABBREV"'
             mapping_entries: List[str] = []
-            for team in teams_data.get('teams', []):
+            for team in teams_data_list: # Iterate directly over the list
                 abbrev = team.get('Abbrev')
                 if not abbrev:
                     continue # Skip teams without an abbreviation
@@ -42,13 +41,16 @@ def team_analysis_modifier(
                 nickname = team.get('Nickname')
                 full_name = team.get('FullName')
 
-                # Collect all available names for the team
+                unique_names = set()
                 if name:
-                    names_for_team.append(name)
-                if nickname and nickname != name: # Avoid duplicates
-                    names_for_team.append(nickname)
-                if full_name and full_name != name and full_name != nickname: # Avoid duplicates
-                     names_for_team.append(full_name)
+                    unique_names.add(name)
+                if nickname: # Add nickname regardless, set will handle if it's a duplicate
+                    unique_names.add(nickname)
+                if full_name: # Add full_name regardless, set will handle if it's a duplicate
+                    unique_names.add(full_name)
+
+                # Convert set back to list for processing
+                names_for_team = list(unique_names)
 
                 # Create a single entry string for this team
                 # e.g., '"Kansas Jayhawks", "Jayhawks", "Kansas Jayhawks Jayhawks": "KU"'
@@ -57,10 +59,8 @@ def team_analysis_modifier(
                     escaped_names = [f'"{n}"' for n in names_for_team]
                     names_part = ", ".join(escaped_names)
                     mapping_entries.append(f'  {names_part}: "{abbrev}"')
-
-            # 3. Format the mapping for injection into the prompt
-            # Join the entries with commas and newlines
             formatted_mapping_entries = ",\n".join(mapping_entries)
+            
             # Wrap it in curly braces for a dictionary-like structure in the prompt
             formatted_mapping = f"{{\n{formatted_mapping_entries}\n}}"
 
@@ -80,22 +80,25 @@ def team_analysis_modifier(
         # Get current system instruction
         original_instruction = llm_request.config.system_instruction
 
-        # Ensure it's a Content object with parts
-        # Handle cases where system_instruction might be None or a string
+        # --- Robust handling of system_instruction ---
+        # Handle cases where system_instruction might be None, a string, or a Content object
         if not original_instruction:
+            # If None, create a new Content object
             original_instruction = types.Content(role="system", parts=[types.Part(text="")])
         elif isinstance(original_instruction, str):
+            # If it's a string, wrap it in a Content object
             original_instruction = types.Content(role="system", parts=[types.Part(text=original_instruction)])
         elif not isinstance(original_instruction, types.Content):
-             # If it's an unexpected type, try to stringify it
-             original_instruction = types.Content(role="system", parts=[types.Part(text=str(original_instruction))])
+            # If it's an unexpected type, try to stringify it and wrap it
+            original_instruction = types.Content(role="system", parts=[types.Part(text=str(original_instruction))])
 
-        # Ensure the parts list exists and has at least one text part
+        # Ensure the parts list exists and has at least one part
         if not original_instruction.parts:
             original_instruction.parts.append(types.Part(text=""))
+        # Ensure the first part has a 'text' attribute
         if not hasattr(original_instruction.parts[0], 'text'):
-             # If the first part isn't text, add a new text part
-             original_instruction.parts.insert(0, types.Part(text=""))
+            # If the first part isn't text, insert a new text part at the beginning
+            original_instruction.parts.insert(0, types.Part(text=""))
 
 
         # Append the team mapping context to the system prompt's first text part
@@ -106,9 +109,9 @@ def team_analysis_modifier(
         llm_request.config.system_instruction = original_instruction
 
         print("[Callback] Injected team abbreviation mapping into team_gap_analysis_agent system prompt.")
-    
-    return None
 
+    # This modifier only acts on the request, it doesn't generate a direct response
+    return None
 
 team_gap_analysis_agent = LlmAgent(
     model='gemini-2.5-flash',
