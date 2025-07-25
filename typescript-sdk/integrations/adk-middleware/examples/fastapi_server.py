@@ -7,6 +7,8 @@ Note: Requires google.adk to be installed and configured.
 """
 
 import uvicorn
+from dotenv import load_dotenv
+load_dotenv()
 import logging
 from fastapi import FastAPI
 from .human_in_the_loop.agent import transfer_portal_agent 
