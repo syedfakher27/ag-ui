@@ -744,14 +744,6 @@ class ADKAgent:
         # Create a single copy of the agent with all updates if any modifications needed
         if agent_updates:
             adk_agent = adk_agent.model_copy(update=agent_updates)
-            for subagent in adk_agent.sub_agents:
-                if subagent.name == 'email_agent':
-                    tools = await toolset.get_tools()
-                    email_tools = []
-                    for adk_tool in tools:
-                        if adk_tool.name in ["prepare_email_for_approval", "fetch_email_by_name"]:
-                            email_tools.append(adk_tool)
-                    subagent.tools = email_tools
             logger.debug(f"Created modified agent copy with updates: {list(agent_updates.keys())}")
         
         # Create background task
@@ -860,15 +852,14 @@ class ADKAgent:
                 new_message = types.Content(parts=parts, role='user')
             # Create event translator
             event_translator = EventTranslator()
-            print('--------------starting adk runner-------------')
             # Run ADK agent
+            is_long_running_tool = False
             async for adk_event in runner.run_async(
                 user_id=user_id,
                 session_id=input.thread_id,
                 new_message=new_message,
                 run_config=run_config
             ):
-  
                 if not adk_event.is_final_response():
                 # Translate and emit events
                     async for ag_ui_event in event_translator.translate(
@@ -880,8 +871,18 @@ class ADKAgent:
                         logger.debug(f"Emitting event to queue: {type(ag_ui_event).__name__} (thread {input.thread_id}, queue size before: {event_queue.qsize()})")
                         await event_queue.put(ag_ui_event)
                         logger.debug(f"Event queued: {type(ag_ui_event).__name__} (thread {input.thread_id}, queue size after: {event_queue.qsize()})")
-             
-
+                else:
+                    # LongRunning Tool events are usually emmitted in final response                   
+                    async for ag_ui_event in event_translator.translate_lro_function_calls(
+                        adk_event
+                    ):
+                        await event_queue.put(ag_ui_event)
+                        if ag_ui_event.type == EventType.TOOL_CALL_END:
+                            is_long_running_tool = True
+                        logger.debug(f"Event queued: {type(ag_ui_event).__name__} (thread {input.thread_id}, queue size after: {event_queue.qsize()})")
+                    # hard stop the execution if we find any long running tool
+                    if is_long_running_tool:
+                        return
             # Force close any streaming messages
             async for ag_ui_event in event_translator.force_close_streaming_message():
                 await event_queue.put(ag_ui_event)

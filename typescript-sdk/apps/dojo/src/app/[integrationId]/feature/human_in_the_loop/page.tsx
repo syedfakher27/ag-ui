@@ -238,7 +238,7 @@ const TransferPortalAssistant = () => {
   });
 
   useCopilotAction({
-  name: "prepare_email_for_approval",
+  name: "prepare_email_for_approval_tool",
   parameters: [
     {
       name: "recipient_name",

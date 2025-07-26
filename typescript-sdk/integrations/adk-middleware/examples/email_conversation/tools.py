@@ -1,4 +1,5 @@
 from typing import Optional
+from google.adk.tools import LongRunningFunctionTool
 
 # Static dictionary of user names and their corresponding emails
 USER_EMAIL_MAP = {
@@ -90,6 +91,28 @@ def fetch_email_by_name(name: str) -> Optional[str]:
     except Exception as e:
         print(f"✗ Error searching for name '{name}': {e}")
         return None
+
+
+def prepare_email_for_approval_tool(recipient_name: str, recipient_email: str, conversation_summary: str):
+   """
+   Prepare an email for approval workflow.
+   
+   Args:
+       recipient_name (str): The name of the email recipient
+       recipient_email (str): The email address of the recipient
+       conversation_summary (str): A summary of the conversation or context 
+                                 that prompted this email
+   
+   Returns:
+       dict: A dictionary containing the approval request message
+   
+   Example:
+       >>> prepare_email_for_approval("John Doe", "john@example.com", "Discussed project timeline")
+       {'message': 'please approve this email'}
+   """
+   return {"message": "please approve this email"}
+
+prepare_email_for_approval = LongRunningFunctionTool(func=prepare_email_for_approval_tool)
 
 # Example usage (if running the script directly)
 if __name__ == "__main__":

@@ -4,6 +4,9 @@ from google.genai import types
 from google.adk.agents import LlmAgent
 from google.adk.models import LlmResponse, LlmRequest
 from google.adk.agents.callback_context import CallbackContext
+from .tools import prepare_email_for_approval_tool
+from google.adk.tools import LongRunningFunctionTool
+
 
 def inject_user_emails_to_email_agent(
     callback_context: CallbackContext, llm_request: LlmRequest
@@ -61,8 +64,8 @@ email_agent = LlmAgent(
   1. Extract the recipient's name from the request.
   2. ALWAYS first lookup the email address using the list of known users provided in the system context (see === AVAILABLE USERS === ). Match the name case-insensitively if an exact match isn't found initially. If multiple users have the same name, ask the user to specify which one (e.g., by email or full name if available).
   3. If the name is not found in the provided list, you MAY ask the user directly for the email address.
-  4. Access the conversation history and create a clear summary.
-  5. Call the `prepare_email_for_approval` tool to show editable email components.
+  4. Use the conversation history and create the required summary.
+  5. Call the `prepare_email_for_approval_tool` tool to show editable email components.
   6. Wait for explicit user approval before proceeding.
 
 **Conversation Handling:**
@@ -89,5 +92,6 @@ email_agent = LlmAgent(
         top_p=0.9,
         top_k=40
     ),
+    tools=[LongRunningFunctionTool(prepare_email_for_approval_tool)],
     before_model_callback=inject_user_emails_to_email_agent,
 )
