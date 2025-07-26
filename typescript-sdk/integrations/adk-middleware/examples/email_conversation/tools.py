@@ -92,36 +92,57 @@ def fetch_email_by_name(name: str) -> Optional[str]:
         print(f"✗ Error searching for name '{name}': {e}")
         return None
 
-
-def prepare_email_for_approval_tool(recipient_name: str, recipient_email: str, conversation_summary: str):
-   """
-   Prepare an email for approval workflow.
-   
-   Args:
-       recipient_name (str): The name of the email recipient
-       recipient_email (str): The email address of the recipient
-       conversation_summary (str): A summary of the conversation or context 
-                                 that prompted this email
-   
-   Returns:
-       dict: A dictionary containing the approval request message
-   
-   Example:
-       >>> prepare_email_for_approval("John Doe", "john@example.com", "Discussed project timeline")
-       {'message': 'please approve this email'}
-   """
-   return {"message": "please approve this email"}
+def prepare_email_for_approval_tool(recipients: list, conversation_summary: str):
+    """
+    Prepare an email for approval workflow with multiple recipients.
+    
+    Args:
+        recipients (list): List of recipient objects, each containing 'name' and 'email'
+                          Example: [{"name": "John Doe", "email": "john@example.com"}, 
+                                   {"name": "Jane Smith", "email": "jane@example.com"}]
+        conversation_summary (str): A summary of the conversation or context 
+                                  that prompted this email
+    
+    Returns:
+        dict: A dictionary containing the approval request message
+    
+    Example:
+        >>> recipients = [{"name": "John Doe", "email": "john@example.com"}]
+        >>> prepare_email_for_approval_tool(recipients, "Discussed project timeline")
+        {'message': 'please approve this email'}
+    """
+    # Validate recipients format
+    if not recipients or not isinstance(recipients, list):
+        raise ValueError("Recipients must be a non-empty list")
+    
+    for recipient in recipients:
+        if not isinstance(recipient, dict) or 'name' not in recipient or 'email' not in recipient:
+            raise ValueError("Each recipient must be a dictionary with 'name' and 'email' keys")
+    
+    return {"message": "please approve this email"}
 
 prepare_email_for_approval = LongRunningFunctionTool(func=prepare_email_for_approval_tool)
 
 # Example usage (if running the script directly)
 if __name__ == "__main__":
-    # Test cases
-    test_names = ["samreen", "waqas", "james", "ayan", "nonexistent"]
-    for test_name in test_names:
-        print(f"\n--- Searching for: '{test_name}' ---")
-        email = fetch_email_by_name(test_name)
-        if email:
-            print(f"Found: {email}")
-        else:
-            print("Not found.")
+    # Test cases for recipients array
+    test_recipients = [
+        [{"name": "Samreen Habib", "email": "samreen.habib@aretec.ai"}],
+        [
+            {"name": "Samreen Habib", "email": "samreen.habib@aretec.ai"},
+            {"name": "Waqas Ahmed", "email": "waqas@example.com"}
+        ],
+        [
+            {"name": "James Smith", "email": "james@example.com"},
+            {"name": "Ayan Khan", "email": "ayan@example.com"},
+            {"name": "Multiple User", "email": "multi@example.com"}
+        ]
+    ]
+    
+    for i, recipients in enumerate(test_recipients, 1):
+        print(f"\n--- Test Case {i}: {len(recipients)} recipient(s) ---")
+        try:
+            result = prepare_email_for_approval_tool(recipients, f"Test conversation summary {i}")
+            print(f"Success: {result}")
+        except ValueError as e:
+            print(f"Error: {e}")

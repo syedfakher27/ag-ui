@@ -8,7 +8,7 @@ import { FilterState, FilterChangeHandler, AvailabilityChangeHandler, TEAM_OPTIO
 import { CopilotChat } from "@copilotkit/react-ui";
 import AgentTransferUI from "@/components/agent-ui/agent_ui";
 import ToolExecutionUI from "@/components/tool-ui/tool_ui";
-import EmailApprovalComponent from "@/components/email_approval/email_approval";
+import MultiRecipientEmailApprovalComponent from "@/components/email_approval/email_approval";
 
 interface HumanInTheLoopProps {
   params: Promise<{
@@ -241,21 +241,30 @@ const TransferPortalAssistant = () => {
   name: "prepare_email_for_approval_tool",
   parameters: [
     {
-      name: "recipient_name",
-      type: "string",
-    },
-    {
-      name: "recipient_email",
-      type: "string",
+      name: "recipients",
+      type: "object[]",
+      attributes: [
+        {
+          name: "name",
+          type: "string",
+          description: "Name of the recipient"
+        },
+        {
+          name: "email", 
+          type: "string",
+          description: "Email address of the recipient"
+        }
+      ],
+      description: "Array of recipients with name and email - REQUIRED"
     },
     {
       name: "conversation_summary",
       type: "string",
+      description: "Summary of the conversation to be emailed - REQUIRED"
     },
-    // Add other parameters from your tool definition if needed
   ],
   renderAndWaitForResponse: ({ args, respond, status}) => {
-    return <EmailApprovalComponent args={args} respond={respond} status={status}/>;
+    return <MultiRecipientEmailApprovalComponent args={args} respond={respond} status={status}/>;
   },
   });
 
