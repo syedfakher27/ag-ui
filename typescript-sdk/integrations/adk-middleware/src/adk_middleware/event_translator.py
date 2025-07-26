@@ -97,24 +97,15 @@ class EventTranslator:
                     
                     # CRITICAL FIX: End any active text message stream before starting tool calls
                     # Per AG-UI protocol: TEXT_MESSAGE_END must be sent before TOOL_CALL_START
-                    if self._is_streaming and self._streaming_message_id:
-                        logger.info("🔄 Ending active text message stream before tool calls")
-                        end_event = TextMessageEndEvent(
-                            type=EventType.TEXT_MESSAGE_END,
-                            message_id=self._streaming_message_id
-                        )
-                        logger.info(f"📤 TEXT_MESSAGE_END (before tool calls): {end_event.model_dump_json()}")
-                        yield end_event
-                        
-                        # Reset streaming state
-                        self._streaming_message_id = None
-                        self._is_streaming = False
+                    async for event in self.force_close_streaming_message():
+                        yield event
                     
                     # NOW ACTUALLY YIELD THE EVENTS
                     async for event in self._translate_function_calls(function_calls):
                         yield event
                         
-            # Handle function responses
+            # Handle function responses and yield the tool response event
+            # this is essential for scenerios when user has to render function response at frontend
             if hasattr(adk_event, 'get_function_responses'):
                 function_responses = adk_event.get_function_responses()
                 if function_responses:
@@ -298,6 +289,8 @@ class EventTranslator:
         Args:
             adk_event: The ADK event containing function calls
             function_calls: List of function calls from the event
+            thread_id: The AG-UI thread ID
+            run_id: The AG-UI run ID
             
         Yields:
             Tool call events (START, ARGS, END)
@@ -308,6 +301,8 @@ class EventTranslator:
         for func_call in function_calls:
             tool_call_id = getattr(func_call, 'id', str(uuid.uuid4()))
             
+            # Track the tool call
+            self._active_tool_calls[tool_call_id] = tool_call_id
             
             # Emit TOOL_CALL_START
             yield ToolCallStartEvent(
@@ -337,6 +332,7 @@ class EventTranslator:
             
             # Clean up tracking
             self._active_tool_calls.pop(tool_call_id, None)
+    
 
     async def _translate_function_response(
         self,
@@ -345,6 +341,7 @@ class EventTranslator:
         """Translate function calls from ADK event to AG-UI tool call events.
         
         Args:
+            adk_event: The ADK event containing function calls
             function_response: List of function response from the event
             
         Yields:

@@ -13,7 +13,7 @@ from ag_ui.core import (
     RunStartedEvent, RunFinishedEvent, RunErrorEvent,
     TextMessageStartEvent, TextMessageContentEvent, TextMessageEndEvent,
     StateSnapshotEvent, StateDeltaEvent,
-    Context, ToolMessage, ToolCallEndEvent, SystemMessage
+    Context, ToolMessage, ToolCallEndEvent, SystemMessage,ToolCallResultEvent
 )
 
 from google.adk import Runner
@@ -189,29 +189,29 @@ class ADKAgent:
         """
         logger.debug(f"Adding pending tool call {tool_call_id} for session {session_id}, app_name={app_name}, user_id={user_id}")
         try:
-            session = await self._session_manager._session_service.get_session(
+            # Get current pending calls using SessionManager
+            pending_calls = await self._session_manager.get_state_value(
                 session_id=session_id,
                 app_name=app_name,
-                user_id=user_id
+                user_id=user_id,
+                key="pending_tool_calls",
+                default=[]
             )
-            logger.debug(f"Retrieved session: {session}")
-            if session:
-                # Get current state or initialize empty
-                current_state = session.state or {}
-                pending_calls = current_state.get("pending_tool_calls", [])
+            
+            # Add new tool call if not already present
+            if tool_call_id not in pending_calls:
+                pending_calls.append(tool_call_id)
                 
-                # Add new tool call if not already present
-                if tool_call_id not in pending_calls:
-                    pending_calls.append(tool_call_id)
-                    
-                    # Persist the state change using append_event with EventActions
-                    from google.adk.events import Event, EventActions
-                    event = Event(
-                        author="adk_middleware",
-                        actions=EventActions(stateDelta={"pending_tool_calls": pending_calls})
-                    )
-                    await self._session_manager._session_service.append_event(session, event)
-                    
+                # Update the state using SessionManager
+                success = await self._session_manager.set_state_value(
+                    session_id=session_id,
+                    app_name=app_name,
+                    user_id=user_id,
+                    key="pending_tool_calls",
+                    value=pending_calls
+                )
+                
+                if success:
                     logger.info(f"Added tool call {tool_call_id} to session {session_id} pending list")
         except Exception as e:
             logger.error(f"Failed to add pending tool call {tool_call_id} to session {session_id}: {e}")
@@ -242,28 +242,29 @@ class ADKAgent:
                     break
             
             if session_key and user_id and app_name:
-                session = await self._session_manager._session_service.get_session(
+                # Get current pending calls using SessionManager
+                pending_calls = await self._session_manager.get_state_value(
                     session_id=session_id,
                     app_name=app_name,
-                    user_id=user_id
+                    user_id=user_id,
+                    key="pending_tool_calls",
+                    default=[]
                 )
-                if session:
-                    # Get current state
-                    current_state = session.state or {}
-                    pending_calls = current_state.get("pending_tool_calls", [])
+                
+                # Remove tool call if present
+                if tool_call_id in pending_calls:
+                    pending_calls.remove(tool_call_id)
                     
-                    # Remove tool call if present
-                    if tool_call_id in pending_calls:
-                        pending_calls.remove(tool_call_id)
-                        
-                        # Persist the state change using append_event with EventActions
-                        from google.adk.events import Event, EventActions
-                        event = Event(
-                            author="adk_middleware",
-                            actions=EventActions(stateDelta={"pending_tool_calls": pending_calls})
-                        )
-                        await self._session_manager._session_service.append_event(session, event)
-                        
+                    # Update the state using SessionManager
+                    success = await self._session_manager.set_state_value(
+                        session_id=session_id,
+                        app_name=app_name,
+                        user_id=user_id,
+                        key="pending_tool_calls",
+                        value=pending_calls
+                    )
+                    
+                    if success:
                         logger.info(f"Removed tool call {tool_call_id} from session {session_id} pending list")
         except Exception as e:
             logger.error(f"Failed to remove pending tool call {tool_call_id} from session {session_id}: {e}")
@@ -283,15 +284,16 @@ class ADKAgent:
                 for key in keys:
                     if key.endswith(f":{session_id}"):
                         app_name = key.split(':', 1)[0]
-                        session = await self._session_manager._session_service.get_session(
+                        
+                        # Get pending calls using SessionManager
+                        pending_calls = await self._session_manager.get_state_value(
                             session_id=session_id,
                             app_name=app_name,
-                            user_id=uid
+                            user_id=uid,
+                            key="pending_tool_calls",
+                            default=[]
                         )
-                        if session:
-                            current_state = session.state or {}
-                            pending_calls = current_state.get("pending_tool_calls", [])
-                            return len(pending_calls) > 0
+                        return len(pending_calls) > 0
         except Exception as e:
             logger.error(f"Failed to check pending tool calls for session {session_id}: {e}")
         
@@ -334,7 +336,6 @@ class ADKAgent:
         Yields:
             AG-UI protocol events
         """
-        print('input===>',input)
         # Check if this is a tool result submission for an existing execution
         if self._is_tool_result_submission(input):
             # Handle tool results for existing execution
@@ -523,7 +524,7 @@ class ADKAgent:
                     execution.is_complete = True
                     logger.debug(f"Execution complete for thread {execution.thread_id} after {event_count} events")
                     break
-
+                
                 logger.debug(f"Streaming event #{event_count}: {type(event).__name__} (thread {execution.thread_id})")
                 yield event
                 
@@ -625,6 +626,13 @@ class ADKAgent:
                     logger.info(f"Detected ToolCallEndEvent with id: {event.tool_call_id}")
                     has_tool_calls = True
                     tool_call_ids.append(event.tool_call_id)
+
+                # backend tools will always emit ToolCallResultEvent
+                # If it is a backend tool then we don't need to add the tool_id in pending_tools
+                if isinstance(event, ToolCallResultEvent) and event.tool_call_id in tool_call_ids:
+                    logger.info(f"Detected ToolCallResultEvent with id: {event.tool_call_id}")
+                    tool_call_ids.remove(event.tool_call_id)
+                
                 
                 logger.debug(f"Yielding event: {type(event).__name__}")
                 yield event
@@ -726,11 +734,11 @@ class ADKAgent:
             input_tools = []
             for input_tool in input.tools:
                 # Check if this input tool's name matches any existing tool
-                # exclude this specific tool call transfer_to_agent which is used internally by the adk to handoff to other agents
+                # Also exclude this specific tool call "transfer_to_agent" which is used internally by the adk to handoff to other agents
                 if (not any(hasattr(existing_tool, '__name__') and input_tool.name == existing_tool.__name__
                         for existing_tool in existing_tools) and input_tool.name != 'transfer_to_agent'):
                     input_tools.append(input_tool)
-      
+                        
             toolset = ClientProxyToolset(
                 ag_ui_tools=input_tools,
                 event_queue=event_queue
@@ -740,7 +748,7 @@ class ADKAgent:
             combined_tools = existing_tools + [toolset]
             agent_updates['tools'] = combined_tools
             logger.debug(f"Will combine {len(existing_tools)} existing tools with proxy toolset")
-            print(f"Exisiting tools---> {existing_tools} \n Combined Tools: {combined_tools}")
+        
         # Create a single copy of the agent with all updates if any modifications needed
         if agent_updates:
             adk_agent = adk_agent.model_copy(update=agent_updates)
@@ -852,6 +860,7 @@ class ADKAgent:
                 new_message = types.Content(parts=parts, role='user')
             # Create event translator
             event_translator = EventTranslator()
+            
             # Run ADK agent
             is_long_running_tool = False
             async for adk_event in runner.run_async(
@@ -886,6 +895,7 @@ class ADKAgent:
             # Force close any streaming messages
             async for ag_ui_event in event_translator.force_close_streaming_message():
                 await event_queue.put(ag_ui_event)
+            # moving states snapshot events after the text event clousure to avoid this error https://github.com/Contextable/ag-ui/issues/28
             final_state = await self._session_manager.get_session_state(input.thread_id,app_name,user_id)
             if final_state:
                 ag_ui_event =  event_translator._create_state_snapshot_event(final_state)                    
