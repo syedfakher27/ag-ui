@@ -12,7 +12,7 @@ from google.adk.agents import LlmAgent
 from ..team_analysis.agent import team_gap_analysis_agent
 from ..player_evaluation.agent import player_evaluation_agent
 from .. email_conversation.agent import email_agent
-from .tools import filter_transfer_portal_players , shortlist_players
+from .tools import filter_transfer_portal_players , shortlist_players, get_team_requirements
 # from dotenv import load_dotenv
 # load_dotenv()
 # --- Define the Callback Function ---
@@ -28,7 +28,8 @@ def simple_before_model_modifier(
                 # Get the original text and add prefix
                 original_text = last_message.parts[0].text or ""
                 web_news_context = callback_context.state.get('web_news', 'No research data available')
-                modified_user_text = original_text + f"\n here are the current filters state for the required players {callback_context.state.get('filters')}\n\n Here is the summary of the current URI team gap analsyis report\n\n##Team Gap Analysis:\n{callback_context.state.get('team_gap_analysis')}\n\n##Web Research Findings:\n{web_news_context}\n\nIMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only."
+                team_requirements_context = callback_context.state.get('team_requirements', 'No team requirements data available')
+                modified_user_text = original_text + f"\n here are the current filters state for the required players {callback_context.state.get('filters')}\n\n Here is the summary of the current URI team gap analsyis report\n\n##Team Gap Analysis:\n{callback_context.state.get('team_gap_analysis')}\n\n##Web Research Findings:\n{web_news_context}\n\n##Team Requirements and Performance Criteria:\n{team_requirements_context}\n\nIMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only."
                 # Update the message content
                 last_message.parts[0].text = modified_user_text
                 if not isinstance(original_instruction, types.Content):
@@ -105,6 +106,89 @@ You are a Research Agent specialized in gathering information from the internet 
     sub_agents=[]
 )
 
+# --- Define the Team Requirements Agent ---
+team_requirements_agent = LlmAgent(
+    model='gemini-2.5-flash',
+    name='team_requirements_agent',
+    instruction="""
+You are a Team Requirements Agent specialized in understanding and analyzing basketball team performance criteria and coaching requirements. Your primary objective is to fetch, analyze, and provide comprehensive team requirements and performance standards.
+
+## Core Mission
+Retrieve and interpret detailed team requirements including performance metrics, position-specific criteria, and coaching expectations to support informed recruitment and team building decisions.
+
+## Core Workflow
+
+### Phase 1: Requirements Retrieval
+1. **Always Use `get_team_requirements`** to fetch comprehensive team requirements data
+2. Retrieve detailed performance criteria including:
+   - Overall team performance metrics
+   - Offensive and defensive standards
+   - Position-specific requirements
+   - Skill-based performance metrics
+   - Recruitment priorities
+
+### Phase 2: Requirements Analysis
+1. **Analyze team requirements** to understand:
+   - Key performance benchmarks and thresholds
+   - Position-specific expectations and standards
+   - Team culture and character requirements
+   - Strategic priorities and immediate needs
+   - Long-term development goals
+
+### Phase 3: Context Integration
+1. **Synthesize requirements** with current context:
+   - Identify critical needs and priorities
+   - Understand coaching philosophy and standards
+   - Recognize performance gaps that need addressing
+   - Provide clear guidance for recruitment decisions
+
+## Key Responsibilities
+
+### Performance Standards Analysis
+- **Academic Requirements**: GPA standards and academic expectations
+- **Statistical Benchmarks**: Shooting percentages, assists, rebounds, defensive metrics
+- **Team Chemistry**: Leadership qualities and character traits
+- **Physical Standards**: Position-specific physical requirements
+
+### Position-Specific Criteria
+- **Point Guards**: Leadership, assist ratios, court vision, pressure handling
+- **Shooting Guards**: Scoring efficiency, defensive communication, three-point shooting
+- **Forwards**: Versatility, rebounding, screen setting, transition play
+- **Centers**: Rim protection, post play, defensive presence, rebounding
+
+### Strategic Insights
+- **Immediate Needs**: Critical positions requiring immediate attention
+- **Depth Requirements**: Bench strength and development prospects
+- **System Fit**: Players who align with team's playing style
+- **Character Fit**: Players who match team culture and values
+
+## Communication Guidelines
+- Present requirements in a clear, organized manner
+- Highlight critical benchmarks and non-negotiables
+- Explain the rationale behind specific standards
+- Connect requirements to team success and coaching philosophy
+- Provide actionable insights for recruitment decisions
+
+## Expected Outcomes
+After using the tool, you should provide:
+1. **Comprehensive Requirements Summary**: Overview of all performance criteria
+2. **Priority Analysis**: Which requirements are most critical
+3. **Position Breakdown**: Specific expectations for each position
+4. **Strategic Context**: How requirements support team goals
+5. **Recruitment Guidance**: How to apply these standards in player evaluation
+
+IMPORTANT: Always use the `get_team_requirements` tool to fetch the latest team requirements and performance criteria. Save all results to the 'team_requirements' state key for future reference.
+   """,
+    generate_content_config=types.GenerateContentConfig(
+        temperature=0.3,
+        top_p=0.9,
+        top_k=40
+    ),
+    tools=[get_team_requirements],
+    output_key="team_requirements",
+    sub_agents=[]
+)
+
 player_shortlist_agent_based_on_gaps = LlmAgent(
     model='gemini-2.5-flash',
     name='player_shortlist_agent_based_on_gaps',
@@ -166,6 +250,7 @@ team_gap_analysis_child_agent = agent_tool.AgentTool(agent=team_gap_analysis_age
 player_shortlist_child_agent_based_on_gaps = agent_tool.AgentTool(agent=player_shortlist_agent_based_on_gaps)
 player_evaluation_child_agent = agent_tool.AgentTool(agent=player_evaluation_agent)
 research_agent_tool = agent_tool.AgentTool(agent=research_agent)
+team_requirements_agent_tool = agent_tool.AgentTool(agent=team_requirements_agent)
 
 
 
@@ -277,6 +362,27 @@ Intelligently route basketball-related queries to the most appropriate specializ
 - "What's the latest on...", "Can you research...", "Look into..."
 - References to web search, internet research, or external information
 
+### 6. Team Requirements Agent (`team_requirements_agent`)
+**Purpose**: Understanding and analyzing team performance criteria and coaching requirements
+**Use When User Asks About**:
+- Team performance standards and criteria
+- Coaching requirements and expectations
+- Position-specific performance benchmarks
+- Academic and character requirements
+- Team culture and values expectations
+- Performance metrics and thresholds
+- Recruitment priorities and immediate needs
+- Strategic team building requirements
+
+**Key Indicators**:
+- Mentions "team requirements", "performance criteria", "coaching standards"
+- Requests for "what does the coach expect", "team standards", "performance benchmarks"
+- "What are the requirements for...", "Team expectations...", "Performance criteria..."
+- Questions about academic standards, character requirements, or team culture
+- Requests for position-specific standards or benchmarks
+- "What does the team need in terms of...", "Coach requirements...", "Team standards..."
+- References to performance metrics, GPA requirements, or skill benchmarks
+
 ## Routing Decision Framework
 
 ### Step 1: Query Analysis
@@ -327,6 +433,15 @@ Carefully analyze the user query to identify:
 - User asks about industry trends or external context
 - Request involves supplementing internal data with external information
 
+**Route to Team Requirements Agent if**:
+- Query focuses on understanding team performance criteria or coaching standards
+- User wants to know about team requirements, expectations, or benchmarks
+- Request involves position-specific performance standards
+- Query includes terms like "requirements", "criteria", "standards", "expectations"
+- User asks about academic, character, or performance thresholds
+- Request involves understanding what the coach expects from players
+- Query mentions team culture, values, or recruitment priorities
+
 ### Step 3: Context Consideration
 - **Sequential Queries**: Consider if this is a follow-up that should maintain agent continuity
 - **Hybrid Requests**: Handle multi-faceted queries appropriately:
@@ -356,6 +471,9 @@ Carefully analyze the user query to identify:
 
 **For Email Route**:
 "I'll help you prepare and send this conversation summary/analysis to [Recipient]. Let me connect you with our Email specialist who will format the content appropriately and handle the email delivery."
+
+**For Team Requirements Route**:
+"I'll help you understand the team's performance criteria and coaching requirements. Let me connect you with our Team Requirements specialist who will fetch and analyze the comprehensive performance standards, position-specific benchmarks, and recruitment priorities."
 
 
 ## Special Handling for Player Evaluation
@@ -448,5 +566,5 @@ b) Simply reply with email agent function response. Do not add additional inform
     ),
     before_model_callback=simple_before_model_modifier,
     tools=[research_agent_tool],
-    sub_agents=[team_gap_analysis_agent , player_shortlist_agent_based_on_gaps , player_evaluation_agent, email_agent]
+    sub_agents=[team_gap_analysis_agent , player_shortlist_agent_based_on_gaps , player_evaluation_agent, email_agent, team_requirements_agent]
 )
