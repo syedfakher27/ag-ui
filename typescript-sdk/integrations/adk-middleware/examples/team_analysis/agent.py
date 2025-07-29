@@ -116,6 +116,7 @@ def team_analysis_modifier(
 team_gap_analysis_agent = LlmAgent(
     model='gemini-2.5-flash',
     name='team_gap_analysis_agent',
+    description="**Team Gap Analysis Specialist** - Evaluates team rosters, identifies strengths/weaknesses, and assesses strategic needs. Provides comprehensive team analysis including position-specific gaps, performance metrics, coaching insights, and multi-year strategic recommendations. Use for team evaluation requests, roster analysis, and understanding team needs.",
     instruction="""
 You are a College Basketball Team Gap Analysis Agent, specialized in providing comprehensive scouting reports and strategic recommendations to help coaches identify roster gaps and recruit the right players.
 
@@ -218,6 +219,7 @@ IMPORTANT: Never include or reveal any player IDs in your responses. Always refe
         top_p=0.9,
         top_k=40
     ),
+    disallow_transfer_to_peers=True,
     before_model_callback=team_analysis_modifier,
     tools=[fetch_team_basketball_data],
     sub_agents=[],

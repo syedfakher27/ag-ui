@@ -94,6 +94,7 @@ def check_if_agent_should_run(callback_context: CallbackContext) -> Optional[typ
 player_evaluation_agent = LlmAgent(
     model='gemini-2.5-flash',
     name='player_evaluation_agent',
+    description="**Player Performance Evaluation** - Provides comprehensive player analysis, performance scoring, and detailed scouting reports. Generates statistical breakdowns, player comparisons, development potential assessment, and recruitment priority recommendations. Use for detailed player evaluation reports and performance assessments.",
     instruction="""
 You are a Basketball Player Evaluation Agent, specialized in analyzing player statistics and generating comprehensive evaluation reports with performance scores.
 
@@ -234,8 +235,9 @@ IMPORTANT: Never include or reveal any player IDs in your responses. Always refe
         top_p=0.9,
         top_k=40
     ),
+    disallow_transfer_to_peers=True,
     before_model_callback=player_evaluation_modifier,
-    before_agent_callback= check_if_agent_should_run ,
+    # before_agent_callback= check_if_agent_should_run ,
     tools=[search_player_by_name, fetch_player_stats, get_player_evaluation_summary],
     sub_agents=[],
     output_key="player_evaluation"

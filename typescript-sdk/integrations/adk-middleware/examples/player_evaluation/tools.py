@@ -111,18 +111,18 @@ def fetch_player_stats(tool_context: ToolContext, player_ids: List[str]) -> Dict
         }
 
 
-def search_player_by_name(tool_context: ToolContext, player_name: str) -> Dict[str, Any]:
+def search_player_by_name(tool_context: ToolContext, player_names: List[str]) -> Dict[str, Any]:
     """
     Search for a player in the transfer portal by name to get their player ID and basic info.
     
     Args:
-        player_name: Name of the player to search for (e.g., "Shelton Williams-Dryden")
+        player_names: List of the Name of the player to search for (e.g., "[Shelton Williams-Dryden"])
     
     Returns:
         Dictionary containing player information including player_id needed for stats fetching
     """
     try:
-        if not player_name or not player_name.strip():
+        if not len(player_names):
             return {
                 "status": "error",
                 "message": "Please provide a player name to search for.",
@@ -131,71 +131,31 @@ def search_player_by_name(tool_context: ToolContext, player_name: str) -> Dict[s
         
         # API configuration for searching players
         schema = "MBB"
-        url = f"https://slam-all-python-359065791766.us-central1.run.app/MBB/tp-players?schema={schema}"
+        url = f"https://slam-all-python-359065791766.us-central1.run.app/MBB/tp-players/stats?schema={schema}"
         
         headers = {
-            'accept': 'application/json'
+            'accept': 'application/json',
+            'Content-Type': 'application/json'
         }
         
-        # Parameters for player search - using name filter
-        params = {
-            'limit': 50,  # Get more results to increase chance of finding the player
-            'page': 1
+        payload = {
+            "player_ids": [],
+            "player_names": player_names,
         }
         
-        logger.info(f"Searching for player: {player_name}")
         
-        # Make the API request to get transfer portal players
-        response = requests.get(url, headers=headers, params=params, timeout=30)
-        response.raise_for_status()
-        
-        players_data = response.json()
-        
-        # Search through the results to find matching players
-        matching_players = []
-        search_name_lower = player_name.lower().strip()
-        
-        # Handle different response formats
-        players_list = players_data
-        if isinstance(players_data, dict):
-            players_list = players_data.get('data', []) or players_data.get('players', []) or []
-        
-        for player in players_list:
-            if isinstance(player, dict):
-                player_name_field = player.get('player_name', '') or player.get('name', '')
-                if player_name_field:
-                    if search_name_lower in player_name_field.lower() or player_name_field.lower() in search_name_lower:
-                        matching_players.append({
-                            'player_id': player.get('player_id'),
-                            'player_name': player_name_field,
-                            'team': player.get('team', ''),
-                            'position': player.get('position', ''),
-                            'class': player.get('class', ''),
-                            'height': player.get('height', ''),
-                            'weight': player.get('weight', '')
-                        })
-        
-        if not matching_players:
-            return {
-                "status": "error",
-                "message": f"No players found matching the name '{player_name}'. Please check the spelling or try a different name.",
-                "data": None,
-                "searched_name": player_name
-            }
-        
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        player_stats =  response.json()
+
+
         # Store the search results in state for later use
-        tool_context.state['player_search_results'] = matching_players
-        tool_context.state['last_searched_player'] = player_name
+        tool_context.state['player_search_results'] = player_stats
+        tool_context.state['last_searched_player'] = player_names
         
-        logger.info(f"Found {len(matching_players)} matching players for '{player_name}'")
-        
-        return {
-            "status": "success",
-            "message": f"Found {len(matching_players)} player(s) matching '{player_name}'",
-            "data": matching_players,
-            "searched_name": player_name,
-            "exact_match": len(matching_players) == 1
-        }
+
+        return player_stats
+
         
     except requests.exceptions.Timeout:
         error_msg = "Request timeout - the player search API took too long to respond"

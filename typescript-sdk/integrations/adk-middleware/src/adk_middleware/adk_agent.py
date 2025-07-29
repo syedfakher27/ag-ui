@@ -745,7 +745,8 @@ class ADKAgent:
             )
 
             # Combine existing tools with our proxy toolset
-            combined_tools = existing_tools + [toolset]
+            # combined_tools = existing_tools + [toolset]
+            combined_tools = existing_tools 
             agent_updates['tools'] = combined_tools
             logger.debug(f"Will combine {len(existing_tools)} existing tools with proxy toolset")
         

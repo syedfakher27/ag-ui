@@ -135,6 +135,7 @@ When calling the `prepare_email_for_approval_tool` tool, you MUST structure the 
         top_p=0.9,
         top_k=40
     ),
+    disallow_transfer_to_peers=True,
     tools=[LongRunningFunctionTool(prepare_email_for_approval_tool)],
     before_model_callback=inject_user_emails_to_email_agent,
 )
