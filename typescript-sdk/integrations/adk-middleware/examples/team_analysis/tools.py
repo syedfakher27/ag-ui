@@ -2,6 +2,7 @@ import requests
 import json
 from typing import Dict, List, Optional, Any
 import time
+from .hardcoded_output import PENN_STATE_OUTPUT
 
 def fetch_team_basketball_data(
     university_team:str = "URI"
@@ -12,12 +13,13 @@ def fetch_team_basketball_data(
     and detailed player statistics.
     
     Args:
-        university_team (str): The university team abbreviation (e.g., "URI", "DUKE", "UCLA")
+        university_team (str): The university team abbreviation (e.g., "URI" (University of Rhodes Island),"USC" (University of South Carolina), "DUKE" (Duke University), "PENN_STATE" (The Pennsylvania State University)
     
     Returns:
         Dict containing combined data from the provided university team
     """
-    
+    if university_team =="PENN_STATE" or university_team =="PSU":
+        return PENN_STATE_OUTPUT
     base_url: str = f"https://slam-all-python-359065791766.us-central1.run.app/MBB/{university_team}"
     schema: str = "MBB"
     fetch_all_players: bool = False,

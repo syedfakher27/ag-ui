@@ -6,6 +6,7 @@ import requests
 def filter_transfer_portal_players(
     tool_context: ToolContext,
     class_: Optional[str] = None,
+    team: Optional[str] = None,
     position: Optional[str] = None,
     efficiencyRating: Optional[int] = None,
     excludeCommitted: Optional[bool] = False,
@@ -23,7 +24,7 @@ def filter_transfer_portal_players(
     team requirements including team, class, position, and minimum possessions.
     
     Args:
-        team (str, optional): Team name to filter by (e.g., "Montana State")
+        team (str, optional): Team name to filter by (e.g., "Penn State" , "Rhode Island" ) 
         class_ (str, optional): Class level (e.g., "JR", "SR", "SO", "FR")
         position (str, optional):
             PF - Match: "power forward", "power", "forward" (if "small" not present), "PF", "4"
@@ -45,7 +46,7 @@ def filter_transfer_portal_players(
     """
     print('-------------filter_transfer_portal_players---------------')
     schema = "MBB"
-    team=None
+    # team=old_team
     # Store current filters in tool context
     current_filters = tool_context.state.get("filters", {})
     # current_filters.update({
@@ -69,6 +70,7 @@ def filter_transfer_portal_players(
     
     if team:
         params.append(f"team={quote(team)}")
+
     
     if class_:
         params.append(f"class={quote(class_)}")
