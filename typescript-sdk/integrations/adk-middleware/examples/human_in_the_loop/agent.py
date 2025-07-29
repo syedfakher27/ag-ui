@@ -12,7 +12,12 @@ from google.adk.agents import LlmAgent
 from ..team_analysis.agent import team_gap_analysis_agent
 from ..player_evaluation.agent import player_evaluation_agent
 from .. email_conversation.agent import email_agent
+from google.adk.planners import PlanReActPlanner 
+
 from .tools import filter_transfer_portal_players , shortlist_players, get_team_requirements
+
+planner = PlanReActPlanner()
+
 # from dotenv import load_dotenv
 # load_dotenv()
 # --- Define the Callback Function ---
@@ -231,13 +236,13 @@ You are a Player Shortlist Agent specialized in analyzing transfer portal player
    - **Secondary**: Team's identified gaps and needs
    - Strategic fit within team system
    
-2. **Use `shortlist_players`** tool to confirm the final shortlisted players
+2. **Use `shortlist_players`** tool to confirm the final shortlisted players or to get the stats of a particular stats by the player name
 3. Provide detailed justification for each selection
 
 IMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only.
    """,
     generate_content_config=types.GenerateContentConfig(
-        temperature=0.7,
+        temperature=0.3,
         top_p=0.9,
         top_k=40
     ),
@@ -289,7 +294,7 @@ Intelligently route basketball-related queries to the most appropriate specializ
 ### 2. Player Shortlist Agent (`player_shortlist_agent_based_on_gaps`)
 **Purpose**: Transfer portal player discovery and shortlisting
 **Use When User Asks About**:
-- Finding specific players from the transfer portal
+- Finding specific players stats from the transfer portal (using Player Name)
 - Creating shortlists based on criteria
 - Player recommendations for identified gaps
 - Transfer portal searches with specific requirements
@@ -301,6 +306,7 @@ Intelligently route basketball-related queries to the most appropriate specializ
 - Requests for player recommendations or searches
 - Specific position requirements (PG, SG, SF, PF, C)
 - Statistical criteria or performance thresholds
+- Find me the stats for this player
 - "Find me players who...", "Who are the best...", "Shortlist players..."
 
 ### 3. Player Evaluation Agent (`player_evaluation_agent`)
@@ -318,11 +324,9 @@ Intelligently route basketball-related queries to the most appropriate specializ
 **Key Indicators**:
 - Mentions "evaluate", "analysis", "score", "assessment", "report"
 - Requests for player performance evaluation or detailed analysis
-- Questions about specific player statistics or performance
 - Comparisons between players with detailed metrics
 - "How good is [player]?", "Evaluate [player]", "Player report on..."
 - Requests for scoring or ranking specific players
-- Mentions specific player names for detailed evaluation
 
 ### 4. Email Agent (`email_agent`)
 **Purpose**: Conversation summary and email communication
@@ -565,6 +569,7 @@ b) Simply reply with email agent function response. Do not add additional inform
         top_k=40
     ),
     before_model_callback=simple_before_model_modifier,
+    planner=planner,
     tools=[research_agent_tool],
     sub_agents=[team_gap_analysis_agent , player_shortlist_agent_based_on_gaps , player_evaluation_agent, email_agent, team_requirements_agent]
 )

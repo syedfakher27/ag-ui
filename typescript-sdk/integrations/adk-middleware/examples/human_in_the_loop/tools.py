@@ -137,15 +137,16 @@ def filter_transfer_portal_players(
         print(f"Unexpected error: {e}")
         raise Exception(f"Error filtering transfer portal players: {str(e)}")
 
-def shortlist_players(tool_context: ToolContext, player_ids: List[str]) -> Optional[Dict[Any, Any]]:
+def shortlist_players(tool_context: ToolContext, player_names: List[str] = [], player_ids: List[str] = []) -> Optional[Dict[Any, Any]]:
     """
-    Confirm the shortlisted players that fullfills the given criteria.
+    Confirm the shortlisted players that fullfills the given criteria Or get the player stats using provided player names. Do not use the player_ids and player_names both
     
     Args:
-        player_ids (List[str]): List of player IDs
+        player_names (List[str]) Optional: List of player Names
+        player_ids (List[str]) Optional: List of player IDs
     
     Returns:
-        JSON confirmation response from the tool
+        Player Stats response from the tool
 
     """
     schema = "MBB"
@@ -157,7 +158,8 @@ def shortlist_players(tool_context: ToolContext, player_ids: List[str]) -> Optio
     }
     
     payload = {
-        "player_ids": player_ids
+        "player_ids": player_ids,
+        "player_names": player_names,
     }
     
     try:
