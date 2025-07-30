@@ -16,6 +16,6 @@ enum JsonPatchOperationType {
 message JsonPatchOperation {
   JsonPatchOperationType op = 1;
   string path = 2;
-  optional string from = 3;
-  optional google.protobuf.Value value = 4;
+  string from = 3;
+  google.protobuf.Value value = 4;
 }

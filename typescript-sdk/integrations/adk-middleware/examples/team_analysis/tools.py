@@ -4,184 +4,238 @@ from typing import Dict, List, Optional, Any
 import time
 from .hardcoded_output import PENN_STATE_OUTPUT
 
-def fetch_team_basketball_data(
-    university_team:str = "URI"
-) -> Dict[str, Any]:
+def fetch_team_name(team: str) -> str:
     """
-    Fetch combined basketball data for any university team from three different API endpoints.
-    This function retrieves comprehensive team context including team information, season games,
-    and detailed player statistics.
+    Fetch exact team name from the API endpoint.
     
     Args:
-        university_team (str): The university team abbreviation (e.g., "URI" (University of Rhodes Island),"USC" (University of South Carolina), "DUKE" (Duke University), "PENN_STATE" (The Pennsylvania State University)
+        team (str): The name of the team to find full and exact team name for
     
     Returns:
-        Dict containing combined data from the provided university team
+        str: The name of the exact team name for the given team
     """
-    if university_team =="PENN_STATE" or university_team =="PSU":
-        return PENN_STATE_OUTPUT
-    base_url: str = f"https://slam-all-python-359065791766.us-central1.run.app/MBB/{university_team}"
-    schema: str = "MBB"
-    fetch_all_players: bool = False,
-    player_page_size: int = 50
+    base_url: str = "https://slam-all-python-359065791766.us-central1.run.app/MBB/team-stats-mia/similar"
     timeout: int = 30
     
     headers = {
-        'accept': 'application/json'
+        'accept': 'application/json',
+        'Content-Type': 'application/json'
+    }
+    
+    try:
+        # Prepare request body
+        body = {
+            "team": team
+        }
+        
+        # Fetch team name
+        print(f"Fetching exact team name for {team}...")
+        response = requests.post(
+            base_url,
+            headers=headers,
+            json=body,
+            timeout=timeout
+        )
+        response.raise_for_status()
+        
+        data = response.json()
+        if data.get('total', 0) > 0 and len(data.get('data', [])) > 0:
+            team_name = data['data'][0]['team']
+            print(f"✓ Team name fetched successfully: {team_name}")
+            return team_name
+        else:
+            print("✗ No team data found in the response")
+            return ""
+            
+    except requests.exceptions.RequestException as e:
+        error_msg = f"Error fetching team name: {str(e)}"
+        print(f"✗ {error_msg}")
+        return ""
+
+def fetch_team_basketball_data(team_name: str) -> Dict[str, Any]:
+    """
+    Fetch combined basketball data for a team including team stats and player stats.
+    
+    Args:
+        team_name (str): The exact team name (e.g., "Penn State")
+    
+    Returns:
+        Dict containing combined team stats and player stats data
+    """
+    base_url: str = "https://slam-all-python-359065791766.us-central1.run.app/MBB"
+    timeout: int = 30
+    schema: str = "MBB"
+    
+    headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json'
     }
     
     combined_data = {
-        'team_info': None,
-        'season_games': None,
-        'player_data': None,
+        'team_stats': None,
+        'player_stats': None,
         'api_status': {
-            'team_info_success': False,
-            'season_games_success': False,
-            'player_data_success': False,
+            'team_stats_success': False,
+            'player_stats_success': False,
             'errors': []
         }
     }
     
     try:
-        # 1. Fetch team information
-        print("Fetching team information...")
-        team_url = f"{base_url}/seasongames"
-        team_params = {'schema': schema}
+        # 1. Fetch team stats
+        print(f"Fetching team stats for {team_name}...")
+        team_stats_url = f"{base_url}/team-stats-mia/search-by-teams"
+        team_stats_body = {
+            "teams": [team_name]
+        }
         
-        team_response = requests.get(
-            team_url, 
-            headers=headers, 
-            params=team_params,
+        team_stats_response = requests.post(
+            team_stats_url,
+            headers=headers,
+            json=team_stats_body,
             timeout=timeout
         )
-        team_response.raise_for_status()
+        team_stats_response.raise_for_status()
         
-        combined_data['team_info'] = team_response.json()
-        combined_data['api_status']['team_info_success'] = True
-        print(f"✓ Team info fetched successfully")
-        
+        team_stats_data = team_stats_response.json()
+        if team_stats_data.get('total', 0) > 0 and len(team_stats_data.get('data', [])) > 0:
+            combined_data['team_stats'] = team_stats_data['data'][0]
+            combined_data['api_status']['team_stats_success'] = True
+            print(f"✓ Team stats fetched successfully")
+        else:
+            print(f"✗ No team stats found for {team_name}")
+            
     except requests.exceptions.RequestException as e:
-        error_msg = f"Error fetching team info: {str(e)}"
+        error_msg = f"Error fetching team stats: {str(e)}"
         combined_data['api_status']['errors'].append(error_msg)
         print(f"✗ {error_msg}")
     
     try:
-        # 2. Fetch all games
-        print("Fetching all games...")
-        games_url = f"{base_url}/allgames"
-        games_params = {'schema': schema}
+        # 2. Fetch player stats
+        print(f"Fetching player stats for {team_name}...")
+        player_stats_url = f"{base_url}/players-stats-mia/search-by-team"
+        player_stats_body = {
+            "team_name": team_name
+        }
         
-        games_response = requests.get(
-            games_url, 
-            headers=headers, 
-            params=games_params,
+        player_stats_response = requests.post(
+            player_stats_url,
+            headers=headers,
+            json=player_stats_body,
             timeout=timeout
         )
-        games_response.raise_for_status()
+        player_stats_response.raise_for_status()
         
-        combined_data['season_games'] = games_response.json()
-        combined_data['api_status']['season_games_success'] = True
-        print(f"✓ Games data fetched successfully ({len(combined_data['season_games'])} games)")
-        
+        player_stats_data = player_stats_response.json()
+        if player_stats_data.get('total', 0) > 0:
+            combined_data['player_stats'] = player_stats_data['data']
+            combined_data['api_status']['player_stats_success'] = True
+            print(f"✓ Player stats fetched successfully ({len(player_stats_data['data'])} players)")
+        else:
+            print(f"✗ No player stats found for {team_name}")
+            
     except requests.exceptions.RequestException as e:
-        error_msg = f"Error fetching games: {str(e)}"
+        error_msg = f"Error fetching player stats: {str(e)}"
         combined_data['api_status']['errors'].append(error_msg)
         print(f"✗ {error_msg}")
     
-    try:
-        # 3. Fetch player data
-        print("Fetching player data...")
-        players_url = f"{base_url}/playerdata"
+    # Special handling for Penn State - add hardcoded player data
+    if team_name.lower() == "penn state":
+        print("Adding hardcoded Penn State player data...")
+        # Convert hardcoded data to match API format
+        hardcoded_players = []
+        for player_data in PENN_STATE_OUTPUT[0]:  # Note: Data is nested in a list
+            if player_data["Name"]:  # Only include players with names
+                api_format_player = {
+                    "player": player_data["Name"],
+                    "team": "Penn State",
+                    "value_three_pct": str(player_data["value_three_pct"]) if player_data["value_three_pct"] is not None else None,
+                    "value_two_pct": str(player_data["value_two_pct"]) if player_data["value_two_pct"] is not None else None,
+                    "value_ft_pct": str(player_data["value_ft_pct"]) if player_data["value_ft_pct"] is not None else None,
+                    "value_scoring": str(player_data["value_scoring"]) if player_data["value_scoring"] is not None else None,
+                    "value_assist_rate": str(player_data["value_assist_rate"]) if player_data["value_assist_rate"] is not None else None,
+                    "value_TO": str(player_data["value_TO"]) if player_data["value_TO"] is not None else None,
+                    "value_playmaking": str(player_data["value_playmaking"]) if player_data["value_playmaking"] is not None else None,
+                    "value_oreb_pct": str(player_data["value_oreb_pct"]) if player_data["value_oreb_pct"] is not None else None,
+                    "value_dreb_pct": str(player_data["value_dreb_pct"]) if player_data["value_dreb_pct"] is not None else None,
+                    "value_reb_pct": str(player_data["value_reb_pct"]) if player_data["value_reb_pct"] is not None else None,
+                    "value_blk_pct": str(player_data["value_blk_pct"]) if player_data["value_blk_pct"] is not None else None,
+                    "value_STL": str(player_data["value_STL"]) if player_data["value_STL"] is not None else None,
+                    "value_PF": str(player_data["value_PF"]) if player_data["value_PF"] is not None else None,
+                    "value_D": str(player_data["value_D"]) if player_data["value_D"] is not None else None,
+                    "color_three_pct": player_data["color_three_pct"],
+                    "color_two_pct": player_data["color_two_pct"],
+                    "color_ft_pct": player_data["color_ft_pct"],
+                    "color_scoring": player_data["color_scoring"],
+                    "color_assist_rate": player_data["color_assist_rate"],
+                    "color_TO": player_data["color_TO"],
+                    "color_playmaking": player_data["color_playmaking"],
+                    "color_oreb_pct": player_data["color_oreb_pct"],
+                    "color_dreb_pct": player_data["color_dreb_pct"],
+                    "color_blk_pct": player_data["color_blk_pct"],
+                    "color_STL": player_data["color_STL"],
+                    "color_PF": player_data["color_PF"],
+                    "color_D": player_data["color_D"],
+                    # Add any additional fields that might be needed
+                    "player_notes": player_data["players"]  # Adding player notes/description
+                }
+                hardcoded_players.append(api_format_player)
         
-        all_players = []
-        page = 1
+        # Combine API players with hardcoded players
+        if combined_data['player_stats'] is None:
+            combined_data['player_stats'] = []
         
-        while True:
-            players_params = {
-                'page': page,
-                'page_size': player_page_size,
-                'schema': schema
-            }
-            
-            players_response = requests.get(
-                players_url, 
-                headers=headers, 
-                params=players_params,
-                timeout=timeout
-            )
-            players_response.raise_for_status()
-            
-            player_data = players_response.json()
-            
-            # Add current page data
-            if 'data' in player_data:
-                all_players.extend(player_data['data'])
-                
-                # Store metadata from first page
-                if page == 1:
-                    combined_data['player_data'] = {
-                        'data': all_players,
-                        'total': player_data.get('total', 0),
-                        'total_pages': player_data.get('total_pages', 0),
-                        'page_size': player_data.get('page_size', player_page_size)
-                    }
-                
-                print(f"✓ Fetched page {page} ({len(player_data['data'])} players)")
-                
-                # Check if we should continue fetching
-                if not fetch_all_players or not player_data.get('has_next', False):
-                    break
-                if page > 2:
-                    break
-                    
-                page += 1
-                # Add small delay to be respectful to the API
-                time.sleep(0.1)
-            else:
-                break
-        
-        # Update the final data
-        if combined_data['player_data']:
-            combined_data['player_data']['data'] = all_players
-            combined_data['player_data']['pages_fetched'] = page
-            
-        combined_data['api_status']['player_data_success'] = True
-        print(f"✓ Player data fetched successfully ({len(all_players)} total players)")
-        
-    except requests.exceptions.RequestException as e:
-        error_msg = f"Error fetching player data: {str(e)}"
-        combined_data['api_status']['errors'].append(error_msg)
-        print(f"✗ {error_msg}")
+        # Add hardcoded players to the existing player stats
+        combined_data['player_stats'].extend(hardcoded_players)
+        print(f"✓ Added {len(hardcoded_players)} hardcoded players")
     
     # Add summary statistics
     combined_data['summary'] = {
-        'total_apis_called': 3,
+        'total_apis_called': 2,
         'successful_apis': sum([
-            combined_data['api_status']['team_info_success'],
-            combined_data['api_status']['season_games_success'],
-            combined_data['api_status']['player_data_success']
+            combined_data['api_status']['team_stats_success'],
+            combined_data['api_status']['player_stats_success']
         ]),
-        'total_games': len(combined_data['season_games']) if combined_data['season_games'] else 0,
-        'total_players': len(combined_data['player_data']['data']) if combined_data['player_data'] else 0,
-        'team_count': len(combined_data['team_info']) if combined_data['team_info'] else 0
+        'total_players': len(combined_data['player_stats']) if combined_data['player_stats'] else 0,
+        'team_name': team_name,
+        'team_rank': combined_data['team_stats'].get('rank') if combined_data['team_stats'] else None,
+        'wins': combined_data['team_stats'].get('wins') if combined_data['team_stats'] else None,
+        'losses': combined_data['team_stats'].get('losses') if combined_data['team_stats'] else None
     }
     
     return combined_data
 
 # Example usage
 if __name__ == "__main__":
-    # Fetch first page of player data only
-    print("=== Fetching URI Basketball Data (First Page Only) ===")
-    data = fetch_team_basketball_data(university_team="URI")
+    # Test fetch_team_name function
+    print("\n=== Fetching Similar Team Name ===")
+    team_name = fetch_team_name("penn state")
+    print(f"Similar team name: {team_name}")
+    
+    if team_name:
+        # Test fetch_team_basketball_data with the exact team name
+        print("\n=== Fetching Team Basketball Data ===")
+        data = fetch_team_basketball_data(team_name)
+        print("\n=== Summary ===")
+        print('data==>', data['summary'])
     
     # Print summary
     print("\n=== Summary ===")
-    print('data==>',data)
+    print('Similar team:', team_name)
     
-    # Uncomment to save data to file
-    # save_data_to_file(data)
+    # Original test code
+    # print("\n=== Fetching URI Basketball Data (First Page Only) ===")
+    # # Print summary
+    # print("\n=== Summary ===")
+    # print('data==>', data)
     
-    # Uncomment to fetch ALL player data (this will take longer)
-    # print("\n=== Fetching ALL Player Data ===")
-    # all_data = fetch_uri_basketball_data(fetch_all_players=True)
-    # print(f"Total players (all pages): {all_data['summary']['total_players']}")
+    # # Uncomment to save data to file
+    # # save_data_to_file(data)
+    
+    # # Uncomment to fetch ALL player data (this will take longer)
+    # # print("\n=== Fetching ALL Player Data ===")
+    # # all_data = fetch_uri_basketball_data(fetch_all_players=True)
+    # # print(f"Total players (all pages): {all_data['summary']['total_players']}")
+
+# Make both functions available for import
+__all__ = ['fetch_team_name', 'fetch_team_basketball_data']

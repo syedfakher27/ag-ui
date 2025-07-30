@@ -27,14 +27,14 @@ enum EventType {
 
 message BaseEvent {
   EventType type = 1;
-  optional int64 timestamp = 2;
-  optional google.protobuf.Value raw_event = 3;
+  int64 timestamp = 2;
+  google.protobuf.Value raw_event = 3;
 }
 
 message TextMessageStartEvent {
   BaseEvent base_event = 1;
   string message_id = 2;
-  optional string role = 3;
+  string role = 3;
 }
 
 message TextMessageContentEvent {
@@ -52,7 +52,7 @@ message ToolCallStartEvent {
   BaseEvent base_event = 1;
   string tool_call_id = 2;
   string tool_call_name = 3;
-  optional string parent_message_id = 4;
+  string parent_message_id = 4;
 }
 
 message ToolCallArgsEvent {
@@ -84,13 +84,13 @@ message MessagesSnapshotEvent {
 message RawEvent {
   BaseEvent base_event = 1;
   google.protobuf.Value event = 2;
-  optional string source = 3;
+  string source = 3;
 }
 
 message CustomEvent {
   BaseEvent base_event = 1;
   string name = 2;
-  optional google.protobuf.Value value = 3;
+  google.protobuf.Value value = 3;
 }
 
 message RunStartedEvent {
@@ -103,12 +103,12 @@ message RunFinishedEvent {
   BaseEvent base_event = 1;
   string thread_id = 2;
   string run_id = 3;
-  optional google.protobuf.Value result = 4;
+  google.protobuf.Value result = 4;
 }
 
 message RunErrorEvent {
   BaseEvent base_event = 1;
-  optional string code = 2;
+  string code = 2;
   string message = 3;
 }
 
@@ -124,17 +124,17 @@ message StepFinishedEvent {
 
 message TextMessageChunkEvent {
   BaseEvent base_event = 1;
-  optional string message_id = 2;
-  optional string role = 3;
-  optional string delta = 4;
+  string message_id = 2;
+  string role = 3;
+  string delta = 4;
 }
 
 message ToolCallChunkEvent {
   BaseEvent base_event = 1;
-  optional string tool_call_id = 2;
-  optional string tool_call_name = 3;
-  optional string parent_message_id = 4;
-  optional string delta = 5;
+  string tool_call_id = 2;
+  string tool_call_name = 3;
+  string parent_message_id = 4;
+  string delta = 5;
 }
 
 message Event {
