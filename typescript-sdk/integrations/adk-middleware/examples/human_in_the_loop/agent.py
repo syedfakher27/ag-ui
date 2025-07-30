@@ -12,6 +12,7 @@ from google.adk.agents import LlmAgent
 from ..team_analysis.agent import team_gap_analysis_agent
 from ..player_evaluation.agent import player_evaluation_agent
 from .. email_conversation.agent import email_agent
+from ..research_agent.agent import research_agent
 from google.adk.planners import PlanReActPlanner 
 
 from .tools import filter_transfer_portal_players , shortlist_players, get_team_requirements
@@ -45,72 +46,7 @@ def simple_before_model_modifier(
  
     return None
 
-# --- Define the Callback Function for Research Agent ---
-def research_agent_callback(
-    callback_context: CallbackContext, llm_request: LlmRequest
-) -> Optional[LlmResponse]:
-    """Saves research findings to the agent's state under 'web_news' key."""
-    agent_name = callback_context.agent_name
-    if agent_name == "research_agent":
-        print('llm_request==>',llm_request)
-        if llm_request.contents and llm_request.contents[-1].role == 'user':
-            last_message = llm_request.contents[-1]
-            if last_message.parts and hasattr(last_message.parts[0],'text') and last_message.parts[0].text != "":
-                original_text = last_message.parts[0].text or ""
-                modified_text = original_text + "\n\nIMPORTANT: After conducting your research, you must save your findings to the agent's state using the key 'web_news'. Structure your findings with timestamps, source attribution, and clear organization."
-                last_message.parts[0].text = modified_text
-    
-    return None
 
-# --- Define the Research Agent with Google Search ---
-research_agent = LlmAgent(
-    model='gemini-2.5-flash',
-    name='research_agent',
-    description="**Internet Research Specialist** - Conducts comprehensive web research using Google Search to gather basketball-related information, news, trends, and external data. Provides organized findings with source attribution and saves results to session state. Use for background research, current events, and supplementing internal data.",
-    instruction="""
-You are a Research Agent specialized in gathering information from the internet using Google Search or url_context (if the user has provided a website link). Your primary objective is to search for relevant information based on user queries and save the results to the agent's state.
-
-## Core Workflow
-
-### Phase 1: Information Gathering
-1. **Always Use Google Search** to gather relevant information from the internet
-2. Analyze user queries to determine the most effective search terms
-3. Perform comprehensive searches to gather diverse perspectives and data points
-4. Focus on recent and credible sources when possible
-
-### Phase 2: Information Processing
-1. **Analyze search results** to extract key information:
-   - Identify main themes and topics
-   - Extract relevant facts, statistics, and insights
-   - Note source credibility and publication dates
-   - Synthesize information from multiple sources
-
-
-## Information Organization
-- **Structure findings** in a logical hierarchy
-- **Include source links** and attribution
-- **Timestamp** the research session
-- **Categorize** information by relevance and topic
-- **Highlight** key insights and actionable information
-
-## Search Strategy
-- Use varied search terms to capture different perspectives
-- Search for both general and specific information
-- Include recent news and developments
-- Look for authoritative sources and expert opinions
-- Cross-reference information from multiple sources
-
-   """,
-    generate_content_config=types.GenerateContentConfig(
-        temperature=0.7,
-        top_p=0.9,
-        top_k=40
-    ),
-    # before_model_callback=research_agent_callback,
-    tools=[url_context , google_search],
-    output_key="web_news",
-    sub_agents=[]
-)
 
 # --- Define the Team Requirements Agent ---
 team_requirements_agent = LlmAgent(
@@ -256,11 +192,9 @@ IMPORTANT: Never include or reveal any player IDs in your responses. Always refe
     sub_agents=[]
 )
 
-team_gap_analysis_child_agent = agent_tool.AgentTool(agent=team_gap_analysis_agent)
-player_shortlist_child_agent_based_on_gaps = agent_tool.AgentTool(agent=player_shortlist_agent_based_on_gaps)
-player_evaluation_child_agent = agent_tool.AgentTool(agent=player_evaluation_agent)
+
 research_agent_tool = agent_tool.AgentTool(agent=research_agent)
-team_requirements_agent_tool = agent_tool.AgentTool(agent=team_requirements_agent)
+
 
 
 
@@ -304,10 +238,6 @@ You are a Basketball Recruitment Router Agent that intelligently routes basketba
 **Email Agent** - Route when user asks about:
 - Sending conversation summaries, sharing reports via email
 - Keywords: "email to", "send to", "share with", specific recipient names
-
-**Research Agent** - Route when user asks about:
-- Internet research, basketball news, external information gathering
-- Keywords: "research", "search", "find information", "current trends"
 
 **Team Requirements Agent** - Route when user asks about:
 - Team performance criteria, coaching standards, recruitment requirements
