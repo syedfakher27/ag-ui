@@ -182,6 +182,26 @@ const TransferPortalAssistant = () => {
   });
 
   useCopilotAction({
+    name: "fetch_team_name",
+    parameters: [
+      {
+        name: "team",
+        type: "string",
+      }
+    ],
+    render: ({ args, result, status }) => {
+      return enableVerbose ? (
+         <ToolExecutionUI
+            toolName="fetch_team_name"
+            args={args}
+            result={result}
+            status={status}
+          />
+      ) : null;
+    },
+  });
+
+  useCopilotAction({
     name: "fetch_team_basketball_data",
     parameters: [
       {

@@ -6,7 +6,7 @@ from .tools import search_tool,url_tool
 research_agent = LlmAgent(
     model='gemini-2.5-flash',
     name='research_agent',
-    description="**Internet Research Specialist** - Conducts comprehensive web research using Google Search Agent or URL Search Agent to gather basketball-related information, news, trends, and external data. Provides organized findings with source attribution and saves results to session state. Use for background research, current events, and supplementing internal data.",
+    description="**Internet Research Specialist** - Conducts comprehensive web research using Google Search Agent or URL Search Agent to gather web information, news, trends, and external data. Provides organized findings with source attribution and saves results to session state. Use for background research, current events, and supplementing internal data.",
     instruction="""
 You are a Research Agent specialized in gathering information from the internet using google_search_agent or url_search_agent (if the user has provided a website link). Your primary objective is to search for relevant information based on user queries and save the results to the agent's state.
 

@@ -4,15 +4,15 @@ from typing import Dict, List, Optional, Any
 import time
 from .hardcoded_output import PENN_STATE_OUTPUT
 
-def fetch_team_name(team: str) -> str:
+def fetch_team_name(team: str):
     """
-    Fetch exact team name from the API endpoint.
+    Fetch exact team name matches from the API endpoint.
     
     Args:
-        team (str): The name of the team to find full and exact team name for
-    
+    team (str): The starting name of the team to find the team matches (e.g., ('Penn','Penn State') for team 'Penn')
+
     Returns:
-        str: The name of the exact team name for the given team
+        List[str]: List of the exact name of the team (e.g., ('Penn','Penn State') for team 'Penn')
     """
     base_url: str = "https://slam-all-python-359065791766.us-central1.run.app/MBB/team-stats-mia/similar"
     timeout: int = 30
@@ -37,15 +37,14 @@ def fetch_team_name(team: str) -> str:
             timeout=timeout
         )
         response.raise_for_status()
-        
         data = response.json()
         if data.get('total', 0) > 0 and len(data.get('data', [])) > 0:
-            team_name = data['data'][0]['team']
-            print(f"✓ Team name fetched successfully: {team_name}")
-            return team_name
+            teams = [team_info['team'] for team_info in  data['data']]
+            print(f"✓ Team name fetched successfully: {teams}")
+            return teams
         else:
             print("✗ No team data found in the response")
-            return ""
+            return "No team data found"
             
     except requests.exceptions.RequestException as e:
         error_msg = f"Error fetching team name: {str(e)}"
@@ -143,51 +142,51 @@ def fetch_team_basketball_data(team_name: str) -> Dict[str, Any]:
     if team_name.lower() == "penn state":
         print("Adding hardcoded Penn State player data...")
         # Convert hardcoded data to match API format
-        hardcoded_players = []
-        for player_data in PENN_STATE_OUTPUT[0]:  # Note: Data is nested in a list
-            if player_data["Name"]:  # Only include players with names
-                api_format_player = {
-                    "player": player_data["Name"],
-                    "team": "Penn State",
-                    "value_three_pct": str(player_data["value_three_pct"]) if player_data["value_three_pct"] is not None else None,
-                    "value_two_pct": str(player_data["value_two_pct"]) if player_data["value_two_pct"] is not None else None,
-                    "value_ft_pct": str(player_data["value_ft_pct"]) if player_data["value_ft_pct"] is not None else None,
-                    "value_scoring": str(player_data["value_scoring"]) if player_data["value_scoring"] is not None else None,
-                    "value_assist_rate": str(player_data["value_assist_rate"]) if player_data["value_assist_rate"] is not None else None,
-                    "value_TO": str(player_data["value_TO"]) if player_data["value_TO"] is not None else None,
-                    "value_playmaking": str(player_data["value_playmaking"]) if player_data["value_playmaking"] is not None else None,
-                    "value_oreb_pct": str(player_data["value_oreb_pct"]) if player_data["value_oreb_pct"] is not None else None,
-                    "value_dreb_pct": str(player_data["value_dreb_pct"]) if player_data["value_dreb_pct"] is not None else None,
-                    "value_reb_pct": str(player_data["value_reb_pct"]) if player_data["value_reb_pct"] is not None else None,
-                    "value_blk_pct": str(player_data["value_blk_pct"]) if player_data["value_blk_pct"] is not None else None,
-                    "value_STL": str(player_data["value_STL"]) if player_data["value_STL"] is not None else None,
-                    "value_PF": str(player_data["value_PF"]) if player_data["value_PF"] is not None else None,
-                    "value_D": str(player_data["value_D"]) if player_data["value_D"] is not None else None,
-                    "color_three_pct": player_data["color_three_pct"],
-                    "color_two_pct": player_data["color_two_pct"],
-                    "color_ft_pct": player_data["color_ft_pct"],
-                    "color_scoring": player_data["color_scoring"],
-                    "color_assist_rate": player_data["color_assist_rate"],
-                    "color_TO": player_data["color_TO"],
-                    "color_playmaking": player_data["color_playmaking"],
-                    "color_oreb_pct": player_data["color_oreb_pct"],
-                    "color_dreb_pct": player_data["color_dreb_pct"],
-                    "color_blk_pct": player_data["color_blk_pct"],
-                    "color_STL": player_data["color_STL"],
-                    "color_PF": player_data["color_PF"],
-                    "color_D": player_data["color_D"],
-                    # Add any additional fields that might be needed
-                    "player_notes": player_data["players"]  # Adding player notes/description
-                }
-                hardcoded_players.append(api_format_player)
+        # hardcoded_players = []
+        # for player_data in PENN_STATE_OUTPUT[0]:  # Note: Data is nested in a list
+        #     if player_data["Name"]:  # Only include players with names
+        #         api_format_player = {
+        #             "player": player_data["Name"],
+        #             "team": "Penn State",
+        #             "value_three_pct": str(player_data["value_three_pct"]) if player_data["value_three_pct"] is not None else None,
+        #             "value_two_pct": str(player_data["value_two_pct"]) if player_data["value_two_pct"] is not None else None,
+        #             "value_ft_pct": str(player_data["value_ft_pct"]) if player_data["value_ft_pct"] is not None else None,
+        #             "value_scoring": str(player_data["value_scoring"]) if player_data["value_scoring"] is not None else None,
+        #             "value_assist_rate": str(player_data["value_assist_rate"]) if player_data["value_assist_rate"] is not None else None,
+        #             "value_TO": str(player_data["value_TO"]) if player_data["value_TO"] is not None else None,
+        #             "value_playmaking": str(player_data["value_playmaking"]) if player_data["value_playmaking"] is not None else None,
+        #             "value_oreb_pct": str(player_data["value_oreb_pct"]) if player_data["value_oreb_pct"] is not None else None,
+        #             "value_dreb_pct": str(player_data["value_dreb_pct"]) if player_data["value_dreb_pct"] is not None else None,
+        #             "value_reb_pct": str(player_data["value_reb_pct"]) if player_data["value_reb_pct"] is not None else None,
+        #             "value_blk_pct": str(player_data["value_blk_pct"]) if player_data["value_blk_pct"] is not None else None,
+        #             "value_STL": str(player_data["value_STL"]) if player_data["value_STL"] is not None else None,
+        #             "value_PF": str(player_data["value_PF"]) if player_data["value_PF"] is not None else None,
+        #             "value_D": str(player_data["value_D"]) if player_data["value_D"] is not None else None,
+        #             "color_three_pct": player_data["color_three_pct"],
+        #             "color_two_pct": player_data["color_two_pct"],
+        #             "color_ft_pct": player_data["color_ft_pct"],
+        #             "color_scoring": player_data["color_scoring"],
+        #             "color_assist_rate": player_data["color_assist_rate"],
+        #             "color_TO": player_data["color_TO"],
+        #             "color_playmaking": player_data["color_playmaking"],
+        #             "color_oreb_pct": player_data["color_oreb_pct"],
+        #             "color_dreb_pct": player_data["color_dreb_pct"],
+        #             "color_blk_pct": player_data["color_blk_pct"],
+        #             "color_STL": player_data["color_STL"],
+        #             "color_PF": player_data["color_PF"],
+        #             "color_D": player_data["color_D"],
+        #             # Add any additional fields that might be needed
+        #             "player_notes": player_data["players"]  # Adding player notes/description
+        #         }
+        #         hardcoded_players.append(api_format_player)
         
         # Combine API players with hardcoded players
         if combined_data['player_stats'] is None:
             combined_data['player_stats'] = []
         
         # Add hardcoded players to the existing player stats
-        combined_data['player_stats'].extend(hardcoded_players)
-        print(f"✓ Added {len(hardcoded_players)} hardcoded players")
+        combined_data['player_stats'].extend(PENN_STATE_OUTPUT)
+        print(f"✓ Added {len(PENN_STATE_OUTPUT)} hardcoded players")
     
     # Add summary statistics
     combined_data['summary'] = {

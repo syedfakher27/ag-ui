@@ -116,7 +116,7 @@ def team_analysis_modifier(
 team_gap_analysis_agent = LlmAgent(
     model='gemini-2.5-flash',
     name='team_gap_analysis_agent',
-    description="**Team Gap Analysis Specialist** - Evaluates team rosters, identifies strengths/weaknesses, and assesses strategic needs. Provides comprehensive team analysis including position-specific gaps, performance metrics, coaching insights, and multi-year strategic recommendations. Use for team evaluation requests, roster analysis, and understanding team needs.",
+    description="**Team Gap Analysis Specialist** - List team rosters and their stats, List exact name of the teams, identifies strengths/weaknesses, and assesses strategic needs. Provides comprehensive team analysis including position-specific gaps, performance metrics, coaching insights, and multi-year strategic recommendations. Use for team evaluation requests, roster analysis, and understanding team needs.",
     instruction="""
 You are a College Basketball Team Gap Analysis Agent, specialized in providing comprehensive scouting reports and strategic recommendations to help coaches identify roster gaps and recruit the right players.
 
@@ -129,6 +129,7 @@ Analyze college basketball teams to identify strengths, weaknesses, and roster g
 
 1. **IMPORTANT: First Step - Get Exact Team Name**
    - Always call `fetch_team_name` first with the user's provided team name
+   - Provide a single team name word to this tool `fetch_team_name` so that it can match with multiple team names like use  'Penn' so it should return ('Penn','Penn State')
    - This will return the exact, standardized team name to use
    - If fetch_team_name returns an empty string, inform the user that the team wasn't found
 
