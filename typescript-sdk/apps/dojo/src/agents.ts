@@ -13,6 +13,47 @@ import { AgnoAgent } from "@ag-ui/agno";
 import { LlamaIndexAgent } from "@ag-ui/llamaindex";
 import { CrewAIAgent } from "@ag-ui/crewai";
 import { mastra } from "./mastra";
+import axios from 'axios';
+
+const ADK_BACKEND = 'https://agui-adk-hzh2wqmavq-uc.a.run.app'
+class AdkAgent extends ServerStarterAgent {
+  client = {
+    threads: {
+      getState: async (threadId: string) => {
+        console.log('threadId==>', threadId)
+        
+        try {
+          // Make the API call using axios
+          const response = await axios.get(`${ADK_BACKEND}/agents/state`, {
+            params: { threadId },
+            headers: {
+              'accept': 'application/json'
+            }
+          });
+          
+          // Return in the expected format
+          return {
+            values: response.data
+          };
+          
+        } catch (error) {
+          console.error('Error fetching state:', error);
+          
+          // Fallback to original hardcoded response or throw error
+          const fallbackResult = { 
+            messages: [], 
+            state: {} 
+          };
+          
+          return {
+            values: fallbackResult
+          };
+        }
+      }
+    }
+  };
+}
+
 
 export const agentsIntegrations: AgentIntegrationConfig[] = [
   {
@@ -37,8 +78,8 @@ export const agentsIntegrations: AgentIntegrationConfig[] = [
       return {
         agentic_chat: new ServerStarterAgent({ url: "http://localhost:8000/chat" }),
         tool_based_generative_ui: new ServerStarterAgent({ url: "http://localhost:8000/adk-tool-based-generative-ui" }),
-        human_in_the_loop: new ServerStarterAgent({ url: "http://localhost:8000/adk-human-in-loop-agent" }),
-        // human_in_the_loop: new ServerStarterAgent({ url: "https://agui-adk-hzh2wqmavq-uc.a.run.app/adk-human-in-loop-agent" }),
+        // human_in_the_loop: new AdkAgent({ url: "http://localhost:8000/adk-human-in-loop-agent" }),
+        human_in_the_loop: new ServerStarterAgent({ url: `${ADK_BACKEND}/adk-human-in-loop-agent` }),
         shared_state: new ServerStarterAgent({ url: "http://localhost:8000/adk-shared-state-agent" }),
       };
     },

@@ -19,7 +19,7 @@ from ag_ui.core import (
 from google.adk import Runner
 from google.adk.agents import BaseAgent as ADKBaseAgent, RunConfig as ADKRunConfig
 from google.adk.agents.run_config import StreamingMode
-from google.adk.sessions import InMemorySessionService
+from google.adk.sessions import InMemorySessionService,BaseSessionService
 from google.adk.artifacts import BaseArtifactService, InMemoryArtifactService
 from google.adk.memory import BaseMemoryService, InMemoryMemoryService
 from google.adk.auth.credential_service.base_credential_service import BaseCredentialService
@@ -59,6 +59,7 @@ class ADKAgent:
         artifact_service: Optional[BaseArtifactService] = None,
         memory_service: Optional[BaseMemoryService] = None,
         credential_service: Optional[BaseCredentialService] = None,
+        session_service: Optional[BaseSessionService] = None,
         
         # Configuration
         run_config_factory: Optional[Callable[[RunAgentInput], ADKRunConfig]] = None,
@@ -117,13 +118,13 @@ class ADKAgent:
         # Session lifecycle management - use singleton
         # Initialize with session service based on use_in_memory_services
         if use_in_memory_services:
-            session_service = InMemorySessionService()
+            self.session_service = InMemorySessionService()
         else:
             # For production, you would inject the real session service here
-            session_service = InMemorySessionService()  # TODO: Make this configurable
+            self.session_service = session_service  
             
         self._session_manager = SessionManager.get_instance(
-            session_service=session_service,
+            session_service=self.session_service,
             memory_service=self._memory_service,  # Pass memory service for automatic session memory
             session_timeout_seconds=session_timeout_seconds,  # 20 minutes default
             cleanup_interval_seconds=cleanup_interval_seconds,
