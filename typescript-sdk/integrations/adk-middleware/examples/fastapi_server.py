@@ -302,7 +302,7 @@ try:
                         """
                         SELECT session_id, chat_title, created_at 
                         FROM user_session  us inner join sessions ss on ss.id =  us.session_id
-                        WHERE user_id = %s 
+                        WHERE us.user_id = %s 
                         ORDER BY created_at DESC 
                         LIMIT %s OFFSET %s
                         """,
