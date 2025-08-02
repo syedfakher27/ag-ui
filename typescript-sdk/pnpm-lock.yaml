@@ -71,16 +71,16 @@ importers:
         version: link:../../integrations/agno
       '@ag-ui/client':
         specifier: workspace:*
-        version: 0.0.30
+        version: 0.0.35
       '@ag-ui/core':
         specifier: workspace:*
-        version: 0.0.30
+        version: 0.0.35
       '@ag-ui/crewai':
         specifier: workspace:*
         version: link:../../integrations/crewai
       '@ag-ui/encoder':
         specifier: workspace:*
-        version: 0.0.30
+        version: 0.0.35
       '@ag-ui/langgraph':
         specifier: workspace:*
         version: link:../../integrations/langgraph
@@ -95,7 +95,7 @@ importers:
         version: link:../../integrations/middleware-starter
       '@ag-ui/proto':
         specifier: workspace:*
-        version: 0.0.30
+        version: 0.0.35
       '@ag-ui/server-starter':
         specifier: workspace:*
         version: link:../../integrations/server-starter
@@ -116,7 +116,7 @@ importers:
         version: 1.9.3(@types/react@19.1.5)(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@copilotkit/runtime':
         specifier: ^1.9.3
-        version: 1.9.3(@ag-ui/client@0.0.30)(@ag-ui/core@0.0.30)(@ag-ui/encoder@0.0.30)(@ag-ui/proto@0.0.30)(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.840.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.10.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(pg@8.16.3)(playwright@1.53.2)(react@19.1.0)(redis@5.5.6)(ws@8.18.3)
+        version: 1.9.3(@ag-ui/client@0.0.35)(@ag-ui/core@0.0.35)(@ag-ui/encoder@0.0.35)(@ag-ui/proto@0.0.35)(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.848.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.11.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(pg@8.16.3)(playwright@1.53.2)(react@19.1.0)(redis@5.5.6)(ws@8.18.3)
       '@copilotkit/runtime-client-gql':
         specifier: ^1.9.3
         version: 1.9.3(graphql@16.11.0)(react@19.1.0)
@@ -180,6 +180,9 @@ importers:
       '@types/react-syntax-highlighter':
         specifier: ^15.5.13
         version: 15.5.13
+      axios:
+        specifier: ^1.11.0
+        version: 1.11.0
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -412,7 +415,7 @@ importers:
         version: 1.2.11(zod@3.25.67)
       '@copilotkit/runtime':
         specifier: ^1.8.13
-        version: 1.8.13(@ag-ui/client@packages+client)(@ag-ui/core@0.0.35)(@ag-ui/encoder@0.0.35)(@ag-ui/proto@0.0.35)(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.840.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71))))(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.10.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(pg@8.16.3)(playwright@1.53.2)(react@19.1.0)(redis@5.5.6)(ws@8.18.3)
+        version: 1.8.13(@ag-ui/client@packages+client)(@ag-ui/core@0.0.35)(@ag-ui/encoder@0.0.35)(@ag-ui/proto@0.0.35)(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.848.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71))))(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.10.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(pg@8.16.3)(playwright@1.53.2)(react@19.1.0)(redis@5.5.6)(ws@8.18.3)
       '@mastra/client-js':
         specifier: ^0.10.9
         version: 0.10.9(@sinclair/typebox@0.34.37)(openapi-types@12.1.3)(react@19.1.0)(zod@3.25.67)
@@ -740,26 +743,17 @@ packages:
   '@ag-ui/client@0.0.27':
     resolution: {integrity: sha512-W7PX/C40dxeCdf/j9lSL6TI8IEpWct/Fn9JkZdX3zXFf5rPN+RpckRKhYTC0ZstMi909oTww7SHVsVm7exPReg==}
 
-  '@ag-ui/client@0.0.30':
-    resolution: {integrity: sha512-bWdd4DgniHa8mWBaVMVYvwKLAbwi+SBUCUGqnEH8z2lkHgjY5xZVekNq5g3x3i4OSJ6RVr4XDE+DAORgOh09qA==}
-
   '@ag-ui/client@0.0.35':
     resolution: {integrity: sha512-rHtMQSU232dZeVx9qAGt1+j4ar4RWqwFanXcyNxAwbAh0XrY7VZeXFBDUeazy1LtBoViS7xehX8V1Ssf1a+bUw==}
 
   '@ag-ui/core@0.0.27':
     resolution: {integrity: sha512-I8i0qsamIVaOhPZ11bz7a+JQ7DIwIhLCon2EYWHikgcLiWzfZNBJhlVBR6Fn29tv3Ost4p6wYWQy84WzAhjJ+Q==}
 
-  '@ag-ui/core@0.0.30':
-    resolution: {integrity: sha512-cBukbc2O0qMKi/BKix6Exld5zSqGKR72376KA6NZNQz/xYAiPNhmK40VX77d/hyblhtXT3BlBGrYmda9V4ETlw==}
-
   '@ag-ui/core@0.0.35':
     resolution: {integrity: sha512-YAqrln3S3fdo+Hs5FFQPODXiBttyilv/E3xSSHCuxqC0Y/Fp3+VqyDx97BorO3NVp2VKZ9cG2nsO3cbmcTwkQw==}
 
   '@ag-ui/encoder@0.0.27':
     resolution: {integrity: sha512-GO42BDdi9pmNsfhPlMQeSxGFfMJJg/Jvgng/N/5elHEfEOjGVtOCkDPpN4lirkuBoXEh/hW6gIgYAXDu/HuZJA==}
-
-  '@ag-ui/encoder@0.0.30':
-    resolution: {integrity: sha512-xk43F5WaEpaRg5vY0y6U/ZMAzScieSA1L0TAtVGysh91M9JS9hxuxTK2jyxh/sC3AySIjbZUQ9m69fECKloT0g==}
 
   '@ag-ui/encoder@0.0.35':
     resolution: {integrity: sha512-Ym0h0ZKIiD1Ld3+e3v/WQSogY62xs72ysoEBW1kt+dDs79QazBsW5ZlcBBj2DelEs9NrczQLxTVEvrkcvhrHqA==}
@@ -769,9 +763,6 @@ packages:
 
   '@ag-ui/proto@0.0.27':
     resolution: {integrity: sha512-bgF2DGqU+DvcNKF3gOlT97kZmhHNB0lWfjkJQ6ONxMtmWlSVYAE97LCtdTIjXEhnHyqi3QQBQ0BEXJ74q7QMcg==}
-
-  '@ag-ui/proto@0.0.30':
-    resolution: {integrity: sha512-5yObohnpAhuzkIrcbgBuT7xrXLThuhsBl+vh85uNeUlb6CNJ7W2rdwApJGTj/3HbitK4iLq2BiY3U18Bno+qqg==}
 
   '@ag-ui/proto@0.0.35':
     resolution: {integrity: sha512-+rz3LAYHcR3D2xVgRKa7QE5mp+cwmZs6j+1XxG5dT7HNdg51uKea12L57EVY2bxE3JzpAvCIgOjFEmQCNH82pw==}
@@ -5634,6 +5625,9 @@ packages:
   axios@1.10.0:
     resolution: {integrity: sha512-/1xYAC4MP/HEG+3duIhFr4ZQXR4sQXOIe+o6sdqzeykGLx6Upp/1p8MHqhINOvGeP7xyNHe7tsiJByc4SSVUxw==}
 
+  axios@1.11.0:
+    resolution: {integrity: sha512-1Lx3WLFQWm3ooKDYZD1eXmoGO9fxYQjrycfHFC8P0sCfQVXyROp0p9PFWBehewBOdCwHc+f/b8I0fMto5eSfwA==}
+
   axobject-query@4.1.0:
     resolution: {integrity: sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==}
     engines: {node: '>= 0.4'}
@@ -6771,12 +6765,12 @@ packages:
     resolution: {integrity: sha512-ETEklSGi5t0QMZuiXoA/Q6vcnxcLQP5vdugSpuAyi6SVGi2clPPp+xgEhuMaHC+zGgn31Kd235W35f7Hykkaww==}
     engines: {node: '>= 6'}
 
-  form-data@4.0.2:
-    resolution: {integrity: sha512-hGfm/slu0ZabnNt4oaRZ6uREyfCj6P4fT/n6A1rGV+Z0VdGXjfOhVUpkn6qVQONHGIFwmveGXyDs75+nr6FM8w==}
-    engines: {node: '>= 6'}
-
   form-data@4.0.3:
     resolution: {integrity: sha512-qsITQPfmvMOSAdeyZ+12I1c+CKSstAFAwu+97zrnWAbIr5u8wfsExUzCesVLC8NgHuRUqNN4Zy6UPWUTRGslcA==}
+    engines: {node: '>= 6'}
+
+  form-data@4.0.4:
+    resolution: {integrity: sha512-KrGhL9Q4zjj0kiUt5OO4Mr/A/jlI2jDYs5eHBpYHPcBEVSiipAvn2Ko2HnPe20rmcuuvMHNdZFp+4IlGTMF0Ow==}
     engines: {node: '>= 6'}
 
   format@0.2.2:
@@ -10438,18 +10432,6 @@ snapshots:
       uuid: 11.1.0
       zod: 3.25.71
 
-  '@ag-ui/client@0.0.30':
-    dependencies:
-      '@ag-ui/core': 0.0.30
-      '@ag-ui/encoder': 0.0.30
-      '@ag-ui/proto': 0.0.30
-      '@types/uuid': 10.0.0
-      fast-json-patch: 3.1.1
-      rxjs: 7.8.1
-      untruncate-json: 0.0.1
-      uuid: 11.1.0
-      zod: 3.25.71
-
   '@ag-ui/client@0.0.35':
     dependencies:
       '@ag-ui/core': 0.0.35
@@ -10467,11 +10449,6 @@ snapshots:
       rxjs: 7.8.1
       zod: 3.25.71
 
-  '@ag-ui/core@0.0.30':
-    dependencies:
-      rxjs: 7.8.1
-      zod: 3.25.71
-
   '@ag-ui/core@0.0.35':
     dependencies:
       rxjs: 7.8.1
@@ -10481,11 +10458,6 @@ snapshots:
     dependencies:
       '@ag-ui/core': 0.0.27
       '@ag-ui/proto': 0.0.27
-
-  '@ag-ui/encoder@0.0.30':
-    dependencies:
-      '@ag-ui/core': 0.0.30
-      '@ag-ui/proto': 0.0.30
 
   '@ag-ui/encoder@0.0.35':
     dependencies:
@@ -10507,11 +10479,6 @@ snapshots:
     dependencies:
       '@ag-ui/core': 0.0.27
       '@bufbuild/protobuf': 2.4.0
-
-  '@ag-ui/proto@0.0.30':
-    dependencies:
-      '@ag-ui/core': 0.0.30
-      '@bufbuild/protobuf': 2.6.0
 
   '@ag-ui/proto@0.0.35':
     dependencies:
@@ -11972,7 +11939,7 @@ snapshots:
       - encoding
       - graphql
 
-  '@copilotkit/runtime@1.8.13(@ag-ui/client@packages+client)(@ag-ui/core@0.0.35)(@ag-ui/encoder@0.0.35)(@ag-ui/proto@0.0.35)(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.840.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71))))(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.10.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(pg@8.16.3)(playwright@1.53.2)(react@19.1.0)(redis@5.5.6)(ws@8.18.3)':
+  '@copilotkit/runtime@1.8.13(@ag-ui/client@packages+client)(@ag-ui/core@0.0.35)(@ag-ui/encoder@0.0.35)(@ag-ui/proto@0.0.35)(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.848.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71))))(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.10.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(pg@8.16.3)(playwright@1.53.2)(react@19.1.0)(redis@5.5.6)(ws@8.18.3)':
     dependencies:
       '@ag-ui/client': link:packages/client
       '@ag-ui/core': 0.0.35
@@ -11981,7 +11948,7 @@ snapshots:
       '@anthropic-ai/sdk': 0.27.3
       '@copilotkit/shared': 1.8.13
       '@graphql-yoga/plugin-defer-stream': 3.13.4(graphql-yoga@5.13.4(graphql@16.11.0))(graphql@16.11.0)
-      '@langchain/community': 0.3.43(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.840.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71))))(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71)))(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.10.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.100.0(ws@8.18.3)(zod@3.25.71))(pg@8.16.3)(playwright@1.53.2)(redis@5.5.6)(ws@8.18.3)
+      '@langchain/community': 0.3.43(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.848.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71))))(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71)))(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.10.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.100.0(ws@8.18.3)(zod@3.25.71))(pg@8.16.3)(playwright@1.53.2)(redis@5.5.6)(ws@8.18.3)
       '@langchain/core': 0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71))
       '@langchain/google-gauth': 0.1.8(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71)))(zod@3.25.71)
       '@langchain/langgraph-sdk': 0.0.70(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71)))(react@19.1.0)
@@ -12149,18 +12116,18 @@ snapshots:
       - ws
       - youtubei.js
 
-  '@copilotkit/runtime@1.9.3(@ag-ui/client@0.0.30)(@ag-ui/core@0.0.30)(@ag-ui/encoder@0.0.30)(@ag-ui/proto@0.0.30)(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.840.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.10.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(pg@8.16.3)(playwright@1.53.2)(react@19.1.0)(redis@5.5.6)(ws@8.18.3)':
+  '@copilotkit/runtime@1.9.3(@ag-ui/client@0.0.35)(@ag-ui/core@0.0.35)(@ag-ui/encoder@0.0.35)(@ag-ui/proto@0.0.35)(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.848.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.11.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(pg@8.16.3)(playwright@1.53.2)(react@19.1.0)(redis@5.5.6)(ws@8.18.3)':
     dependencies:
-      '@ag-ui/client': 0.0.30
-      '@ag-ui/core': 0.0.30
-      '@ag-ui/encoder': 0.0.30
+      '@ag-ui/client': 0.0.35
+      '@ag-ui/core': 0.0.35
+      '@ag-ui/encoder': 0.0.35
       '@ag-ui/langgraph': 0.0.7(openai@4.104.0(ws@8.18.3)(zod@3.25.71))(react@19.1.0)
-      '@ag-ui/proto': 0.0.30
+      '@ag-ui/proto': 0.0.35
       '@anthropic-ai/sdk': 0.27.3
       '@copilotkit/shared': 1.9.3
       '@graphql-yoga/plugin-defer-stream': 3.13.4(graphql-yoga@5.13.4(graphql@16.11.0))(graphql@16.11.0)
       '@langchain/aws': 0.1.12(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71)))
-      '@langchain/community': 0.3.43(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.840.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71))))(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71)))(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.10.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.104.0(ws@8.18.3)(zod@3.25.71))(pg@8.16.3)(playwright@1.53.2)(redis@5.5.6)(ws@8.18.3)
+      '@langchain/community': 0.3.43(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.848.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71))))(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71)))(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.11.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.104.0(ws@8.18.3)(zod@3.25.71))(pg@8.16.3)(playwright@1.53.2)(redis@5.5.6)(ws@8.18.3)
       '@langchain/core': 0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71))
       '@langchain/google-gauth': 0.1.8(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71)))(zod@3.25.71)
       '@langchain/langgraph-sdk': 0.0.70(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71)))(react@19.1.0)
@@ -12175,7 +12142,7 @@ snapshots:
       graphql-yoga: 5.13.4(graphql@16.11.0)
       groq-sdk: 0.5.0
       ip: 2.0.1
-      langchain: 0.3.26(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71))))(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71)))(axios@1.10.0)(openai@4.104.0(ws@8.18.3)(zod@3.25.71))(ws@8.18.3)
+      langchain: 0.3.26(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71))))(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71)))(axios@1.11.0)(openai@4.104.0(ws@8.18.3)(zod@3.25.71))(ws@8.18.3)
       openai: 4.104.0(ws@8.18.3)(zod@3.25.71)
       partial-json: 0.1.7
       pino: 9.7.0
@@ -13186,7 +13153,7 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@langchain/community@0.3.43(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.840.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71))))(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71)))(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.10.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.100.0(ws@8.18.3)(zod@3.25.71))(pg@8.16.3)(playwright@1.53.2)(redis@5.5.6)(ws@8.18.3)':
+  '@langchain/community@0.3.43(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.848.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71))))(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71)))(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.10.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.100.0(ws@8.18.3)(zod@3.25.71))(pg@8.16.3)(playwright@1.53.2)(redis@5.5.6)(ws@8.18.3)':
     dependencies:
       '@browserbasehq/stagehand': 2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67)
       '@ibm-cloud/watsonx-ai': 1.6.8
@@ -13208,7 +13175,7 @@ snapshots:
       '@aws-sdk/client-bedrock-agent-runtime': 3.848.0
       '@aws-sdk/client-bedrock-runtime': 3.848.0
       '@aws-sdk/client-kendra': 3.848.0
-      '@aws-sdk/credential-provider-node': 3.840.0
+      '@aws-sdk/credential-provider-node': 3.848.0
       '@browserbasehq/sdk': 2.6.0
       '@libsql/client': 0.15.9
       '@smithy/eventstream-codec': 4.0.4
@@ -13244,7 +13211,7 @@ snapshots:
       - handlebars
       - peggy
 
-  '@langchain/community@0.3.43(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.840.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71))))(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71)))(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.10.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.104.0(ws@8.18.3)(zod@3.25.71))(pg@8.16.3)(playwright@1.53.2)(redis@5.5.6)(ws@8.18.3)':
+  '@langchain/community@0.3.43(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-bedrock-agent-runtime@3.848.0)(@aws-sdk/client-bedrock-runtime@3.848.0)(@aws-sdk/client-kendra@3.848.0)(@aws-sdk/credential-provider-node@3.848.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.8)(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71))))(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71)))(@libsql/client@0.15.9)(@smithy/eventstream-codec@4.0.4)(@smithy/protocol-http@5.1.2)(@smithy/signature-v4@5.1.2)(@smithy/util-utf8@4.0.0)(@upstash/redis@1.35.1)(axios@1.11.0)(cohere-ai@7.17.1)(fast-xml-parser@5.2.5)(google-auth-library@10.1.0)(ibm-cloud-sdk-core@5.4.0)(ignore@7.0.5)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.104.0(ws@8.18.3)(zod@3.25.71))(pg@8.16.3)(playwright@1.53.2)(redis@5.5.6)(ws@8.18.3)':
     dependencies:
       '@browserbasehq/stagehand': 2.4.0(deepmerge@4.3.1)(dotenv@17.0.1)(react@19.1.0)(zod@3.25.67)
       '@ibm-cloud/watsonx-ai': 1.6.8
@@ -13255,7 +13222,7 @@ snapshots:
       flat: 5.0.2
       ibm-cloud-sdk-core: 5.4.0
       js-yaml: 4.1.0
-      langchain: 0.3.26(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71))))(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71)))(axios@1.10.0)(openai@4.104.0(ws@8.18.3)(zod@3.25.71))(ws@8.18.3)
+      langchain: 0.3.26(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71))))(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71)))(axios@1.11.0)(openai@4.104.0(ws@8.18.3)(zod@3.25.71))(ws@8.18.3)
       langsmith: 0.3.29(openai@4.104.0(ws@8.18.3)(zod@3.25.71))
       openai: 4.104.0(ws@8.18.3)(zod@3.25.71)
       uuid: 10.0.0
@@ -13266,7 +13233,7 @@ snapshots:
       '@aws-sdk/client-bedrock-agent-runtime': 3.848.0
       '@aws-sdk/client-bedrock-runtime': 3.848.0
       '@aws-sdk/client-kendra': 3.848.0
-      '@aws-sdk/credential-provider-node': 3.840.0
+      '@aws-sdk/credential-provider-node': 3.848.0
       '@browserbasehq/sdk': 2.6.0
       '@libsql/client': 0.15.9
       '@smithy/eventstream-codec': 4.0.4
@@ -13315,7 +13282,7 @@ snapshots:
       p-retry: 4.6.2
       uuid: 10.0.0
       zod: 3.25.71
-      zod-to-json-schema: 3.24.6(zod@3.25.71)
+      zod-to-json-schema: 3.24.5(zod@3.25.71)
     transitivePeerDependencies:
       - openai
 
@@ -16680,7 +16647,7 @@ snapshots:
   '@types/node-fetch@2.6.12':
     dependencies:
       '@types/node': 20.19.4
-      form-data: 4.0.2
+      form-data: 4.0.3
 
   '@types/node@18.19.115':
     dependencies:
@@ -17278,6 +17245,14 @@ snapshots:
     dependencies:
       follow-redirects: 1.15.9(debug@4.4.1)
       form-data: 4.0.3
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+
+  axios@1.11.0:
+    dependencies:
+      follow-redirects: 1.15.9(debug@4.4.1)
+      form-data: 4.0.4
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
@@ -18697,14 +18672,15 @@ snapshots:
       combined-stream: 1.0.8
       mime-types: 2.1.35
 
-  form-data@4.0.2:
+  form-data@4.0.3:
     dependencies:
       asynckit: 0.4.0
       combined-stream: 1.0.8
       es-set-tostringtag: 2.1.0
+      hasown: 2.0.2
       mime-types: 2.1.35
 
-  form-data@4.0.3:
+  form-data@4.0.4:
     dependencies:
       asynckit: 0.4.0
       combined-stream: 1.0.8
@@ -20152,7 +20128,7 @@ snapshots:
       - openai
       - ws
 
-  langchain@0.3.26(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71))))(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71)))(axios@1.10.0)(openai@4.104.0(ws@8.18.3)(zod@3.25.71))(ws@8.18.3):
+  langchain@0.3.26(@langchain/aws@0.1.12(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71))))(@langchain/core@0.3.56(openai@4.104.0(ws@8.18.3)(zod@3.25.71)))(axios@1.11.0)(openai@4.104.0(ws@8.18.3)(zod@3.25.71))(ws@8.18.3):
     dependencies:
       '@langchain/core': 0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71))
       '@langchain/openai': 0.4.9(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71)))(ws@8.18.3)
@@ -20169,7 +20145,7 @@ snapshots:
       zod-to-json-schema: 3.24.6(zod@3.25.71)
     optionalDependencies:
       '@langchain/aws': 0.1.12(@langchain/core@0.3.56(openai@4.100.0(ws@8.18.3)(zod@3.25.71)))
-      axios: 1.10.0(debug@4.4.1)
+      axios: 1.11.0
     transitivePeerDependencies:
       - encoding
       - openai
@@ -21694,7 +21670,7 @@ snapshots:
 
   posthog-node@4.18.0:
     dependencies:
-      axios: 1.10.0(debug@4.4.1)
+      axios: 1.11.0
     transitivePeerDependencies:
       - debug
 
