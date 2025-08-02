@@ -147,7 +147,7 @@ try:
             logging.error(f"Error generating chat title: {e}")
             return query[:50]  # Fallback to truncated query
     
-    PG_CONNECTION_STRING = os.environ.get('PG_CONNECTION_STRING') or "postgresql://postgres:OI%60Gn*~F%5Dzyrz%7C1%3F@34.45.158.203:5432/postgres"
+    PG_CONNECTION_STRING = os.environ.get('PG_CONNECTION_STRING')
     
     # Test database connection at startup
     try:
