@@ -289,7 +289,7 @@ try:
                     
                     # Get total count of sessions for this user
                     cursor.execute(
-                        "SELECT COUNT(*) FROM user_session WHERE user_id = %s",
+                        "SELECT COUNT(*) FROM user_session us inner join sessions ss on ss.id =  us.session_id WHERE us.user_id = %s",
                         (user_id,)
                     )
                     count_result = cursor.fetchone()
@@ -301,7 +301,7 @@ try:
                     cursor.execute(
                         """
                         SELECT session_id, chat_title, created_at 
-                        FROM user_session 
+                        FROM user_session  us inner join sessions ss on ss.id =  us.session_id
                         WHERE user_id = %s 
                         ORDER BY created_at DESC 
                         LIMIT %s OFFSET %s
