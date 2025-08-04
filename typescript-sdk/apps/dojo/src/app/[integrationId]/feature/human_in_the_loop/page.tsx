@@ -9,6 +9,64 @@ import { CopilotChat } from "@copilotkit/react-ui";
 import AgentTransferUI from "@/components/agent-ui/agent_ui";
 import ToolExecutionUI from "@/components/tool-ui/tool_ui";
 import MultiRecipientEmailApprovalComponent from "@/components/email_approval/email_approval";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+
+interface PieChartComponentProps {
+  chartData: {
+    title: string;
+    data: {
+      labels: string[];
+      values: number[];
+      percentages: number[];
+      total: number;
+    };
+  };
+}
+
+const PieChartComponent: React.FC<PieChartComponentProps> = ({ chartData }) => {
+  const data = chartData.data.labels.map((label, index) => ({
+    name: label,
+    value: chartData.data.values[index],
+    percentage: chartData.data.percentages[index]
+  }));
+
+  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0'];
+
+  const renderLabel = (entry: any) => `${entry.percentage}%`;
+
+  return (
+    <div className="bg-white rounded-lg shadow-md p-6 mb-4">
+      <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">{chartData.title}</h3>
+      <div className="h-96">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={renderLabel}
+              outerRadius={120}
+              fill="#8884d8"
+              dataKey="value"
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip 
+              formatter={(value, name) => [`${value} (${data.find(d => d.name === name)?.percentage}%)`, name]}
+            />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="mt-4 text-center text-sm text-gray-600">
+        Total: {chartData.data.total}
+      </div>
+    </div>
+  );
+};
 
 interface HumanInTheLoopProps {
   params: Promise<{
@@ -151,7 +209,7 @@ const TransferPortalAssistant = () => {
         type: "string",
       },
       {
-        values: "chart_type",
+        name: "chart_type",
         type: "string",
       }
     ],
@@ -168,14 +226,10 @@ const TransferPortalAssistant = () => {
           />
         )}
         
-        {/* Steps Feedback UI */}
-        {/* <StepsFeedback 
-          args={args} 
-          result={result} 
-          status={status} 
-          selectedPlayer={selectedPlayer} 
-          setSelectedPlayer={setSelectedPlayer} 
-        /> */}
+        {/* Pie Chart Rendering */}
+        {result && result.chart_data && status === "complete" && (
+          <PieChartComponent chartData={result.chart_data} />
+        )}
       </div>
     );
     },
