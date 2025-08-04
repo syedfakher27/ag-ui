@@ -235,6 +235,31 @@ const TransferPortalAssistant = () => {
     },
   });
 
+  useCopilotAction({
+    name: "smart_query_construction_installs",
+    parameters: [
+      {
+        name: "sql_query",
+        type: "string",
+      }
+    ],
+    render: ({ args, result, status }) => {
+      return (
+      <div className="space-y-4">
+        {/* Tool Execution UI */}
+        {enableVerbose && (
+          <ToolExecutionUI
+            toolName="smart_query_construction_installs"
+            args={args}
+            result={result}
+            status={status}
+          />
+        )}
+      </div>
+    );
+    },
+  });
+
   const handleFilterChange = (filterType: string, value: any) => {
     setFilters(prev => ({
       ...prev,
