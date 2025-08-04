@@ -133,6 +133,40 @@ const TransferPortalAssistant = () => {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   console.log('Current filters:', filters.filters);
   useCopilotAction({
+    name: "search_videos_tool",
+    parameters: [
+      {
+        name: "query",
+        type: "string",
+      },
+      {
+        name: "filter",
+        type: "string",
+      },
+      {
+        name: "meta_data",
+        type: "string",
+      }
+    ],
+    render: ({ args, result, status }) => {
+      return (
+      <div className="space-y-4">
+        {/* Tool Execution UI */}
+        {enableVerbose && (
+          <ToolExecutionUI
+            toolName="search_videos_tool"
+            args={args}
+            result={result}
+            status={status}
+          />
+        )}
+        
+      </div>
+    );
+    },
+  });
+
+  useCopilotAction({
     name: "shortlist_players",
     parameters: [
       {
