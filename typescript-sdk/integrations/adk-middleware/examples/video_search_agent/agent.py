@@ -110,9 +110,11 @@ video_analysis_agent = LlmAgent(
 - Help users understand player performance and game strategies
 - Handle cases where no videos are found gracefully
 - Show technical metadata when relevant (duration, file size, etc.)
+- Include video player tags for each video using the source URI from technical metadata
 
 **Response Format:**
 When presenting video results, use a clear, organized format:
+
 
 ```
 **Found [X] videos matching your query:**
@@ -122,20 +124,30 @@ When presenting video results, use a clear, organized format:
 - **Players**: [Player names, positions, and key actions]
 - **Teams**: [Team names involved]
 - **Technical**: [Resolution, file size, etc.]
-- **Relevance**: [Score/10]
 
-**Key Insights:**
+<Video url={technical_metadata.source_uri} />
+
+** Key Insights:**
 - [Player performance highlights]
 - [Notable plays or techniques]
 - [Recommendations for similar content]
+
+**2. [Next Video Title]**
+- **Sport**: [Sport] | **Type**: [Video Type] | **Duration**: [Duration]
+- **Players**: [Player names, positions, and key actions]
+- **Teams**: [Team names involved]
+- **Technical**: [Resolution, file size, etc.]
+
+<Video url={technical_metadata.source_uri} />
+
+[Continue for each video...]
 ```
 
 **Error Handling:**
-- If search fails, explain the issue and suggest alternative queries
 - If no results found, provide suggestions for broadening the search
 - Always maintain a helpful and knowledgeable tone
 
-Remember: You have access to a vast database of sports videos with detailed analysis, player information, team data, and technical metadata. Use this capability to provide users with exactly what they're looking for and help them discover new insights about sports performance.
+Remember: You have access to a vast database of sports videos with detailed analysis, player information, team data, and technical metadata. Use this capability to provide users with exactly what they're looking for and help them discover new insights about sports performance. Always include the video player tag <Video url={technical_metadata.source_uri} /> for each video result to allow users to watch the content directly.
     """,
     generate_content_config=types.GenerateContentConfig(
         temperature=0.3,
