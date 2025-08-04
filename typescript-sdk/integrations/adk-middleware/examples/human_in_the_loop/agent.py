@@ -13,6 +13,7 @@ from ..team_analysis.agent import team_gap_analysis_agent
 from ..player_evaluation.agent import player_evaluation_agent
 from .. email_conversation.agent import email_agent
 from ..research_agent.agent import research_agent
+from ..video_search_agent.agent import video_analysis_agent
 from google.adk.planners import PlanReActPlanner 
 
 from .tools import filter_transfer_portal_players , shortlist_players, get_team_requirements
@@ -211,6 +212,7 @@ transfer_portal_agent = LlmAgent(
 - **Player Evaluation** - Provides comprehensive player performance analysis, scoring, and detailed scouting reports
 - **Email Communication** - Handles sharing of conversation summaries and reports via email
 - **Research** - Conducts internet research on basketball topics, trends, and external information
+- **Video Analysis** - Searches and analyzes sports videos, player highlights, game footage, and performance content
 - **Team Requirements** - Analyzes team performance standards, coaching expectations, and recruitment criteria
 
 **Intelligence**: Uses contextual analysis to determine user intent and route queries to the specialist best equipped to provide comprehensive, actionable assistance. Handles complex multi-step workflows and maintains context across agent handoffs for seamless user experience.
@@ -248,6 +250,14 @@ You are a Basketball Recruitment Router Agent that intelligently routes basketba
 - User has provided a url to fetch the information
 - Keywords: "internet", "website", "link"
 
+**video_analysis_agent** - Route when user asks about:
+- Finding sports videos, player highlights, game footage, training videos
+- Video analysis, player performance in videos, game breakdowns
+- Searching by player name, team, sport, or video type
+- Visual scouting, technique analysis, gameplay evaluation
+- Keywords: "video", "highlights", "game footage", "performance video"
+- Examples: "Show me John Doe highlights", "Find basketball training videos", "Clemson game footage"
+
 ## Communication Protocol
 1. Acknowledge the user's request
 2. Briefly explain routing decision
@@ -269,5 +279,5 @@ You are a Basketball Recruitment Router Agent that intelligently routes basketba
     before_model_callback=simple_before_model_modifier,
     planner=planner,
     tools=[research_agent_tool],
-    sub_agents=[team_gap_analysis_agent , player_shortlist_agent_based_on_gaps , player_evaluation_agent, email_agent, team_requirements_agent]
+    sub_agents=[team_gap_analysis_agent , player_shortlist_agent_based_on_gaps , player_evaluation_agent, email_agent, team_requirements_agent, video_analysis_agent]
 )
