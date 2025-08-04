@@ -4,6 +4,7 @@ import {
   copilotRuntimeNextJSAppRouterEndpoint,
 } from "@copilotkit/runtime";
 import { agentsIntegrations } from "@/agents";
+import { ServerStarterAgent } from "@ag-ui/server-starter";
 
 import { NextRequest, NextResponse } from "next/server";
 
@@ -15,8 +16,11 @@ const corsHeaders = {
 };
 
 export async function OPTIONS(request: NextRequest) {
+  console.log('-------option------')
   return new NextResponse(null, { status: 200, headers: corsHeaders });
 }
+
+
 
 export async function POST(request: NextRequest) {
   const integrationId = request.url.split("/").pop();
@@ -27,7 +31,7 @@ export async function POST(request: NextRequest) {
       headers: corsHeaders 
     });
   }
-  const agents = await integration.agents();
+  const agents = {human_in_the_loop: new ServerStarterAgent({ url: "https://agui-adk-505147522050.us-central1.run.app/adk-construction-project-agent" })}
   const runtime = new CopilotRuntime({
     // @ts-ignore for now
     agents,
