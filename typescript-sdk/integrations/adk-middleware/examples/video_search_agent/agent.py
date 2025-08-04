@@ -125,7 +125,7 @@ When presenting video results, use a clear, organized format:
 - **Teams**: [Team names involved]
 - **Technical**: [Resolution, file size, etc.]
 
-<Video url={technical_metadata.source_uri} />
+<Video url="{technical_metadata.source_uri}" />
 
 ** Key Insights:**
 - [Player performance highlights]
@@ -138,7 +138,7 @@ When presenting video results, use a clear, organized format:
 - **Teams**: [Team names involved]
 - **Technical**: [Resolution, file size, etc.]
 
-<Video url={technical_metadata.source_uri} />
+<Video url="{technical_metadata.source_uri}" />
 
 [Continue for each video...]
 ```
@@ -147,7 +147,7 @@ When presenting video results, use a clear, organized format:
 - If no results found, provide suggestions for broadening the search
 - Always maintain a helpful and knowledgeable tone
 
-Remember: You have access to a vast database of sports videos with detailed analysis, player information, team data, and technical metadata. Use this capability to provide users with exactly what they're looking for and help them discover new insights about sports performance. Always include the video player tag <Video url={technical_metadata.source_uri} /> for each video result to allow users to watch the content directly.
+Remember: You have access to a vast database of sports videos with detailed analysis, player information, team data, and technical metadata. Use this capability to provide users with exactly what they're looking for and help them discover new insights about sports performance. Always include the video player tag <Video url="{technical_metadata.source_uri}" /> for each video result to allow users to watch the content directly.
     """,
     generate_content_config=types.GenerateContentConfig(
         temperature=0.3,

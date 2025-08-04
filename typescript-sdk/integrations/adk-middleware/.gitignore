@@ -63,7 +63,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+pyvenv
+pyvenv/*
+google-cloud-sdk/*
 secret.json
 # mypy
 .mypy_cache/
