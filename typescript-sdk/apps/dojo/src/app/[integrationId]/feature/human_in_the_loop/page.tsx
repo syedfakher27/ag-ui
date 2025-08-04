@@ -114,6 +114,8 @@ const TransferPortalAssistant = () => {
   //     draftBound: false
   //   }
   // });
+
+
   const [enableVerbose, setEnableVerbose] = useState(true);
   const initialFilters: FilterState = {
     filters: {
@@ -127,17 +129,30 @@ const TransferPortalAssistant = () => {
     }
   );
 
-  useLangGraphInterrupt({
-    render: ({ event, resolve }) => <InterruptHumanInTheLoop event={event} resolve={resolve} />,
-  });
+
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   console.log('Current filters:', filters.filters);
+
+
+
   useCopilotAction({
-    name: "shortlist_players",
+    name: "render_pie_chart",
     parameters: [
       {
-        name: "player_ids",
-        type: "string[]",
+        name: "title",
+        type: "string",
+      },
+      {
+        name: "labels",
+        type: "string",
+      },
+      {
+        name: "values",
+        type: "string",
+      },
+      {
+        values: "chart_type",
+        type: "string",
       }
     ],
     render: ({ args, result, status }) => {
@@ -146,7 +161,7 @@ const TransferPortalAssistant = () => {
         {/* Tool Execution UI */}
         {enableVerbose && (
           <ToolExecutionUI
-            toolName="shortlist_players"
+            toolName="render_pie_chart"
             args={args}
             result={result}
             status={status}
@@ -154,138 +169,16 @@ const TransferPortalAssistant = () => {
         )}
         
         {/* Steps Feedback UI */}
-        <StepsFeedback 
+        {/* <StepsFeedback 
           args={args} 
           result={result} 
           status={status} 
           selectedPlayer={selectedPlayer} 
           setSelectedPlayer={setSelectedPlayer} 
-        />
+        /> */}
       </div>
     );
     },
-  });
-
-  useCopilotAction({
-    name: "transfer_to_agent",
-    parameters: [
-      {
-        name: "agent_name",
-        type: "string",
-      }
-    ],
-    render: ({ args, result, status }) => {
-      return enableVerbose ? (
-        <AgentTransferUI args={args} result={result} status={status} />
-      ) : null;
-    },
-  });
-
-  useCopilotAction({
-    name: "fetch_team_name",
-    parameters: [
-      {
-        name: "team",
-        type: "string",
-      }
-    ],
-    render: ({ args, result, status }) => {
-      return enableVerbose ? (
-         <ToolExecutionUI
-            toolName="fetch_team_name"
-            args={args}
-            result={result}
-            status={status}
-          />
-      ) : null;
-    },
-  });
-
-  useCopilotAction({
-    name: "fetch_team_basketball_data",
-    parameters: [
-      {
-        name: "university_team",
-        type: "string",
-      }
-    ],
-    render: ({ args, result, status }) => {
-      return enableVerbose ? (
-        <ToolExecutionUI
-          toolName="fetch_team_basketball_data"
-          args={args}
-          result={result}
-          status={status}
-        />
-      ) : null;
-    },
-  });
-
-  useCopilotAction({
-    name: "filter_transfer_portal_players",
-    parameters: [
-      {
-        name: "class_",
-        type: "string",
-      },
-      {
-        name: "position",
-        type: "string",
-      },
-      {
-        name: "efficiencyRating",
-        type: "integer",
-      },
-      {
-        name: "excludeCommitted",
-        type: "boolean",
-      },
-      {
-        name: "additional_filter",
-        type: "string",
-      },
-    ],
-    render: ({ args, result, status }) => {
-      return enableVerbose ? (
-        <ToolExecutionUI
-          toolName="filter_transfer_portal_players"
-          args={args}
-          result={result}
-          status={status}
-        />
-      ) : null;
-    },
-  });
-
-  useCopilotAction({
-  name: "prepare_email_for_approval_tool",
-  parameters: [
-    {
-      name: "recipients",
-      type: "object[]",
-      attributes: [
-        {
-          name: "name",
-          type: "string",
-          description: "Name of the recipient"
-        },
-        {
-          name: "email", 
-          type: "string",
-          description: "Email address of the recipient"
-        }
-      ],
-      description: "Array of recipients with name and email - REQUIRED"
-    },
-    {
-      name: "conversation_summary",
-      type: "string",
-      description: "Summary of the conversation to be emailed - REQUIRED"
-    },
-  ],
-  renderAndWaitForResponse: ({ args, respond, status}) => {
-    return <MultiRecipientEmailApprovalComponent args={args} respond={respond} status={status}/>;
-  },
   });
 
   const handleFilterChange = (filterType: string, value: any) => {
