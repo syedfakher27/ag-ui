@@ -4,20 +4,20 @@ import React, { useState, useEffect } from "react";
 import "@copilotkit/react-ui/styles.css";
 import "./style.css";
 import { CopilotKit, useCopilotAction, useLangGraphInterrupt, useCoAgent } from "@copilotkit/react-core";
+import { Play, Calendar, Users, Video as VideoIcon, Clock, FileText } from 'lucide-react';
 import { FilterState, FilterChangeHandler, AvailabilityChangeHandler, TEAM_OPTIONS } from './types';
 import { CopilotChat } from "@copilotkit/react-ui";
 import AgentTransferUI from "@/components/agent-ui/agent_ui";
 import ToolExecutionUI from "@/components/tool-ui/tool_ui";
 import MultiRecipientEmailApprovalComponent from "@/components/email_approval/email_approval";
+import SidebarVideoPlayer from "@/components/video_player/SidebarVideoPlayer";
+import VideoResultsTable from "@/components/video_player/VideoResultsTable";
 
 interface HumanInTheLoopProps {
   params: Promise<{
     integrationId: string;
   }>;
 }
-
-// Position options
-
 
 const HumanInTheLoop: React.FC<HumanInTheLoopProps> = ({ params }) => {
   const { integrationId } = React.use(params);
@@ -130,40 +130,53 @@ const TransferPortalAssistant = () => {
   useLangGraphInterrupt({
     render: ({ event, resolve }) => <InterruptHumanInTheLoop event={event} resolve={resolve} />,
   });
+
   const [selectedPlayer, setSelectedPlayer] = useState(null);
-  console.log('Current filters:', filters.filters);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  // For analyze_player_relevance_tool - shows selected relevant videos directly
   useCopilotAction({
-    name: "search_videos_tool",
-    parameters: [
-      {
-        name: "query",
-        type: "string",
-      },
-      {
-        name: "filter",
-        type: "string",
-      },
-      {
-        name: "meta_data",
-        type: "string",
-      }
-    ],
-    render: ({ args, result, status }) => {
-      return (
+  name: "analyze_player_relevance_tool",
+  parameters: [
+    {
+      name: "gcs_links",
+      type: "string",
+      description: "Array of GCS links to analysis files"
+    },
+    {
+      name: "selected_videos", 
+      type: "string",
+      description: "Array of selected video objects that are most relevant"
+    },
+    {
+      name: "selection_reasoning",
+      type: "string", 
+      description: "Explanation of why these videos were selected"
+    }
+  ],
+  render: ({ args, result, status }) => {
+    return (
       <div className="space-y-4">
         {/* Tool Execution UI */}
         {enableVerbose && (
           <ToolExecutionUI
-            toolName="search_videos_tool"
+            toolName="analyze_player_relevance_tool"
             args={args}
             result={result}
             status={status}
           />
         )}
         
+        <VideoResultsTable 
+          args={{ query: result?.query || "Selected Videos" }} 
+          result={result} 
+          status={status}
+          enableVerbose={enableVerbose}
+          title="Selected Relevant Videos"
+          onVideoPlay={setSelectedVideo} // Pass the video setter function
+        />
       </div>
     );
-    },
+  },
   });
 
   useCopilotAction({
@@ -359,6 +372,9 @@ const TransferPortalAssistant = () => {
   const handleCloseDetails = () => {
     setSelectedPlayer(null);
   };
+  const handleCloseVideo = () => {
+    setSelectedVideo(null);
+  };
   return (
     <div className="flex h-screen bg-gray-50">
 
@@ -407,14 +423,21 @@ const TransferPortalAssistant = () => {
             />
           </div>
 
-          {/* Player Details Sidebar */}
+          {/* Right Sidebar - Player Details or Video Player*/}
 
-          {selectedPlayer && (
+          {(selectedPlayer || selectedVideo) && (
             <div className="w-96">
-              <PlayerDetails
-                player={selectedPlayer}
-                onClose={handleCloseDetails}
-              />
+              {selectedVideo ? (
+                <SidebarVideoPlayer
+                  video={selectedVideo}
+                  onClose={handleCloseVideo}
+                />
+              ) : selectedPlayer ? (
+                <PlayerDetails
+                  player={selectedPlayer}
+                  onClose={handleCloseDetails}
+                />
+              ) : null}
             </div>
           )}
         </div>

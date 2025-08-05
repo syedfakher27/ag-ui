@@ -1,13 +1,103 @@
 import os
 import json
-from typing import Dict, Any
+from typing import Dict, Any, List
+from google.cloud import storage
 from google.cloud import discoveryengine_v1alpha as discoveryengine
 from google.protobuf.json_format import MessageToDict
 
 project_id = os.environ.get('GOOGLE_CLOUD_PROJECT', "slamsportsai")
 engine_id = os.environ.get('DATASTORE_ID', "slams-video-ds")
 
-
+def analyze_player_relevance_tool(
+    gcs_links: List[str], 
+    selected_videos: List[Dict[str, Any]],
+    selection_reasoning: str
+) -> Dict[str, Any]:
+    """
+    Downloads analysis text content from GCS links and returns the raw content
+    along with the selected relevant videos for rendering.
+    
+    Args:
+        gcs_links: List of GCS links to analysis text files (gs://bucket/path/file.txt)
+        selected_videos: List of video objects that were selected as most relevant
+        selection_reasoning: Explanation of why these videos were selected
+    
+    Returns:
+        Dictionary containing the downloaded analysis content and selected videos for UI rendering
+    """
+    try:
+        # Initialize GCS client
+        storage_client = storage.Client()
+        
+        analysis_files = []
+        
+        # Process each GCS file
+        for gcs_link in gcs_links:
+            if not gcs_link.startswith("gs://"):
+                continue
+                
+            try:
+                # Parse GCS path
+                path_parts = gcs_link[5:].split("/", 1)  # Remove 'gs://' and split
+                bucket_name = path_parts[0]
+                blob_path = path_parts[1]
+                
+                # Get the file content
+                bucket = storage_client.bucket(bucket_name)
+                blob = bucket.blob(blob_path)
+                
+                if not blob.exists():
+                    print(f"File not found: {gcs_link}")
+                    analysis_files.append({
+                        "file_link": gcs_link,
+                        "file_name": blob_path.split("/")[-1],
+                        "status": "not_found",
+                        "content": "",
+                        "error": f"File not found: {gcs_link}"
+                    })
+                    continue
+                    
+                # Download the content
+                analysis_text = blob.download_as_text()
+                
+                analysis_files.append({
+                    "file_link": gcs_link,
+                    "file_name": blob_path.split("/")[-1],
+                    "status": "success",
+                    "content": analysis_text,
+                    "content_length": len(analysis_text)
+                })
+                
+                print(f"Successfully downloaded: {gcs_link} ({len(analysis_text)} characters)")
+                
+            except Exception as file_error:
+                print(f"Error processing file {gcs_link}: {file_error}")
+                analysis_files.append({
+                    "file_link": gcs_link,
+                    "file_name": gcs_link.split("/")[-1],
+                    "status": "error",
+                    "content": "",
+                    "error": str(file_error)
+                })
+                continue
+        
+        return {
+            "status": "success",
+            "total_files_requested": len(gcs_links),
+            "total_files_downloaded": len([f for f in analysis_files if f["status"] == "success"]),
+            "analysis_files": analysis_files,
+            "videos": selected_videos or [],
+            "selection_reasoning": selection_reasoning,
+            "query": "Selected Relevant Videos"  # For UI consistency
+        }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to download analysis files: {str(e)}",
+            "analysis_files": []
+        }
+    
 def create_search_request(serving_config, search_query, meta_data, content_search_spec, boost_spec=None, facet_keys=[], enable_tuning=False):
     # Base request without boost_spec
     offset = (search_query.page_number - 1) * search_query.page_size
@@ -69,33 +159,23 @@ def build_metadata_filter(meta_data: Dict[str, Any]) -> str:
 
     return ' AND '.join(flatten_and_build_filters(meta_data))
 
-def search_videos_tool(query: str, filters: str , meta_data: Dict[str, Any] , page_size: int) -> Dict[str, Any]:
+def search_videos_tool(query: str,  meta_data: Dict[str, Any] ) -> Dict[str, Any]:
     """
     Search for relevant videos using Google Vertex AI Discovery Engine Client Library.
     
     Args:
         query: Search query to find relevant videos
-        filters: Optional filter expression string (e.g., 'sport="basketball"', 'players.name="John Doe"')
         meta_data: Optional dictionary for building structured filters
-        page_size: Number of results to return (default: 10, max: 100)
     
     Returns:
         Dictionary containing search results with video information and analysis
     """
     try:
         # Build filter string
-        final_filter = ""
+        metadata_filter = ""
         if meta_data:
             metadata_filter = build_metadata_filter(meta_data)
             print("Metadata filter:", metadata_filter)
-            if filters and metadata_filter:
-                final_filter = f"{filters} AND {metadata_filter}"
-            elif metadata_filter:
-                final_filter = metadata_filter
-            elif filters:
-                final_filter = filters
-        elif filters:
-            final_filter = filters
 
         # Initialize the Discovery Engine client
         client = discoveryengine.SearchServiceClient()
@@ -121,13 +201,13 @@ def search_videos_tool(query: str, filters: str , meta_data: Dict[str, Any] , pa
                 self.page_number = 1
                 self.next_page_token = ""
 
-        search_query = SearchQuery(query, min(page_size, 10))
+        search_query = SearchQuery(query,10)
 
         # Create search request using helper function
         request = create_search_request(
             serving_config=serving_config,
             search_query=search_query,
-            meta_data=final_filter,
+            meta_data=metadata_filter,
             content_search_spec=content_search_spec
         )
 
@@ -148,12 +228,14 @@ def search_videos_tool(query: str, filters: str , meta_data: Dict[str, Any] , pa
             except Exception as write_error:
                 print(f"Failed to write document: {write_error}")
             struct_data = document_dict.get("struct_data", {})
+            derived_struct_data = document_dict.get("derived_struct_data", {}) 
             context_metadata = struct_data.get("context_metadata", {})
 
             video_info = {
                 "id": document_dict.get("id", ""),
                 "title": context_metadata.get("title", struct_data.get("analysis_title", "Unknown Title")),
                 "description": context_metadata.get("description", "No description available"),
+                "analysis_text_link" : derived_struct_data.get("link", ""),
                 "filename": context_metadata.get("filename", ""),
                 "sport": context_metadata.get("sport", struct_data.get("sports", "")),
                 "video_type": context_metadata.get("video_type", ""),
@@ -205,7 +287,7 @@ def search_videos_tool(query: str, filters: str , meta_data: Dict[str, Any] , pa
         return {
             "status": "success",
             "query": query,
-            "filters": final_filter,
+            "filters": metadata_filter,
             "total_results": len(videos),
             "videos": videos,
             "search_metadata": {
@@ -220,170 +302,6 @@ def search_videos_tool(query: str, filters: str , meta_data: Dict[str, Any] , pa
             "status": "error",
             "message": f"Failed to search videos: {str(e)}",
             "query": query,
-            "filters": filters,
+            "filters": metadata_filter,
             "videos": []
         }
-
-def print_separator(title: str):
-    """Print a formatted separator for test sections."""
-    print(f"\n{'='*60}")
-    print(f"  {title}")
-    print('='*60)
-
-
-def print_result_summary(result: Dict[str, Any]):
-    """Print a summary of search results."""
-    if result["status"] == "success":
-        print(f"✅ SUCCESS - Found {result['total_results']} videos")
-        print(f"Query: '{result['query']}'")
-        if result["filters"]:
-            print(f"Filters: {result['filters']}")
-        
-        # Print search metadata
-        metadata = result["search_metadata"]
-        if metadata["corrected_query"]:
-            print(f"Corrected Query: '{metadata['corrected_query']}'")
-        if metadata["query_expansion_used"]:
-            print("Query Expansion: Used")
-        print(f"Total Available: {metadata['total_size']}")
-        
-        # Print video summaries
-        for i, video in enumerate(result["videos"][:3], 1):  # Show first 3 videos
-            print(f"\n📹 Video {i}: {video['title']}")
-            print(f"   Sport: {video['sport']} | Type: {video['video_type']}")
-            print(f"   Players: {len(video['players'])} | Relevance: {video['relevance_score']:.2f}")
-            if video['players']:
-                player_names = [p['name'] for p in video['players'][:3]]
-                print(f"   Top Players: {', '.join(player_names)}")
-    else:
-        print(f"❌ ERROR: {result['message']}")
-
-
-def run_tests():
-    """Run comprehensive tests of the video search tool."""
-    
-    print("🎬 SLAM Video Search Tool - Test Suite")
-    print("Testing Google Discovery Engine integration...")
-    
-    # Test cases with various scenarios
-    test_cases = [
-        
-        {
-            "name": "Sport Filter - Basketball Only",
-            "query": "Myles highlights",
-            "meta_data": {
-            "context_metadata.players.name": ["Myles Foster"],
-            "context_metadata.teams.name": [ "Clemson","Illinois State"
-            ]
-            }, "page_size": 10
-    },
-           
-        # {
-        #     "name": "Player Search",
-        #     "query": "player analysis",
-        #     "filters": "",
-        #     "page_size": 5
-        # },
-        # {
-        #     "name": "Complex Filter - Basketball Guards",
-        #     "query": "performance",
-        #     "filters": 'sport="basketball" AND players.position="guard"',
-        #     "page_size": 3
-        # },
-        # {
-        #     "name": "Video Type Filter",
-        #     "query": "analysis",
-        #     "filters": 'video_type="training"',
-        #     "page_size": 5
-        # },
-        # {
-        #     "name": "Large Page Size",
-        #     "query": "sports",
-        #     "filters": "",
-        #     "page_size": 20
-        # },
-        # {
-        #     "name": "Empty Query Test",
-        #     "query": "",
-        #     "filters": "",
-        #     "page_size": 5
-        # },
-        # {
-        #     "name": "Non-existent Sport",
-        #     "query": "cricket",
-        #     "filters": 'sport="cricket"',
-        #     "page_size": 5
-        # }
-    ]
-    
-    # Run all test cases
-    for i, test_case in enumerate(test_cases, 1):
-        print_separator(f"Test {i}: {test_case['name']}")
-        
-        try:
-            result = search_videos_tool(
-                query=test_case["query"],
-                meta_data=test_case["meta_data"],
-                page_size=test_case["page_size"]
-            )
-            print_result_summary(result)
-            
-            # Additional validation
-            if result["status"] == "success":
-                assert isinstance(result["videos"], list), "Videos should be a list"
-                assert result["total_results"] == len(result["videos"]), "Total results should match video count"
-                
-                for video in result["videos"]:
-                    assert "id" in video, "Video should have an ID"
-                    assert "title" in video, "Video should have a title"
-                    assert isinstance(video["players"], list), "Players should be a list"
-                
-                print("Validation passed")
-            
-        except Exception as e:
-            print(f"Test failed with exception: {str(e)}")
-
-
-# Interactive testing functions
-def test_basic_search():
-    """Test basic search functionality."""
-    print("Testing basic search...")
-    result = search_videos_tool("basketball", page_size=5)
-    print(json.dumps(result, indent=2))
-    return result
-
-
-def test_filtered_search():
-    """Test search with filters."""
-    print("Testing filtered search...")
-    result = search_videos_tool(
-        query="training", 
-        filters='sport="basketball"', 
-        page_size=5
-    )
-    print(json.dumps(result, indent=2))
-    return result
-
-
-def test_player_search():
-    """Test player-specific search."""
-    print("Testing player search...")
-    result = search_videos_tool(
-        query="player performance", 
-        filters='players.position="guard"', 
-        page_size=3
-    )
-    print(json.dumps(result, indent=2))
-    return result
-
-
-if __name__ == "__main__":
-    # Run the comprehensive test suite
-    run_tests()
-    
-    print("\n" + "="*60)
-    print("INDIVIDUAL TEST FUNCTIONS AVAILABLE:")
-    print("- test_basic_search()")
-    print("- test_filtered_search()")
-    print("- test_player_search()")
-    print("="*60)
