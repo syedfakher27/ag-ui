@@ -2,142 +2,178 @@ from typing import List, Optional, Dict, Any
 from google.adk.tools import ToolContext
 from urllib.parse import quote
 import requests
+from google.cloud import spanner
+import re
+import traceback
+import os
 
-def filter_transfer_portal_players(
-    tool_context: ToolContext,
-    class_: Optional[str] = None,
-    team: Optional[str] = None,
-    position: Optional[str] = None,
-    efficiencyRating: Optional[int] = None,
-    excludeCommitted: Optional[bool] = False,
-    page: int = 1,
-    page_size: int = 20,
-    sort_by: Optional[str] = None,
-    limit: Optional[int] = None,
-    additional_filter:Optional[str] = ""
-
+def text2sql_query_transfer_portal(
+    sql_query: str
 ):
     """
-    Filter transfer portal players based on team needs and player attributes.
+    Execute a SQL query on the Spanner database to retrieve transfer portal player data.
     
-    Searches the transfer portal database to find players that match specific
-    team requirements including team, class, position, and minimum possessions.
+    This tool allows natural language to SQL conversion for querying the MBB.tp_player_view table.
+    If the query has errors, the agent will attempt to fix them and retry.
     
     Args:
-        team (str, optional): Team name to filter by (e.g., "Penn State" , "Rhode Island" ) 
-        class_ (str, optional): Class level (e.g., "JR", "SR", "SO", "FR")
-        position (str, optional):
-            PF - Match: "power forward", "power", "forward" (if "small" not present), "PF", "4"
-            PG - Match: "point guard", "point", "guard" (if "shooting" not present), "PG", "1", "primary guard"
-            SG - Match: "shooting guard", "shooting", "two guard", "SG", "2", "off guard"
-            SF - Match: "small forward", "small", "forward" (if "power" not present), "SF", "3", "wing"
-            C - Match: "center", "centre", "C", "5", "big", "pivot"
-        efficiencyRating (int, optional): Minimum possessions threshold
-        excludeCommitted (bool, optional) : if enabled, then filter players who are not commmitted to any team
-        page (int): Page number for pagination (default: 1)
-        page_size (int): Number of results per page (default: 20)
-        additional_filter (str, optional) : if there is any extra filter use this param like this "rank:80"
+        sql_query (str): SQL query to execute against the MBB.tp_player_view table in Spanner database
+        
+    Table Schema (MBB.tp_player_view):
+        - player_id: Unique identifier for each player
+        - player_rank: Player's ranking position  
+        - player_name: Full name of the player
+        - team: Current team affiliation
+        - new_team: New team affiliation (for transfers)
+        - player_class: Player's academic class (FR, SO, JR, SR)
+        - position: Player's position (PG, SG, SF, PF, C)
+        - height: Player's height in inches
+        - weight: Player's weight in pounds
+        - bpr_predicted: Projected overall BPR rating (higher is better)
+        - offensive_bpr: Projected offensive BPR rating (higher is better)
+        - defensive_bpr: Projected defensive BPR rating (higher is better)
+        - possessions: Number of possessions played in recent season
+        - three_point_percent: Predicted three-point shooting percentage
+        - assist_rate: Predicted assist rate
+        - rebound_percent: Predicted rebounding rate
+        - And many other performance metrics...
+    
+    Note: Always use the full table name `MBB`.`tp_player_view` in your SQL queries.
     
     Returns:
-        dict: Contains filtered players list and pagination info
+        dict: Query results with player data
         
     Raises:
-        Exception: If API request fails or invalid parameters are provided
+        Exception: If database connection fails or query cannot be executed after retry
     """
-    print('-------------filter_transfer_portal_players---------------')
-    schema = "MBB"
-    # team=old_team
-    # Store current filters in tool context
-    current_filters = tool_context.state.get("filters", {})
-    # current_filters.update({
-    #     'team': team,
-    #     'class_': class_,
-    #     'position': position,
-    #     'min_possessions': efficiencyRating,
-    #     'page': page,
-    #     'page_size': page_size,
-    #     'schema': schema,
-    #     'excludeCommitted': excludeCommitted
-    # })
-    tool_context.state["filters"]["excludeCommitted"] = current_filters.get('excludeCommitted',False)
+    print(f'-------------text2sql_query_transfer_portal---------------')
+    print(f'Executing SQL Query: {sql_query}')
     
-
-    # Base API URL
-    base_url = "https://slam-all-python-359065791766.us-central1.run.app/MBB/tp-players/"
+    # Initialize Spanner client
+    instance_id = os.environ.get('SPANNER_INSTANCE_ID','slam-spanner')
+    database_id = os.environ.get('SPANNER_DATABASE_ID','slam-db')
+    project_id = os.environ.get('GOOGLE_CLOUD_PROJECT','slamsportsai')  # Replace with your actual project ID
     
-    # Build query parameters
-    params = []
+    max_retries = 3
+    current_retry = 0
     
-    if team:
-        params.append(f"team={quote(team)}")
-
+    while current_retry < max_retries:
+        try:
+            # Create Spanner client
+            spanner_client = spanner.Client(project=project_id)
+            instance = spanner_client.instance(instance_id)
+            database = instance.database(database_id)
+            
+            # Modify query to ensure max 50 records to prevent model overflow
+            modified_query = sql_query
+            if "LIMIT" not in sql_query.upper():
+                modified_query = f"{sql_query} LIMIT 50"
+            else:
+                # Extract existing limit and ensure it's not more than 50
+                import re
+                limit_match = re.search(r'LIMIT\s+(\d+)', sql_query, re.IGNORECASE)
+                if limit_match:
+                    existing_limit = int(limit_match.group(1))
+                    if existing_limit > 50:
+                        modified_query = re.sub(r'LIMIT\s+\d+', 'LIMIT 50', sql_query, flags=re.IGNORECASE)
+            
+            print(f"Modified Query (max 50 records): {modified_query}")
+            
+            # Execute the query
+            with database.snapshot() as snapshot:
+                results = snapshot.execute_sql(modified_query)
+                
+                # Convert results to list of dictionaries
+                players_data = []
+                columns = None
+                
+                try:
+                    # Process results row by row to avoid snapshot reuse issues
+                    first_row = True
+                    for row in results:
+                        if first_row:
+                            # Get column names from the first row's metadata
+                            if hasattr(results, '_metadata') and results._metadata and hasattr(results._metadata, 'row_type'):
+                                columns = [field.name for field in results.fields]
+                            else:
+                                raise Exception("Query results do not contain proper metadata/schema information.")
+                            first_row = False
+                        
+                        # Process the row
+                        player_dict = {}
+                        for i, value in enumerate(row):
+                            player_dict[columns[i]] = value
+                        players_data.append(player_dict)
+                    
+                    # If no rows were processed but query succeeded
+                    if not players_data and columns is None:
+                        print("Query executed successfully but returned no records.")
+                        return {
+                            "success": True,
+                            "data": [],
+                            "total_records": 0,
+                            "query": sql_query,
+                            "columns": []
+                        }
+                        
+                except Exception as field_error:
+                    # If we still can't process results, there's a deeper issue
+                    raise Exception(f"Query executed but failed to process results: {str(field_error)}. This may indicate authentication, permissions, or schema issues.")
+                
+                print(f"Query executed successfully. Retrieved {len(players_data)} records.")
+                
+                # Store results in tool context
+                # tool_context.state["transfer_portal_player_info"] = [
+                #     {"player_id": str(player.get('player_id', '')), "player_name": str(player.get('player_name', ''))} 
+                #     for player in players_data
+                # ]
+                # tool_context.state["sql_query_executed"] = sql_query
+                # tool_context.state["sql_query_results_count"] = len(players_data)
+                
+                return {
+                    "success": True,
+                    "data": players_data,
+                    "total_records": len(players_data),
+                    "query": sql_query,
+                    "columns": columns
+                }
+                
+        except Exception as e:
+            traceback.print_exc()
+            current_retry += 1
+            error_msg = str(e)
+            print(f"SQL Query Error (Attempt {current_retry}/{max_retries}): {error_msg}")
+            
+            if current_retry >= max_retries:
+                # After max retries, return error for agent to handle
+                return {
+                    "success": False,
+                    "error": error_msg,
+                    "query": sql_query,
+                    "suggestion": "Please check the SQL syntax and table schema. The table name is `MBB`.`tp_player_view` and common issues include: incorrect column names, missing WHERE clauses, or syntax errors."
+                }
+            
+            # For certain errors, suggest fixes
+            if "not found" in error_msg.lower() or "invalid" in error_msg.lower():
+                print(f"Query error detected. Agent should fix and retry. Error: {error_msg}")
+                # Let the agent handle the error and retry with a corrected query
+                return {
+                    "success": False,
+                    "error": error_msg,
+                    "query": sql_query,
+                    "retry_suggestion": f"SQL error encountered: {error_msg}. Please fix the query and try again. Remember to use `MBB`.`tp_player_view` as the table name.",
+                    "can_retry": True,
+                    "attempts_remaining": max_retries - current_retry
+                }
+            
+            # For other errors, continue retrying with same query
+            continue
     
-    if class_:
-        params.append(f"class={quote(class_)}")
-    
-    if position:
-        params.append(f"position={quote(position)}")
-    
-    if efficiencyRating is not None:
-        params.append(f"min_possessions={efficiencyRating}")
-    if excludeCommitted:
-        params.append("isavailable=true")
-    else:
-        params.append("isavailable=false")
-    
-    # Add pagination parameters
-    params.append(f"page={page}")
-    params.append(f"page_size={page_size}")
-    params.append(f"schema={schema}")
-    
-    # Construct full URL
-    if params:
-        url = f"{base_url}?{'&'.join(params)}"
-    else:
-        url = f"{base_url}?page={page}&page_size={page_size}&schema={schema}"
-    
-    print(f"API Request URL: {url}")
-    # with open('api.txt', 'w') as f:
-    #     f.write(url)
-    try:
-        # Make API request
-        headers = {
-            'accept': 'application/json'
-        }
-        
-        response = requests.get(url, headers=headers, timeout=30)
-        response.raise_for_status()
-        
-        # Parse response
-        api_response = response.json()
-        
-        # Extract player data
-        players_data = api_response.get('data', [])
-        players_info = api_response.get('data', [])
-        if excludeCommitted:
-            print("filtering non-committed players")
-            players_data = [
-                {"player_id": player.get('players'), "player_name":player.get('name')} for player in players_data
-                if not player.get("new_team") or str(player.get("new_team")).strip().lower() in ["", "nan"]
-            ]
-        else:
-            players_data = [
-                {"player_id": player.get('players'), "player_name":player.get('name')} for player in players_data      
-            ]
-
-        tool_context.state["transfer_portal_player_info"] = players_data
-        return players_info
-    except requests.exceptions.RequestException as e:
-        print(f"API request failed: {e}")
-        raise Exception(f"Failed to fetch transfer portal data: {str(e)}")
-    
-    except ValueError as e:
-        print(f"Error parsing API response: {e}")
-        raise Exception(f"Invalid API response format: {str(e)}")
-    
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        raise Exception(f"Error filtering transfer portal players: {str(e)}")
+    return {
+        "success": False,
+        "error": f"Query failed after {max_retries} attempts",
+        "query": sql_query
+    }
 
 def shortlist_players(tool_context: ToolContext, player_names: List[str] = [], player_ids: List[str] = []) -> Optional[Dict[Any, Any]]:
     """
@@ -536,3 +572,8 @@ players=[
     "players": "10022583"
   },
 ]
+
+
+if __name__=="__main__":
+    result = text2sql_query_transfer_portal("SELECT player_name, bpr_predicted FROM MBB.tp_player_view WHERE position = 'PG' AND (new_team IS NULL OR new_team = '' OR new_team = 'nan') ORDER BY bpr_predicted DESC LIMIT 5")
+    print('result==>',result)

@@ -16,7 +16,7 @@ from ..research_agent.agent import research_agent
 from ..video_search_agent.agent import video_analysis_agent
 from google.adk.planners import PlanReActPlanner 
 
-from .tools import filter_transfer_portal_players , shortlist_players, get_team_requirements
+from .tools import text2sql_query_transfer_portal , shortlist_players, get_team_requirements
 
 planner = PlanReActPlanner()
 
@@ -144,18 +144,28 @@ You are a Player Shortlist Agent specialized in analyzing transfer portal player
 ## Core Workflow
 
 ### Phase 1: Initial Player Discovery
-1. **Always Use `filter_transfer_portal_players`** to fetch an initial list of players from the transfer portal
-2. Apply broad filters based on:
-   - Team preferences (if specified)
-   - Class level requirements (FR, SO, JR, SR)
-   - Position needs (PG, SG, SF, PF, C)
-   - Minimum efficiency rating thresholds
-   - Commitment Status (`excludeCommitted`):
-     * `excludeCommitted=True` (RECOMMENDED DEFAULT): Show only uncommitted/available players
-     * `excludeCommitted=False`: Show all players including committed ones
-   - Use pagination to explore comprehensive results
+1. **Always Use `text2sql_query_transfer_portal`** to execute SQL queries against the `MBB`.`tp_player_view` table
+2. Construct SQL queries based on requirements:
+   - Team preferences: `WHERE team = 'Team Name'`
+   - Class level requirements: `WHERE player_class IN ('FR', 'SO', 'JR', 'SR')`
+     * **FR = Freshman**: First-year college student
+     * **SO = Sophomore**: Second-year college student  
+     * **JR = Junior**: Third-year college student
+     * **SR = Senior**: Fourth-year college student
+   - Position needs (Valid positions only): `WHERE position IN ('PG', 'SG', 'SF', 'PF', 'C')`
+     * **Point Guard (PG)**: Ball-handling, court vision, assist-to-turnover ratio
+     * **Shooting Guard (SG)**: Perimeter shooting, defensive pressure, scoring consistency  
+     * **Small Forward (SF)**: Versatility, rebounding, transition play
+     * **Power Forward (PF)**: Interior presence, rebounding, mid-range shooting
+     * **Center (C)**: Paint protection, rim running, post presence
+   - Performance thresholds: `WHERE bpr_predicted > X` or `WHERE possessions > X`
+   - Commitment Status: 
+     * For available players: `WHERE (new_team IS NULL OR new_team = '' OR new_team = 'nan')`
+     * For all players: no filter needed
+   - Use LIMIT and OFFSET for pagination
+   - Always use the full table name: `MBB`.`tp_player_view`
 ##Important Note
-    if there are any extra filters required then ignore that filter parameter and always call that tool filter_transfer_portal_players 
+    If the SQL query fails with an error, analyze the error message and create a corrected SQL query, then retry with the fixed query. 
 ### Phase 2: Deep Analysis & Evaluation
 1. **Analyze filtered players** against user requirements and team needs:
    - **Prioritize user's explicit requirements first**
@@ -189,7 +199,7 @@ IMPORTANT: Never include or reveal any player IDs in your responses. Always refe
     ),
     disallow_transfer_to_peers=True,
     before_model_callback=simple_before_model_modifier,
-    tools=[filter_transfer_portal_players,shortlist_players],
+    tools=[text2sql_query_transfer_portal,shortlist_players],
     sub_agents=[]
 )
 

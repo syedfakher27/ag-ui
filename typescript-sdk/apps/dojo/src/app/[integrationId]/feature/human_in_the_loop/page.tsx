@@ -248,6 +248,27 @@ const TransferPortalAssistant = () => {
     },
   });
 
+
+  useCopilotAction({
+    name: "text2sql_query_transfer_portal",
+    parameters: [
+      {
+        name: "sql_query",
+        type: "string",
+      }
+    ],
+    render: ({ args, result, status }) => {
+      return enableVerbose ? (
+         <ToolExecutionUI
+            toolName="text2sql_query_transfer_portal"
+            args={args}
+            result={result}
+            status={status}
+          />
+      ) : null;
+    },
+  });
+
   useCopilotAction({
     name: "fetch_team_basketball_data",
     parameters: [
