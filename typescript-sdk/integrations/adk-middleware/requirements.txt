@@ -10,3 +10,4 @@ google-generativeai
 google-cloud-discoveryengine>= 0.11.11
 google-cloud-storage
 google-cloud-spanner==3.54.0
+aiohttp
