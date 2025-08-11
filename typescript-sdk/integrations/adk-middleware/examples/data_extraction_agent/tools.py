@@ -21,10 +21,7 @@ def process_image_with_document_ai_tool(gcs_url: str) -> Dict[str, Any]:
     Returns:
         Dictionary containing extracted table data and/or form fields
     """
-    print("🚀 Starting Document AI processing for image...")
-    print(f"   GCS URL: {gcs_url}")
-    print(f"   Project ID: {project_id}")
-    print(f"   Processor ID: {processor_id}")
+    print("Starting Document AI processing for image...")
     
     try:
         # Parse GCS URL
@@ -38,18 +35,18 @@ def process_image_with_document_ai_tool(gcs_url: str) -> Dict[str, Any]:
         bucket_name = path_parts[0]
         blob_path = path_parts[1]
         
-        print(f"📡 Creating Document AI client...")
+        print(f"Creating Document AI client...")
         # Create Document AI client
         opts = ClientOptions(api_endpoint=f"{location}-documentai.googleapis.com")
         client = documentai.DocumentProcessorServiceClient(client_options=opts)
-        print("✅ Client created successfully")
+        print("Client created successfully")
         
         # Get processor path
         processor_name = client.processor_path(project_id, location, processor_id)
-        print(f"🎯 Processor path: {processor_name}")
+        print(f"Processor path: {processor_name}")
         
         # Download image from GCS
-        print(f"📖 Reading image from GCS...")
+        print(f"Reading image from GCS...")
         storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob(blob_path)
@@ -61,7 +58,7 @@ def process_image_with_document_ai_tool(gcs_url: str) -> Dict[str, Any]:
             }
         
         image_content = blob.download_as_bytes()
-        print(f"✅ Image downloaded successfully. Size: {len(image_content)} bytes")
+        print(f"Image downloaded successfully. Size: {len(image_content)} bytes")
         
         # Determine MIME type
         mime_type = "image/png"  # Default
@@ -72,16 +69,16 @@ def process_image_with_document_ai_tool(gcs_url: str) -> Dict[str, Any]:
         elif gcs_url.lower().endswith('.bmp'):
             mime_type = "image/bmp"
         
-        print(f"📄 Creating RawDocument with MIME type: {mime_type}")
+        print(f"Creating RawDocument with MIME type: {mime_type}")
         # Create Document AI request
         raw_document = documentai.RawDocument(content=image_content, mime_type=mime_type)
         request = documentai.ProcessRequest(name=processor_name, raw_document=raw_document)
         
         # Process document
-        print("🔄 Processing document with Document AI...")
+        print("Processing document with Document AI...")
         result = client.process_document(request=request)
         document = result.document
-        print(f"✅ Document processed successfully. Pages: {len(document.pages)}")
+        print(f"Document processed successfully. Pages: {len(document.pages)}")
         
         # Initialize response data
         response_data = {
@@ -95,18 +92,18 @@ def process_image_with_document_ai_tool(gcs_url: str) -> Dict[str, Any]:
         }
         
         # Extract tables first
-        print("🔍 Checking for tables in processed document...")
+        print("Checking for tables in processed document...")
         tables_data = []
         total_tables = 0
         
         for page_idx, page in enumerate(document.pages):
-            print(f"📄 Processing page {page_idx + 1}")
+            print(f"Processing page {page_idx + 1}")
             page_tables = len(page.tables)
             total_tables += page_tables
-            print(f"   Found {page_tables} table(s) on page {page_idx + 1}")
+            print(f" Found {page_tables} table(s) on page {page_idx + 1}")
             
             for table_idx, table in enumerate(page.tables):
-                print(f"   📊 Processing table {table_idx + 1}")
+                print(f" Processing table {table_idx + 1}")
                 
                 # Extract header rows
                 header_rows = []
@@ -120,7 +117,7 @@ def process_image_with_document_ai_tool(gcs_url: str) -> Dict[str, Any]:
                             "colSpan": getattr(cell, 'col_span', 1)
                         })
                     header_rows.append(header_cells)
-                    print(f"         Header row {row_idx + 1}: {len(header_cells)} cells")
+                    print(f"Header row {row_idx + 1}: {len(header_cells)} cells")
                 
                 # Extract body rows
                 body_rows = []
@@ -135,7 +132,7 @@ def process_image_with_document_ai_tool(gcs_url: str) -> Dict[str, Any]:
                         })
                     body_rows.append(body_cells)
                     if (row_idx + 1) % 10 == 0:
-                        print(f"         Processed {row_idx + 1} body rows...")
+                        print(f"Processed {row_idx + 1} body rows...")
                 
                 table_data = {
                     "headerRows": header_rows,
@@ -143,10 +140,10 @@ def process_image_with_document_ai_tool(gcs_url: str) -> Dict[str, Any]:
                     "table_index": f"page_{page_idx + 1}_table_{table_idx + 1}"
                 }
                 tables_data.append(table_data)
-                print(f"   ✅ Table {table_idx + 1} extraction complete")
+                print(f"Table {table_idx + 1} extraction complete")
         
         if total_tables > 0:
-            print(f"🎉 Found {total_tables} table(s)! Using table extraction mode.")
+            print(f"Found {total_tables} table(s)! Using table extraction mode.")
             response_data.update({
                 "data_type": "tables",
                 "tables_found": len(tables_data),
@@ -157,19 +154,19 @@ def process_image_with_document_ai_tool(gcs_url: str) -> Dict[str, Any]:
                 }
             })
         else:
-            print("📋 No tables found. Extracting form fields...")
+            print(" No tables found. Extracting form fields...")
             # Extract form fields
             form_fields = []
             total_form_fields = 0
             
             for page_idx, page in enumerate(document.pages):
-                print(f"📄 Processing form fields on page {page_idx + 1}")
+                print(f"Processing form fields on page {page_idx + 1}")
                 page_form_fields = len(page.form_fields)
                 total_form_fields += page_form_fields
-                print(f"   Found {page_form_fields} form field(s) on page {page_idx + 1}")
+                print(f"Found {page_form_fields} form field(s) on page {page_idx + 1}")
                 
                 for field_idx, field in enumerate(page.form_fields):
-                    print(f"   📝 Processing form field {field_idx + 1}")
+                    print(f"Processing form field {field_idx + 1}")
                     
                     # Extract field name
                     field_name = ""
@@ -209,7 +206,7 @@ def process_image_with_document_ai_tool(gcs_url: str) -> Dict[str, Any]:
                     form_fields.append(form_field_data)
                     print(f"       Field: '{field_name}' = '{field_value}' (conf: {name_confidence:.2f}, {value_confidence:.2f})")
             
-            print(f"📋 Form field extraction complete! Total fields: {total_form_fields}")
+            print(f"Form field extraction complete! Total fields: {total_form_fields}")
             response_data.update({
                 "data_type": "form_fields",
                 "form_fields_found": len(form_fields),
@@ -220,7 +217,7 @@ def process_image_with_document_ai_tool(gcs_url: str) -> Dict[str, Any]:
                 }
             })
         
-        print(f"🎉 Document AI processing completed!")
+        print(f"Document AI processing completed!")
         return response_data
         
     except Exception as e:
@@ -254,7 +251,7 @@ def extract_content_from_pdf_tool(gcs_url: str) -> Dict[str, Any]:
     Returns:
         Dictionary containing raw extracted tables and text content
     """
-    print("🚀 Starting PDF content extraction...")
+    print("Starting PDF content extraction...")
     print(f"   PDF URL: {gcs_url}")
  
     from typing import Optional
@@ -276,7 +273,7 @@ def extract_content_from_pdf_tool(gcs_url: str) -> Dict[str, Any]:
     bucket_name = path_parts[0]
     blob_path = path_parts[1]
     
-    print(f"📖 Downloading PDF from GCS...")
+    print(f"Downloading PDF from GCS...")
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(blob_path)
@@ -288,14 +285,14 @@ def extract_content_from_pdf_tool(gcs_url: str) -> Dict[str, Any]:
         }
     
     pdf_content = blob.download_as_bytes()
-    print(f"✅ PDF downloaded. Size: {len(pdf_content)} bytes")
+    print(f"PDF downloaded. Size: {len(pdf_content)} bytes")
     
     temp_file_path = None
     try:
         # Try pdfplumber first for better table detection
         try:
             import pdfplumber
-            print("📊 Using pdfplumber for table extraction...")
+            print("Using pdfplumber for table extraction...")
             
             with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_file:
                 temp_file.write(pdf_content)
@@ -305,10 +302,10 @@ def extract_content_from_pdf_tool(gcs_url: str) -> Dict[str, Any]:
             full_text = ""
             
             with pdfplumber.open(temp_file_path) as pdf:
-                print(f"📄 Processing {len(pdf.pages)} page(s)...")
+                print(f"Processing {len(pdf.pages)} page(s)...")
                 
                 for page_num, page in enumerate(pdf.pages):
-                    print(f"   Processing page {page_num + 1}")
+                    print(f"Processing page {page_num + 1}")
                     
                     # Extract page text
                     page_text = page.extract_text()
@@ -317,13 +314,13 @@ def extract_content_from_pdf_tool(gcs_url: str) -> Dict[str, Any]:
                     
                     # Extract raw tables from page
                     tables = page.extract_tables()
-                    print(f"   Found {len(tables)} table(s) on page {page_num + 1}")
+                    print(f"Found {len(tables)} table(s) on page {page_num + 1}")
                     
                     # Only process if tables are found
                     if tables:
                         for table_idx, table in enumerate(tables):
                             if table and len(table) > 0:
-                                print(f"   📊 Extracting table {table_idx + 1} with {len(table)} rows")
+                                print(f"Extracting table {table_idx + 1} with {len(table)} rows")
                                 
                                 # Clean table data but don't assume header structure
                                 cleaned_table = []
@@ -352,11 +349,11 @@ def extract_content_from_pdf_tool(gcs_url: str) -> Dict[str, Any]:
                                         'column_count': len(cleaned_table[0]) if cleaned_table else 0
                                     }
                                     extracted_tables.append(table_dict)
-                                    print(f"   ✅ Added table with {len(cleaned_table)} rows and {len(cleaned_table[0]) if cleaned_table else 0} columns")
+                                    print(f"Added table with {len(cleaned_table)} rows and {len(cleaned_table[0]) if cleaned_table else 0} columns")
                     else:
-                        print(f"   ℹ️ No tables found on page {page_num + 1}, continuing with text extraction only")
+                        print(f"No tables found on page {page_num + 1}, continuing with text extraction only")
             
-            print(f"🎉 PDF processing completed! Found {len(extracted_tables)} table(s)")
+            print(f"PDF processing completed! Found {len(extracted_tables)} table(s)")
             
             return {
                 'status': 'success',
@@ -372,10 +369,10 @@ def extract_content_from_pdf_tool(gcs_url: str) -> Dict[str, Any]:
             }
             
         except ImportError:
-            print("⚠️ pdfplumber not available, falling back to PyPDF2")
+            print("pdfplumber not available, falling back to PyPDF2")
         
         # Fallback to PyPDF2 for text-only extraction
-        print("📄 Using PyPDF2 for text extraction...")
+        print("Using PyPDF2 for text extraction...")
         pdf_file = io.BytesIO(pdf_content)
         pdf_reader = PyPDF2.PdfReader(pdf_file)
         
@@ -436,7 +433,7 @@ def detect_file_type_tool(gcs_url: str) -> Dict[str, Any]:
         file_type = 'unknown'
         recommended_tool = 'process_image_with_document_ai_tool'  # Default to image processing
     
-    print(f"✅ Detected file type: {file_type}")
+    print(f"Detected file type: {file_type}")
     
     return {
         "status": "success",

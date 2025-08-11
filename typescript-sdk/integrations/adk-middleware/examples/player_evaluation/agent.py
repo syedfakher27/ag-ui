@@ -8,7 +8,7 @@ from google.adk.models import LlmResponse, LlmRequest
 from google.adk.agents.callback_context import CallbackContext
 from typing import Optional
 from .tools import fetch_player_stats, get_player_evaluation_summary, search_player_by_name
-
+from .benchmark_player import *
 
 def player_evaluation_modifier(
     callback_context: CallbackContext, llm_request: LlmRequest
@@ -48,15 +48,56 @@ def player_evaluation_modifier(
                             player_id = str(player_info)
                         context_parts.append(f"  - Player ID: {player_id}, Name: {name}")
                 
+                # Add benchmark player statistics from imported data
+                context_parts.append("\n=== BENCHMARK PLAYERS FOR COMPARISON ===")
+                
+                # Helper function to format player stats
+                def format_player_stats(benchmarks, position_name):
+                    context_parts.append(f"\n{position_name.upper()} BENCHMARKS:")
+                    for player in benchmarks:
+                        context_parts.append(f"  - {player['player']} ({player['team']}, {player['class']})")
+                        context_parts.append(f"    SLAM Score: {player['slam_score']}")
+                        context_parts.append(f"    scoring: {player['scoring']}, assist_rate: {player['assist_rate']}")
+                        context_parts.append(f"    three_pct: {player['three_pct']}, two_pct: {player['two_pct']}, ft_pct: {player['ft_pct']}")
+                        context_parts.append(f"    playmaking: {player['playmaking']}, TO: {player['TO']}")
+                        context_parts.append(f"    reb_pct: {player['reb_pct']}, STL: {player['STL']}, D: {player['D']}")
+                
+                # Add all position benchmarks
+                format_player_stats(point_guard_benchmarks, "Point Guard")
+                format_player_stats(shooting_combo_guard_benchmarks, "Shooting/Combo Guard")
+                format_player_stats(wings_benchmarks, "Wing")
+                format_player_stats(skilled_forwards_benchmarks, "Skilled Forward")
+                format_player_stats(power_forwards_benchmarks, "Power Forward")
+                format_player_stats(traditional_bigs_benchmarks, "Traditional Big")
+                format_player_stats(skilled_bigs_benchmarks, "Skilled Big")
             
-                    # Ensure system_instruction is Content and parts list exists
-                    
+                # Ensure system_instruction is Content and parts list exists
                 if not isinstance(original_instruction, types.Content):
                     # Handle case where it might be a string (though config expects Content)
                     original_instruction = types.Content(role="system", parts=[types.Part(text=str(original_instruction))])
                 if not original_instruction.parts:
                     original_instruction.parts.append(types.Part(text="")) # Add an empty part if none exist
-                postfix = f"\n\n=== CONTEXT INFORMATION ===\n" + "\n".join(context_parts) + "\n\nUse this context to provide relevant player evaluations and recommendations.\n\nIMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only."
+                
+                postfix = f"\n\n=== CONTEXT INFORMATION ===\n" + "\n".join(context_parts) + "\n\n=== STAT DEFINITIONS ===\n" \
+                "three_pct: Predicted three-point shooting percentage against average opponent, adjusted for usage\n" \
+                "two_pct: Predicted two-point shooting percentage against average opponent, adjusted for usage\n" \
+                "ft_pct: Predicted free throw shooting percentage\n" \
+                "scoring: Predicted points per 100 possessions based on shot usage and efficiency\n" \
+                "assist_rate: Percentage of teammate made field goals that the player assisted while on court\n" \
+                "TO: Percentage of offensive possessions ending in player turnover while on court\n" \
+                "playmaking: Combines assist rate and turnover rate to measure ability to create plays\n" \
+                "oreb_pct: Percentage of possible offensive rebounds secured while on court\n" \
+                "dreb_pct: Percentage of possible defensive rebounds secured while on court\n" \
+                "reb_pct: Combined offensive + defensive rebounding rate\n" \
+                "STL: Percentage of defensive possessions ending in player steal while on court\n" \
+                "blk_pct: Percentage of opponent two-point attempts blocked while on court\n" \
+                "PF: Personal fouls committed per 100 possessions\n" \
+                "D: Defensive per-possession value via Defensive BPR\n" \
+                "slam_score: Overall player rating\n\n" \
+                "Use this context and benchmark data to provide comprehensive player evaluations and comparisons. " \
+                "Compare players against position-specific benchmarks to assess performance levels.\n\n" \
+                "IMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only."
+                
                 # Modify the text of the first part
                 modified_text = postfix + (original_instruction.parts[0].text or "")
                 original_instruction.parts[0].text = modified_text
