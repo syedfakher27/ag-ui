@@ -27,16 +27,39 @@ def text2sql_query_transfer_portal(
         - new_team: New team affiliation (for transfers)
         - player_class: Player's academic class (FR, SO, JR, SR)
         - position: Player's position (PG, SG, SF, PF, C)
-        - height: Player's height in inches
-        - weight: Player's weight in pounds
-        - bpr_predicted: Projected overall BPR rating (higher is better)
         - offensive_bpr: Projected offensive BPR rating (higher is better)
         - defensive_bpr: Projected defensive BPR rating (higher is better)
+        - bpr_predicted: Projected overall BPR rating (higher is better)
+        - notes: Additional notes about the player
+        - dollar_value_string: Monetary value assessment
+        - height: Player's height in inches
+        - weight: Player's weight in pounds
         - possessions: Number of possessions played in recent season
-        - three_point_percent: Predicted three-point shooting percentage
-        - assist_rate: Predicted assist rate
-        - rebound_percent: Predicted rebounding rate
-        - And many other performance metrics...
+        - obpr_prev: Previous offensive BPR rating
+        - dbpr_prev: Previous defensive BPR rating
+        - bpr_prev: Previous overall BPR rating
+        - box_obpr_prev: Previous box score offensive BPR
+        - box_dbpr_prev: Previous box score defensive BPR
+        - box_bpr_prev: Previous box score overall BPR
+        - plus_minus: Plus/minus statistic
+        - adj_team_off_eff: Adjusted team offensive efficiency
+        - adj_team_def_eff: Adjusted team defensive efficiency
+        - adj_team_eff_margin: Adjusted team efficiency margin
+        - role: Player role classification
+        - eligible: Eligibility status
+        - three_point_percent: Three-point shooting percentage
+        - two_point_percent: Two-point shooting percentage
+        - free_throw_percent: Free throw shooting percentage
+        - assist_rate: Assist rate statistic
+        - turnover_percent: Turnover percentage
+        - playmaking_score: Playmaking ability score
+        - offensive_rebound_percent: Offensive rebounding percentage
+        - defensive_rebound_percentage: Defensive rebounding percentage
+        - rebound_percent: Overall rebounding percentage
+        - block_percent: Block percentage
+        - steal_percent: Steal percentage
+        - personal_foul_percent: Personal foul percentage
+        - defensive_value: Defensive value metric
     
     Note: Always use the full table name `MBB`.`tp_player_view` in your SQL queries.
     
