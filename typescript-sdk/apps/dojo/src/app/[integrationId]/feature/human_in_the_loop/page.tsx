@@ -248,6 +248,26 @@ const TransferPortalAssistant = () => {
     },
   });
 
+  useCopilotAction({
+    name: "fetch_team_official_name",
+    parameters: [
+      {
+        name: "abbrev",
+        type: "string",
+      }
+    ],
+    render: ({ args, result, status }) => {
+      return enableVerbose ? (
+         <ToolExecutionUI
+            toolName="fetch_team_official_name"
+            args={args}
+            result={result}
+            status={status}
+          />
+      ) : null;
+    },
+  });
+
 
   useCopilotAction({
     name: "text2sql_query_transfer_portal",

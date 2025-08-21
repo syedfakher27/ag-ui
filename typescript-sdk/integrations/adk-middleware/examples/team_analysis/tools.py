@@ -4,6 +4,57 @@ from typing import Dict, List, Optional, Any
 import time
 from .hardcoded_output import PENN_STATE_OUTPUT
 
+def fetch_team_official_name(abbrev: str) -> Dict[str, Any]:
+    """
+    Fetches the official team name using a team abbreviation via POST request.
+    
+    Args:
+        abbrev (str): The team abbreviation (e.g., URI, KU). Will be uppercased.
+    
+    Returns:
+        Dict with 'team_name' if found, else 'error' or empty 'team_name'.
+    """
+    try:
+        # Uppercase the abbreviation
+        abbrev = abbrev.strip().upper()
+        if not abbrev:
+            return {"error": "No abbreviation provided.", "team_name": ""}
+
+        url = "https://slam-all-python-359065791766.us-central1.run.app/MBB/team-stats-mia/get-team-by-abbrev?schema=MBB"
+
+        response = requests.post(
+            url,
+            headers={
+                "accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            json={"abbrev": abbrev},
+            timeout=30
+        )
+
+        if response.status_code != 200:
+            return {
+                "error": f"API error: {response.status_code}", 
+                "team_name": ""
+            }
+
+        data = response.json()
+        team_name = data.get("team_name", "").strip()
+
+        if not team_name:
+            return {"team_name": "", "abbrev": abbrev, "error": f"No team found for abbreviation: {abbrev}"}
+
+        return {
+            "team_name": team_name,
+            "abbrev": abbrev
+        }
+
+    except Exception as e:
+        return {
+            "error": f"Failed to fetch team name: {str(e)}",
+            "team_name": ""
+        }
+
 def fetch_team_name(team: str):
     """
     Fetch exact team name matches from the API endpoint.

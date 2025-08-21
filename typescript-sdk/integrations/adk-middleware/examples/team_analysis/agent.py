@@ -6,7 +6,7 @@ from google.adk.models import LlmResponse, LlmRequest
 from google.adk.agents.callback_context import CallbackContext
 from typing import Optional, Dict, Any, List
 from google.adk.agents import LlmAgent
-from .tools import fetch_team_basketball_data, fetch_team_name
+from .tools import fetch_team_basketball_data, fetch_team_name, fetch_team_official_name
 import requests
 
 def team_analysis_modifier(
@@ -128,7 +128,10 @@ Analyze college basketball teams to identify strengths, weaknesses, and roster g
 ### Phase 1: Team Data Collection
 
 1. **IMPORTANT: First Step - Get Exact Team Name**
-   - Always call `fetch_team_name` first with the user's provided team name
+   - If the user uses a **shortened or abbreviated name** (e.g., "URI", "UK", "UNC"), **first call `fetch_team_official_name`** with the abbreviation.
+   - Always uppercase the input before calling this tool.
+   - If `fetch_team_official_name` returns a valid `team_name`, use that name in subsequent tools.
+   - If `fetch_team_official_name` returns no result or an error, **then call `fetch_team_name`** with the user's provided team name.
    - Provide a single team name word to this tool `fetch_team_name` so that it can match with multiple team names like use  'Penn' so it should return ('Penn','Penn State')
    - This will return the exact, standardized team name to use
    - If fetch_team_name returns an empty string, inform the user that the team wasn't found
@@ -229,8 +232,8 @@ IMPORTANT: Never include or reveal any player IDs in your responses. Always refe
         top_k=40
     ),
     disallow_transfer_to_peers=True,
-    before_model_callback=team_analysis_modifier,
-    tools=[fetch_team_name, fetch_team_basketball_data],  # Order matters: fetch_team_name will be called first
+    # before_model_callback=team_analysis_modifier,
+    tools=[fetch_team_official_name, fetch_team_name, fetch_team_basketball_data],  # Order matters: fetch_team_name will be called first
     sub_agents=[],
     output_key="team_gap_analysis"
 )
