@@ -14,10 +14,11 @@ from ..player_evaluation.agent import player_evaluation_agent
 from .. email_conversation.agent import email_agent
 from ..research_agent.agent import research_agent
 from ..video_search_agent.agent import video_analysis_agent
+from ..player_stats_agent.agent import player_stats_agent
 from google.adk.planners import PlanReActPlanner 
 
 from .tools import text2sql_query_transfer_portal , shortlist_players, get_team_requirements
-
+from .mbb_glossary import mbb_metrics
 planner = PlanReActPlanner()
 
 # from dotenv import load_dotenv
@@ -43,10 +44,15 @@ def simple_before_model_modifier(
                     # Handle case where it might be a string (though config expects Content)
                     original_instruction = types.Content(role="system", parts=[types.Part(text=str(original_instruction))])
 
-
- 
+    elif agent_name == "player_shortlist_agent_based_on_gaps":
+        if llm_request.contents and llm_request.contents[-1].role == 'user':
+            last_message = llm_request.contents[-1]
+            if last_message.parts and hasattr(last_message.parts[0],'text') and last_message.parts[0].text !="" and last_message.parts[0].function_response.__class__.__name__ != 'FunctionResponse' :
+                # Get the original text and add prefix
+                original_text = last_message.parts[0].text or ""
+                modified_user_text = original_text + mbb_metrics
+                last_message.parts[0].text = modified_user_text
     return None
-
 
 
 # --- Define the Team Requirements Agent ---
@@ -137,8 +143,8 @@ IMPORTANT: Always use the `get_team_requirements` tool to fetch the latest team 
 player_shortlist_agent_based_on_gaps = LlmAgent(
     model='gemini-2.5-flash',
     name='player_shortlist_agent_based_on_gaps',
-    description="**Transfer Portal Player Discovery** - Searches transfer portal and creates targeted player shortlists based on criteria. Handles player recommendations, position-specific searches, statistical filtering, and availability status. Use for finding players, creating shortlists, or retrieving specific player stats from the transfer portal.",
-    instruction="""
+    description=f"**Transfer Portal Player Discovery** - Searches transfer portal and creates targeted player shortlists based on criteria. Handles player recommendations, position-specific searches, statistical filtering, and availability status. Use for finding players, creating shortlists, or retrieving specific player stats from the transfer portal.",
+    instruction=f"""
 You are a Player Shortlist Agent specialized in analyzing transfer portal players and creating targeted shortlists based on team needs and user requirements. Your primary objective is to identify the best-fit players from the transfer portal that align with specific team gaps and user criteria.
 
 ## Core Workflow
@@ -188,8 +194,11 @@ You are a Player Shortlist Agent specialized in analyzing transfer portal player
    - Strategic fit within team system
    
 2. **Use `shortlist_players`** tool to confirm the final shortlisted players or to get the stats of a particular stats by the player name
-3. Provide detailed justification for each selection
+3. Provide detailed justification for each selection. 
 4. Avoid returning only the BPR of a player. ALWAYS include supporting metrics of player stats (e.g., rebounds, assists, shooting %, defensive metrics, etc.) along with BPR, if available.
+5. Refer to the Basketball Metrics Glossary {mbb_metrics} when introducing or explaining any advanced metric to ensure clarity and consistency. For example:
+“Assist Rate of 27.19% means the player directly facilitated a basket via assist on nearly 27 out of every 100 possessions they were on the court—indicating elite-level playmaking.” 
+Ensure that each metric is not only reported but interpreted—explain why it matters and how it reflects the player’s strengths, weaknesses, or fit within a team system. 
 
 IMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only.
    """,
@@ -225,6 +234,7 @@ transfer_portal_agent = LlmAgent(
 - **Research** - Conducts internet research on basketball topics, trends, and external information
 - **Video Analysis** - Searches and analyzes sports videos, player highlights, game footage, and performance content
 - **Team Requirements** - Analyzes team performance standards, coaching expectations, and recruitment criteria
+- **Player Training & Physical Development** - Analyzes player workout stats, strength metrics, athletic testing, and physical progression over time
 
 **Intelligence**: Uses contextual analysis to determine user intent and route queries to the specialist best equipped to provide comprehensive, actionable assistance. Handles complex multi-step workflows and maintains context across agent handoffs for seamless user experience.
 """,
@@ -269,6 +279,13 @@ You are a Basketball Recruitment Router Agent that intelligently routes basketba
 - Keywords: "video", "highlights", "game footage", "performance video"
 - Examples: "Show me John Doe highlights", "Find basketball training videos", "Clemson game footage"
 
+**player_stats_agent** - Route when user asks about:
+- Player training stats, physical strength, workout performance, athletic testing
+- Progression over time, combine results, vertical jump, bench press
+- Physical development, measurements, or athletic testing data
+- Keywords: "workout", "training stats", "strength", "vertical jump", "bench press", "physical progress", "how strong is X?", "has X improved?"
+- Examples: "Show me Jonah Hinton vertical jump progression over the last year", "Compare the physical development of Hinton and Rivera", "Analyze improvement in Alex Crawford stats"
+
 ## Communication Protocol
 1. Acknowledge the user's request
 2. Briefly explain routing decision
@@ -290,5 +307,5 @@ You are a Basketball Recruitment Router Agent that intelligently routes basketba
     before_model_callback=simple_before_model_modifier,
     planner=planner,
     tools=[research_agent_tool],
-    sub_agents=[team_gap_analysis_agent , player_shortlist_agent_based_on_gaps , player_evaluation_agent, email_agent, team_requirements_agent, video_analysis_agent]
+    sub_agents=[team_gap_analysis_agent , player_shortlist_agent_based_on_gaps , player_evaluation_agent, email_agent, team_requirements_agent, video_analysis_agent, player_stats_agent]
 )

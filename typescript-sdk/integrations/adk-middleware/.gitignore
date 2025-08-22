@@ -87,3 +87,4 @@ simple_test_server.py
 
 # Local documentation
 CLAUDE.md
+*.json

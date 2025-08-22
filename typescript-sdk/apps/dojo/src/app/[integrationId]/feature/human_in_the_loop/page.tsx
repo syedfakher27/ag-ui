@@ -213,6 +213,32 @@ const TransferPortalAssistant = () => {
     },
   });
 
+ useCopilotAction({
+  name: "search_player_stats_tool",
+  parameters: [
+    {
+      name: "query",
+      type: "string",
+      description: "The search query for player performance, stats, or physical traits (e.g., 'Jonah Hinton vertical jump progression')"
+    },
+    {
+      name: "meta_data",
+      type: "object",
+      description: "Structured filters for precise search, e.g. { data_type: 'stats', player_name: 'jonah hinton', team: 'Rhode Island', recorded_date: 'Spring 2025' }"
+    }
+  ],
+  render: ({ args, result, status }) => {
+    return enableVerbose ? (
+      <ToolExecutionUI
+        toolName="search_player_stats_tool"
+        args={args}
+        result={result}
+        status={status}
+        />
+      ) : null;
+    },
+  });
+  
   useCopilotAction({
     name: "transfer_to_agent",
     parameters: [
