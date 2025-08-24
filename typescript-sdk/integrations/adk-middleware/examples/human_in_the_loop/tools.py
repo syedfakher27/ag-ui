@@ -8,6 +8,7 @@ import traceback
 import os
 
 def text2sql_query_transfer_portal(
+    tool_context: ToolContext,
     sql_query: str
 ):
     """
@@ -150,7 +151,7 @@ def text2sql_query_transfer_portal(
                 #     {"player_id": str(player.get('player_id', '')), "player_name": str(player.get('player_name', ''))} 
                 #     for player in players_data
                 # ]
-                # tool_context.state["sql_query_executed"] = sql_query
+                tool_context.state["tool_context"] = sql_query
                 # tool_context.state["sql_query_results_count"] = len(players_data)
                 
                 return {

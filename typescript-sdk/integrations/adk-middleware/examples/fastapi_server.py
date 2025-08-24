@@ -13,6 +13,7 @@ import logging
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from .human_in_the_loop.agent import transfer_portal_agent 
+from .widgets_agent.agent import basket_ball_widget_agent 
 from .email_conversation.agent import email_agent
 from google.adk.sessions import DatabaseSessionService
 from google.adk.artifacts import GcsArtifactService
@@ -51,6 +52,10 @@ class PaginatedChatResponse(BaseModel):
     page: int
     page_size: int
     total_pages: int
+    
+class ChatClearRequest(BaseModel):
+    session_id: str
+    delete_state: bool = False
 
 # Basic logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -78,6 +83,7 @@ try:
     # Register the agent
     registry.set_default_agent(sample_agent)
     registry.register_agent('adk-human-in-loop-agent', transfer_portal_agent)
+    registry.register_agent('adk-construction-project-agent', basket_ball_widget_agent)
     registry.register_agent('adk-email-agent', email_agent)
 
  
@@ -198,6 +204,19 @@ try:
         artifact_service=artifact_service,
         cleanup_interval_seconds=604800
     )
+    
+    adk_construction_project_agent = ADKAgent(
+        app_name="demo_app",
+        user_id="demo_user",
+        session_timeout_seconds=604800,
+        use_in_memory_services=False,
+        memory_service = memory_service,
+        credential_service=InMemoryCredentialService(),
+        session_service=session_service,
+        artifact_service=artifact_service,
+        cleanup_interval_seconds=604800
+    )
+    
 
     
     # Create FastAPI app
@@ -216,6 +235,8 @@ try:
     add_adk_fastapi_endpoint(app, adk_agent, path="/chat")
     add_adk_fastapi_endpoint(app, adk_human_in_loop_agent, path="/adk-human-in-loop-agent")
     add_adk_fastapi_endpoint(app, adk_email_agent, path="/adk-email-agent")
+    add_adk_fastapi_endpoint(app, adk_construction_project_agent, path="/adk-construction-project-agent")
+    
     @app.get("/")
     async def root():
         return {"message": "ADK Middleware is running!", "endpoint": "/adk-human-in-loop-agent"}
@@ -232,6 +253,28 @@ try:
         langchain_messages = adk_events_to_langchain_messages(events)
         return {"messages":langchain_messages,"state":state}
     
+    @app.post("/clear-chat")
+    async def clear_chat(request: ChatClearRequest):
+        try:
+            session = await session_service.get_session(app_name='demo_app',user_id='demo_user',session_id=request.session_id)
+            
+            if request.delete_state:
+                # Delete state completely - create empty session
+                await session_service.delete_session(app_name='demo_app',user_id='demo_user',session_id=request.session_id)
+                new_session = await session_service.create_session(app_name='demo_app',user_id='demo_user',state={},session_id=request.session_id)
+                return {"success":True , "message":"chat history and state cleared completely"}
+            else:
+                # Keep existing state behavior
+                state = session.state
+                events = session.events
+                
+                await session_service.delete_session(app_name='demo_app',user_id='demo_user',session_id=request.session_id)
+                new_session = await session_service.create_session(app_name='demo_app',user_id='demo_user',state=state,session_id=request.session_id)
+                return {"success":True , "message":"chat history is cleared now"}
+        except Exception as e:
+            logging.error(f"Error inserting chat session: {e}")
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        
     @app.post("/insert_chat")
     async def insert_chat(request: InsertChatRequest):
         """Insert a new chat session with auto-generated title"""
