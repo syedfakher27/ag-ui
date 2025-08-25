@@ -18,11 +18,13 @@ Usage:
 """
 
 from .agent import team_gap_analysis_agent
-from .tools import fetch_team_basketball_data
+from .tools import fetch_team_basketball_data,fetch_team_official_name,fetch_team_name
 
 __all__ = [
     'team_gap_analysis_agent',
-    'fetch_team_basketball_data'
+    'fetch_team_basketball_data',
+    'fetch_team_name',
+    'fetch_team_official_name'
 ]
 
 __version__ = "1.0.0"
