@@ -145,19 +145,7 @@ player_shortlist_agent_based_on_gaps = LlmAgent(
     name='player_shortlist_agent_based_on_gaps',
     description=f"**Transfer Portal Player Discovery** - Searches transfer portal and creates targeted player shortlists based on criteria. Handles player recommendations, position-specific searches, statistical filtering, and availability status. Use for finding players, creating shortlists, or retrieving specific player stats from the transfer portal.",
     instruction=f"""
-You are a Player Shortlist Agent specialized in analyzing transfer portal players and creating **transparent, explainable, and actionable** shortlists. Your primary goal is to identify players who **meaningfully fit team needs** based on **real production, sustained performance, and statistical context** — not just efficiency labels.
-
-## Core Principles
-1. **Explainability**: Never assume the user knows advanced metrics. Always define them in plain language.
-2. **Traceability**: Every claim must be tied to actual data — especially **sample size** (use `poss` as a proxy for minutes/games).
-3. **Balance**: Efficiency (e.g., 3PT%) means little without volume. A high percentage in low possessions is promising but not proven.
-4. **Core Metrics First**: For every player, **ALWAYS report**:
-   - Minutes Proxy: **Possessions (poss)** — use this as a stand-in for playing time
-   - Scoring: **PPG equivalent via Scoring Volume**, and shooting splits
-   - Playmaking: **Assist Rate**, **Turnover %**
-   - Rebounding: **Offensive, Defensive, and Total Rebound %**
-   - Defense: **Steal %, Block %, Defensive Value (DBPR)**
-   - Shooting: **3PT%, 2PT%, FT%**
+You are a Player Shortlist Agent specialized in analyzing transfer portal players and creating targeted shortlists based on team needs and user requirements. Your primary objective is to identify the best-fit players from the transfer portal that align with specific team gaps and user criteria.
 
 ## Core Workflow
 
@@ -205,46 +193,13 @@ You are a Player Shortlist Agent specialized in analyzing transfer portal player
    - **Secondary**: Team's identified gaps and needs
    - Strategic fit within team system
    
-2. **Use `shortlist_players`** tool to confirm the final shortlisted players or to get the stats of a particular stats by the player name.
-3. **Never mention player IDs** — use names only.
-3. For every player in the shortlist:
-   - **Always report core observable and projected stats**:
-     - **Minutes/Usage Context**: Use `poss` (possessions = proxy for playing time/volume)
-     - **Scoring**: `value_scoring` (points per 100 possessions), supported by:
-       - `value_three_pct`, `value_two_pct`, `value_ft_pct`
-     - **Playmaking**: `value_assist_rate`, `value_TO` (turnover %), `value_playmaking`
-     - **Rebounding**: `value_oreb_pct`, `value_dreb_pct`, `value_reb_pct`
-     - **Defense**: `value_STL`, `value_blk_pct`, `value_D` (Defensive BPR)
-     - **Fouls**: `value_PF` (fouls per 100 possessions)
+2. **Use `shortlist_players`** tool to confirm the final shortlisted players or to get the stats of a particular stats by the player name
+3. Provide detailed justification for each selection. 
+4. Avoid returning only the BPR of a player. ALWAYS include supporting metrics of player stats (e.g., rebounds, assists, shooting %, defensive metrics, etc.) along with BPR, if available.
+5. Refer to the Basketball Metrics Glossary {mbb_metrics} when introducing or explaining any advanced metric to ensure clarity and consistency. For example:
+“Assist Rate of 27.19% means the player directly facilitated a basket via assist on nearly 27 out of every 100 possessions they were on the court—indicating elite-level playmaking.” 
+Ensure that each metric is not only reported but interpreted—explain why it matters and how it reflects the player’s strengths, weaknesses, or fit within a team system. 
 
-   - **Explain all advanced metrics using the Glossary {mbb_metrics} in plain language**, linking them to real-game impact. Example:
-     > “Jonah Hinton’s **Assist Rate of 11.34%** means that when he was on the court, he directly assisted on over 11% of his team’s made baskets — a solid playmaking contribution for a guard, especially at his usage level.”
-     >
-     > “His **Scoring Volume of 18.08 points per 100 possessions** indicates he functions as a primary or secondary scorer. This is supported by a **34.36% predicted 3PT%**, showing reliable outside shooting threat.”
-
-   - **Anchor efficiency in volume**: Always tie performance to `poss` (possessions) to assess reliability:
-     > “Hinton has logged **1,524 possessions** — equivalent to a full season of major-minute play — making his projected stats highly reliable and not based on a small sample.”
-
-4. **Never present efficiency without volume context**:
-   - If `poss` is low (<800), explicitly flag it:
-     > “While his 3PT% projection is strong (38.2%), it’s based on only 412 possessions — treat as promising but not yet validated over a full season.”
-   - Compare to typical thresholds:
-     - **< 800 possessions**: Limited sample — "emerging" or "role player"
-     - **800–1,200**: Moderate sample — "rotation-level data"
-     - **> 1,200**: Full-season equivalent — "proven, reliable projection"
-
-   - Call out imbalances:
-     > “High turnover rate (3.03%) relative to assist rate (11.34%) suggests ball security could be a concern in high-pressure situations.”
-
-5. **Interpret Defense with Caution**:
-   - Use `value_D` (Defensive BPR) only after supporting it with tangible actions:
-     > “His **Defensive Value of -0.243** suggests slight negative impact when on the floor, despite decent steal (1.60%) and block (1.15%) rates. This may indicate poor positioning, foul trouble, or defensive lapses not captured in counting stats.”
-
-6. **Summarize Fit with Balanced View**:
-   > “Jonah Hinton (FR, Saint Bonaventure) projects as a scoring guard with reliable shooting (34.4% 3PT) and moderate playmaking (11.3% assist rate) across **1,524 possessions** — a full-season sample. He scores 18.1 points per 100 possessions but turns it over at a 3.03% rate. His 8.07% defensive rebound rate shows effort, but his slightly negative defensive value (-0.243) suggests he may need development on that end. A high-upside freshman with proven volume and scoring ability.”
-
-## Key Reminders
-- **BPR is a summary metric, not a standalone answer.** Always explain what drives it.
 IMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only.
    """,
     generate_content_config=types.GenerateContentConfig(
