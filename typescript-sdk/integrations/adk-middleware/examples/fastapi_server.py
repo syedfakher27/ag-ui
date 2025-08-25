@@ -12,7 +12,7 @@ load_dotenv()
 import logging
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from .human_in_the_loop.agent import transfer_portal_agent 
+from .human_in_the_loop.agent import basketball_agent 
 from .widgets_agent.agent import basket_ball_widget_agent 
 from .email_conversation.agent import email_agent
 from google.adk.sessions import DatabaseSessionService
@@ -82,7 +82,7 @@ try:
     )
     # Register the agent
     registry.set_default_agent(sample_agent)
-    registry.register_agent('adk-human-in-loop-agent', transfer_portal_agent)
+    registry.register_agent('adk-human-in-loop-agent', basketball_agent)
     registry.register_agent('adk-construction-project-agent', basket_ball_widget_agent)
     registry.register_agent('adk-email-agent', email_agent)
 

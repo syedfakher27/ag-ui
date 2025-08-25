@@ -14,10 +14,11 @@ from ..player_evaluation.agent import player_evaluation_agent
 from .. email_conversation.agent import email_agent
 from ..research_agent.agent import research_agent
 from ..video_search_agent.agent import video_analysis_agent
-from ..player_stats_agent.agent import player_stats_agent
+from ..player_development_agent.agent import player_development_agent
+from ..transfer_portal_agent.agent import transfer_portal_agent
 from google.adk.planners import PlanReActPlanner 
 
-from .tools import text2sql_query_transfer_portal , shortlist_players, get_team_requirements
+from ..team_requirements_agent.agent import team_requirements_agent
 from .mbb_glossary import mbb_metrics
 planner = PlanReActPlanner()
 
@@ -44,174 +45,10 @@ def simple_before_model_modifier(
                     # Handle case where it might be a string (though config expects Content)
                     original_instruction = types.Content(role="system", parts=[types.Part(text=str(original_instruction))])
 
-    elif agent_name == "player_shortlist_agent_based_on_gaps":
-        if llm_request.contents and llm_request.contents[-1].role == 'user':
-            last_message = llm_request.contents[-1]
-            if last_message.parts and hasattr(last_message.parts[0],'text') and last_message.parts[0].text !="" and last_message.parts[0].function_response.__class__.__name__ != 'FunctionResponse' :
-                # Get the original text and add prefix
-                original_text = last_message.parts[0].text or ""
-                modified_user_text = original_text + mbb_metrics
-                last_message.parts[0].text = modified_user_text
     return None
 
 
-# --- Define the Team Requirements Agent ---
-team_requirements_agent = LlmAgent(
-    model='gemini-2.5-flash',
-    name='team_requirements_agent',
-     description="**Team Requirements Analyst** - Analyzes team performance criteria, coaching standards, and recruitment requirements. Provides position-specific benchmarks, academic/character requirements, and strategic team building criteria. Use for understanding coaching expectations, performance standards, and recruitment priorities.",
-    instruction="""
-You are a Team Requirements Agent specialized in understanding and analyzing basketball team performance criteria and coaching requirements. Your primary objective is to fetch, analyze, and provide comprehensive team requirements and performance standards.
 
-## Core Mission
-Retrieve and interpret detailed team requirements including performance metrics, position-specific criteria, and coaching expectations to support informed recruitment and team building decisions.
-
-## Core Workflow
-
-### Phase 1: Requirements Retrieval
-1. **Always Use `get_team_requirements`** to fetch comprehensive team requirements data
-2. Retrieve detailed performance criteria including:
-   - Overall team performance metrics
-   - Offensive and defensive standards
-   - Position-specific requirements
-   - Skill-based performance metrics
-   - Recruitment priorities
-
-### Phase 2: Requirements Analysis
-1. **Analyze team requirements** to understand:
-   - Key performance benchmarks and thresholds
-   - Position-specific expectations and standards
-   - Team culture and character requirements
-   - Strategic priorities and immediate needs
-   - Long-term development goals
-
-### Phase 3: Context Integration
-1. **Synthesize requirements** with current context:
-   - Identify critical needs and priorities
-   - Understand coaching philosophy and standards
-   - Recognize performance gaps that need addressing
-   - Provide clear guidance for recruitment decisions
-
-## Key Responsibilities
-
-### Performance Standards Analysis
-- **Academic Requirements**: GPA standards and academic expectations
-- **Statistical Benchmarks**: Shooting percentages, assists, rebounds, defensive metrics
-- **Team Chemistry**: Leadership qualities and character traits
-- **Physical Standards**: Position-specific physical requirements
-
-### Position-Specific Criteria
-- **Point Guards**: Leadership, assist ratios, court vision, pressure handling
-- **Shooting Guards**: Scoring efficiency, defensive communication, three-point shooting
-- **Forwards**: Versatility, rebounding, screen setting, transition play
-- **Centers**: Rim protection, post play, defensive presence, rebounding
-
-### Strategic Insights
-- **Immediate Needs**: Critical positions requiring immediate attention
-- **Depth Requirements**: Bench strength and development prospects
-- **System Fit**: Players who align with team's playing style
-- **Character Fit**: Players who match team culture and values
-
-## Communication Guidelines
-- Present requirements in a clear, organized manner
-- Highlight critical benchmarks and non-negotiables
-- Explain the rationale behind specific standards
-- Connect requirements to team success and coaching philosophy
-- Provide actionable insights for recruitment decisions
-
-## Expected Outcomes
-After using the tool, you should provide:
-1. **Comprehensive Requirements Summary**: Overview of all performance criteria
-2. **Priority Analysis**: Which requirements are most critical
-3. **Position Breakdown**: Specific expectations for each position
-4. **Strategic Context**: How requirements support team goals
-5. **Recruitment Guidance**: How to apply these standards in player evaluation
-
-IMPORTANT: Always use the `get_team_requirements` tool to fetch the latest team requirements and performance criteria. Save all results to the 'team_requirements' state key for future reference.
-   """,
-    generate_content_config=types.GenerateContentConfig(
-        temperature=0.3,
-        top_p=0.9,
-        top_k=40
-    ),
-    disallow_transfer_to_peers=True,
-    tools=[get_team_requirements],
-    output_key="team_requirements",
-    sub_agents=[]
-)
-
-player_shortlist_agent_based_on_gaps = LlmAgent(
-    model='gemini-2.5-flash',
-    name='player_shortlist_agent_based_on_gaps',
-    description=f"**Transfer Portal Player Discovery** - Searches transfer portal and creates targeted player shortlists based on criteria. Handles player recommendations, position-specific searches, statistical filtering, and availability status. Use for finding players, creating shortlists, or retrieving specific player stats from the transfer portal.",
-    instruction=f"""
-You are a Player Shortlist Agent specialized in analyzing transfer portal players and creating targeted shortlists based on team needs and user requirements. Your primary objective is to identify the best-fit players from the transfer portal that align with specific team gaps and user criteria.
-
-## Core Workflow
-
-### Phase 1: Initial Player Discovery
-1. **Always Use `text2sql_query_transfer_portal`** to execute SQL queries against the `MBB`.`tp_player_view` table
-2. Construct SQL queries based on requirements:
-   - Team preferences: `WHERE team = 'Team Name'`
-   - Class level requirements: `WHERE player_class IN ('FR', 'SO', 'JR', 'SR')`
-     * **FR = Freshman**: First-year college student
-     * **SO = Sophomore**: Second-year college student  
-     * **JR = Junior**: Third-year college student
-     * **SR = Senior**: Fourth-year college student
-   - Position needs (Valid positions only): `WHERE position IN ('PG', 'SG', 'SF', 'PF', 'C')`
-     * **Point Guard (PG)**: Ball-handling, court vision, assist-to-turnover ratio
-     * **Shooting Guard (SG)**: Perimeter shooting, defensive pressure, scoring consistency  
-     * **Small Forward (SF)**: Versatility, rebounding, transition play
-     * **Power Forward (PF)**: Interior presence, rebounding, mid-range shooting
-     * **Center (C)**: Paint protection, rim running, post presence
-   - Performance thresholds: `WHERE bpr_predicted > X` or `WHERE possessions > X`
-   - Commitment Status: 
-     * For available players: `WHERE (new_team IS NULL OR new_team = '' OR new_team = 'nan')`
-     * For all players: no filter needed
-   - Use LIMIT and OFFSET for pagination
-   - Always use the full table name: `MBB`.`tp_player_view`
-##Important Note
-    If the SQL query fails with an error, analyze the error message and create a corrected SQL query, then retry with the fixed query. 
-### Phase 2: Deep Analysis & Evaluation
-1. **Analyze filtered players** against user requirements and team needs:
-   - **Prioritize user's explicit requirements first**
-   - Review player statistics and performance metrics
-   - Assess fit with team needs and positional gaps (secondary consideration)
-   - Evaluate experience level and development potential
-   - Consider efficiency ratings and advanced metrics
-   - Cross-reference with team gap analysis (when provided)
-
-2. **Prioritization criteria**:
-   - **Primary**: User requirements and explicit preferences
-   - **Secondary**: Team needs and identified gaps
-   - **Tertiary**: Statistical performance and efficiency
-   - **Additional**: Class level, remaining eligibility, and upside potential
-
-### Phase 3: Shortlist Confirmation
-1. **Select top candidates** (typically 3-10 players) who best fulfill:
-   - **Primary**: User's explicit requirements and preferences
-   - **Secondary**: Team's identified gaps and needs
-   - Strategic fit within team system
-   
-2. **Use `shortlist_players`** tool to confirm the final shortlisted players or to get the stats of a particular stats by the player name
-3. Provide detailed justification for each selection. 
-4. Avoid returning only the BPR of a player. ALWAYS include supporting metrics of player stats (e.g., rebounds, assists, shooting %, defensive metrics, etc.) along with BPR, if available.
-5. Refer to the Basketball Metrics Glossary {mbb_metrics} when introducing or explaining any advanced metric to ensure clarity and consistency. For example:
-“Assist Rate of 27.19% means the player directly facilitated a basket via assist on nearly 27 out of every 100 possessions they were on the court—indicating elite-level playmaking.” 
-Ensure that each metric is not only reported but interpreted—explain why it matters and how it reflects the player’s strengths, weaknesses, or fit within a team system. 
-
-IMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only.
-   """,
-    generate_content_config=types.GenerateContentConfig(
-        temperature=0.3,
-        top_p=0.9,
-        top_k=40
-    ),
-    disallow_transfer_to_peers=True,
-    before_model_callback=simple_before_model_modifier,
-    tools=[text2sql_query_transfer_portal,shortlist_players],
-    sub_agents=[]
-)
 
 
 research_agent_tool = agent_tool.AgentTool(agent=research_agent)
@@ -219,10 +56,10 @@ research_agent_tool = agent_tool.AgentTool(agent=research_agent)
 
 
 
-transfer_portal_agent = LlmAgent(
+basketball_agent = LlmAgent(
     model='gemini-2.5-flash',
-    name='TransferPortalData',
-    description="""This is a **Basketball Recruitment Router Agent** that serves as an intelligent dispatcher for basketball team analysis and player recruitment queries. 
+    name='BasketballAgent',
+    description="""This is a **Basketball Agent** that serves as an intelligent dispatcher for basketball team analysis and player evaluation based on stats and recruitment queries. 
 
 **Core Function**: Analyzes user requests and routes them to the most appropriate specialized sub-agent based on the specific nature of their basketball-related needs.
 
@@ -248,7 +85,7 @@ You are a Basketball Recruitment Router Agent that intelligently routes basketba
 - Team strengths/weaknesses, strategic needs, coaching insights
 - Keywords: "team analysis", "gaps", "roster evaluation", "team needs"
 
-**player_shortlist_agent_based_on_gaps** - Route when user asks about:
+**transfer_portal_agent** - Route when user asks about:
 - Finding transfer portal players, creating shortlists, player recommendations
 - Position-specific searches, statistical criteria filtering
 - Keywords: "transfer portal", "find players", "shortlist", "recruit"
@@ -279,7 +116,7 @@ You are a Basketball Recruitment Router Agent that intelligently routes basketba
 - Keywords: "video", "highlights", "game footage", "performance video"
 - Examples: "Show me John Doe highlights", "Find basketball training videos", "Clemson game footage"
 
-**player_stats_agent** - Route when user asks about:
+**player_development_agent** - Route when user asks about:
 - Player training stats, physical strength, workout performance, athletic testing
 - Progression over time, combine results, vertical jump, bench press
 - Physical development, measurements, or athletic testing data
@@ -307,5 +144,5 @@ You are a Basketball Recruitment Router Agent that intelligently routes basketba
     before_model_callback=simple_before_model_modifier,
     planner=planner,
     tools=[research_agent_tool],
-    sub_agents=[team_gap_analysis_agent , player_shortlist_agent_based_on_gaps , player_evaluation_agent, email_agent, team_requirements_agent, video_analysis_agent, player_stats_agent]
+    sub_agents=[team_gap_analysis_agent , transfer_portal_agent , player_evaluation_agent, email_agent, team_requirements_agent, video_analysis_agent, player_development_agent]
 )

@@ -2,7 +2,7 @@ import requests
 import json
 from typing import Dict, List, Optional, Any
 import time
-from .hardcoded_output import PENN_STATE_OUTPUT
+from hardcoded_output import PENN_STATE_OUTPUT
 
 def fetch_team_official_name(abbrev: str) -> Dict[str, Any]:
     """
@@ -259,7 +259,8 @@ def fetch_team_basketball_data(team_name: str) -> Dict[str, Any]:
 if __name__ == "__main__":
     # Test fetch_team_name function
     print("\n=== Fetching Similar Team Name ===")
-    team_name = fetch_team_name("penn state")
+    # team_name = fetch_team_name("penn state")
+    team_name = "penn state"
     print(f"Similar team name: {team_name}")
     
     if team_name:
@@ -267,7 +268,7 @@ if __name__ == "__main__":
         print("\n=== Fetching Team Basketball Data ===")
         data = fetch_team_basketball_data(team_name)
         print("\n=== Summary ===")
-        print('data==>', data['summary'])
+        print('data==>', data)
     
     # Print summary
     print("\n=== Summary ===")

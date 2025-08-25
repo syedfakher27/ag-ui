@@ -3,18 +3,18 @@ from google.genai import types
 from google.adk.agents import LlmAgent
 from google.adk.models import LlmResponse, LlmRequest
 from google.adk.agents.callback_context import CallbackContext
-from .tools import search_player_stats_tool
+from .tools import search_player_development_tool
 
 
-def inject_player_stats_context_to_agent(
+def inject_player_development_context_to_agent(
     callback_context: CallbackContext, llm_request: LlmRequest
 ) -> Optional[LlmResponse]:
     """
-    Injects player stats search capabilities and context into the player stats agent.
+    Injects player development search capabilities and context into the player development agent.
     """
     agent_name = callback_context.agent_name
 
-    if agent_name == "player_stats_agent":
+    if agent_name == "player_development_agent":
         # Get current system instruction
         original_instruction = llm_request.config.system_instruction or types.Content(role="system", parts=[])
 
@@ -24,7 +24,7 @@ def inject_player_stats_context_to_agent(
         if not original_instruction.parts:
             original_instruction.parts.append(types.Part(text=""))
 
-        # Add player stats search context
+        # Add player development search context
         stats_context = """
 
         Available filter fields for refined search:
@@ -42,7 +42,7 @@ def inject_player_stats_context_to_agent(
             "sports": "MBB"
         }
 
-        Use the search_player_stats_tool to find relevant player data based on user queries. 
+        Use the search_player_development_tool to find relevant player data based on user queries. 
 
         Query Intent Classification:
         - If query mentions "stats", "statistics", "performance", "FG", "points", "assists" → set data_type: "stats"
@@ -54,16 +54,16 @@ def inject_player_stats_context_to_agent(
         original_instruction.parts[0].text = modified_text
         llm_request.config.system_instruction = original_instruction
 
-        print("[Callback] Injected player stats context into player_stats_agent.")
+        print("[Callback] Injected player development context into player_development_agent.")
 
     return None
 
 
-player_stats_agent = LlmAgent(
+player_development_agent = LlmAgent(
     model='gemini-2.5-flash',
-    name='player_stats_agent',
+    name='player_development_agent',
     instruction="""
-    You are a specialized player stats and attributes assistant that helps users find relevant player performance data and physical measurements.
+    You are a specialized player development assistant that helps users find relevant player performance data and physical development measurements.
 
     CRITICAL REQUIREMENT: Always provide detailed explanations for metrics to ensure complete explainability. Users need to understand WHY these measurements matter and HOW to interpret them.
 
@@ -205,6 +205,6 @@ player_stats_agent = LlmAgent(
         top_k=40
     ),
     disallow_transfer_to_peers=True,
-    tools=[search_player_stats_tool],
-    before_model_callback=inject_player_stats_context_to_agent
+    tools=[search_player_development_tool],
+    before_model_callback=inject_player_development_context_to_agent
 )

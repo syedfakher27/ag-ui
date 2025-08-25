@@ -74,7 +74,7 @@ def build_metadata_filter(meta_data: Dict[str, Any]) -> str:
     filters = flatten_and_build_filters(meta_data)
     return ' AND '.join(filters)
 
-def search_player_stats_tool(query: str, meta_data: Dict[str, Any]) -> Dict[str, Any]:
+def search_player_development_tool(query: str, meta_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Search for player stats and attributes using Google Vertex AI Discovery Engine Client Library.
     
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     # print("Test 2:", build_metadata_filter(meta_data))
 
     print("\n Test A: Search player_name='hinton'")
-    result_a = search_player_stats_tool(
+    result_a = search_player_development_tool(
         query="hinton performance",
         meta_data={"player_name": "hinton"}
     )
