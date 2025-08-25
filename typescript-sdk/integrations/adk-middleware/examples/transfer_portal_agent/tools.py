@@ -14,55 +14,61 @@ def text2sql_query_transfer_portal(
     """
     Execute a SQL query on the Spanner database to retrieve transfer portal player data.
     
-    This tool allows natural language to SQL conversion for querying the MBB.tp_player_view table.
+    This tool allows natural language to SQL conversion for querying the MBB.tp_player_all_stats table.
     If the query has errors, the agent will attempt to fix them and retry.
     
     Args:
-        sql_query (str): SQL query to execute against the MBB.tp_player_view table in Spanner database
+        sql_query (str): SQL query to execute against the MBB.tp_player_all_stats table in Spanner database
         
-    Table Schema (MBB.tp_player_view):
-        - player_id: Unique identifier for each player
-        - player_rank: Player's ranking position  
-        - player_name: Full name of the player
-        - team: Current team affiliation
-        - new_team: New team affiliation (for transfers)
-        - player_class: Player's academic class (FR, SO, JR, SR)
-        - position: Player's position (PG, SG, SF, PF, C)
-        - offensive_bpr: Projected offensive BPR rating (higher is better)
-        - defensive_bpr: Projected defensive BPR rating (higher is better)
-        - bpr_predicted: Projected overall BPR rating (higher is better)
-        - notes: Additional notes about the player
-        - dollar_value_string: Monetary value assessment
-        - height: Player's height in inches
-        - weight: Player's weight in pounds
-        - possessions: Number of possessions played in recent season
-        - obpr_prev: Previous offensive BPR rating
-        - dbpr_prev: Previous defensive BPR rating
-        - bpr_prev: Previous overall BPR rating
-        - box_obpr_prev: Previous box score offensive BPR
-        - box_dbpr_prev: Previous box score defensive BPR
-        - box_bpr_prev: Previous box score overall BPR
-        - plus_minus: Plus/minus statistic
-        - adj_team_off_eff: Adjusted team offensive efficiency
-        - adj_team_def_eff: Adjusted team defensive efficiency
-        - adj_team_eff_margin: Adjusted team efficiency margin
-        - role: Player role classification
-        - eligible: Eligibility status
-        - three_point_percent: Three-point shooting percentage
-        - two_point_percent: Two-point shooting percentage
-        - free_throw_percent: Free throw shooting percentage
-        - assist_rate: Assist rate statistic
-        - turnover_percent: Turnover percentage
-        - playmaking_score: Playmaking ability score
-        - offensive_rebound_percent: Offensive rebounding percentage
-        - defensive_rebound_percentage: Defensive rebounding percentage
-        - rebound_percent: Overall rebounding percentage
-        - block_percent: Block percentage
-        - steal_percent: Steal percentage
-        - personal_foul_percent: Personal foul percentage
-        - defensive_value: Defensive value metric
+    Table Schema (MBB.tp_player_all_stats):
+        players: Unique player identifier  
+        Rank: Transfer ranking based on a 5-star system  
+        name: Player’s full name  
+        team: Current team affiliation  
+        new_team: New team affiliation (for transfers)  
+        class: Player’s class year (e.g., Freshman, Senior)  
+        position: Playing position (e.g., G, F, C) 
+        ------------Advance Stats Matrices-------------- 
+        obpr_predicted: Projected Offensive BPR for upcoming season  
+        dbpr_predicted: Projected Defensive BPR for upcoming season  
+        bpr_predicted: Projected overall BPR (OBPR + DBPR) for upcoming season  
+        notes: Additional notes or remarks  
+        recruit_rating_icon: High school recruit rating indicator  
+        dollar_value_string: Estimated dollar value representation  
+        height: Player’s height  
+        weight: Player’s weight  
+        possessions: Number of possessions played in most recent season  
+        obpr_prev: Previous season’s Offensive BPR  
+        dbpr_prev: Previous season’s Defensive BPR  
+        bpr_prev: Previous season’s overall BPR  
+        box_obpr_prev: Box-score based Offensive BPR (previous season)  
+        box_dbpr_prev: Box-score based Defensive BPR (previous season)  
+        box_bpr_prev: Box-score based overall BPR (previous season)  
+        plus_minus: Plus-minus value (points differential while on court)  
+        adj_team_off_eff: Adjusted team offensive efficiency (points per 100 possessions)  
+        adj_team_def_eff: Adjusted team defensive efficiency (points allowed per 100 possessions)  
+        adj_team_eff_margin: Adjusted efficiency margin (offensive – defensive)  
+        role: Offensive role estimate (1 = creator, 5 = receiver)  
+        eligible: Player’s eligibility status  
+        recent: Recent performance indicator 
+        ------------Core Stats Matrices--------------  
+        G: Number of games played by the player  
+        MPG: Minutes Per Game (average minutes played per game)  
+        PPG: Points Per Game (average points scored per game)  
+        FGPct: Field Goal Percentage (two-point and three-point combined), expressed as a number with one decimal (e.g., 49.6 = 49.6%)  
+        TwoFGPct: Two-Point Field Goal Percentage (percentage of made 2-pointers)  
+        ThreeFGPct: Three-Point Field Goal Percentage (percentage of made 3-pointers)  
+        eFGPct: Effective Field Goal Percentage — adjusted FG% that accounts for 3-pointers being worth more  
+        FTPct: Free Throw Percentage  
+        RPG: Rebounds Per Game (average total rebounds per game)  
+        APG: Assists Per Game (average assists per game)  
+        SPG: Steals Per Game (average steals per game)  
+        BPG: Blocks Per Game (average blocks per game)  
+        TOPG: Turnovers Per Game (average turnovers per game)  
+        FPG: Fouls Per Game (average personal fouls per game)  
+        Eff: Player Efficiency Rating (a composite metric combining various stats into one number)
     
-    Note: Always use the full table name `MBB`.`tp_player_view` in your SQL queries.
+    Note: Always use the full table name `MBB`.`tp_player_all_stats` in your SQL queries.
     
     Returns:
         dict: Query results with player data
