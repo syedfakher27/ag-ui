@@ -2,7 +2,7 @@ import requests
 import json
 from typing import Dict, List, Optional, Any
 import time
-from hardcoded_output import PENN_STATE_OUTPUT
+from .hardcoded_output import PENN_STATE_OUTPUT
 
 def fetch_team_official_name(abbrev: str) -> Dict[str, Any]:
     """

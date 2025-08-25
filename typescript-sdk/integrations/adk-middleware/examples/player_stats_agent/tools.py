@@ -196,30 +196,79 @@ def text2sql_query_core_stats(
         
     Table Schema (MBB.player_core_stats_view):
         All columns are of type STRING — treat all values as strings unless explicitly converted.
-        
-        - university: Full name of the university or college the player represents
-        - team_name: Short name of the team (e.g., without 'University')
-        - player_name: Full name of the player. Matches the "Player" field in this view
-        - position: Player's primary position (e.g., F = Forward, G = Guard, C = Center)
-        - height: Player's height in feet and inches format (X'Y")
-        - weight: Player's weight with unit suffix ("lbs")
-        - Rank: Player ranking
-        - Player: Full name of the player; serves as a primary identifier in this view
-        - G: Number of games played by the player
-        - MPG: Minutes Per Game (average minutes played per game)
-        - PPG: Points Per Game (average points scored per game)
-        - FGPct: Field Goal Percentage (two-point and three-point combined), expressed as a number with one decimal
-        - TwoFGPct: Two-Point Field Goal Percentage (percentage of made 2-pointers)
-        - ThreeFGPct: Three-Point Field Goal Percentage (percentage of made 3-pointers)
-        - eFGPct: Effective Field Goal Percentage — adjusted FG% that accounts for 3-pointers being worth more
-        - FTPct: Free Throw Percentage
-        - RPG: Rebounds Per Game (average total rebounds per game)
-        - APG: Assists Per Game (average assists per game)
-        - SPG: Steals Per Game (average steals per game)
-        - BPG: Blocks Per Game (average blocks per game)
-        - TOPG: Turnovers Per Game (average turnovers per game)
-        - FPG: Fouls Per Game (average personal fouls per game)
-        - Eff: Player Efficiency Rating (a composite metric combining various stats into one number)
+        Columns description:
+
+        team_name: STRING
+        - Description: Full name of the team.
+        - Example: "Rhode Island"
+
+        Rank: STRING
+        - Description: Player ranking
+        - Example: "3"
+
+        Player: STRING
+        - Description: Full name of the player; serves as a primary identifier in this view.
+        - Example: "Bradyn Hubbard"
+
+        G: STRING
+        - Description: Number of games played by the player.
+        - Example: "31"
+
+        MPG: STRING
+        - Description: Minutes Per Game (average minutes played per game).
+        - Example: "23.2"
+
+        PPG: STRING
+        - Description: Points Per Game (average points scored per game).
+        - Example: "10.2"
+
+        FGPct: STRING
+        - Description: Field Goal Percentage (two-point and three-point combined), expressed as a number with one decimal (e.g., "49.6" = 49.6%).
+        - Example: "49.6"
+
+        TwoFGPct: STRING
+        - Description: Two-Point Field Goal Percentage (percentage of made 2-pointers).
+        - Example: "51.3"
+
+        ThreeFGPct: STRING
+        - Description: Three-Point Field Goal Percentage (percentage of made 3-pointers).
+        - Example: "42.6"
+
+        eFGPct: STRING
+        - Description: Effective Field Goal Percentage — adjusted FG% that accounts for 3-pointers being worth more.
+        - Example: "53.8"
+
+        FTPct: STRING
+        - Description: Free Throw Percentage.
+        - Example: "84.0"
+
+        RPG: STRING
+        - Description: Rebounds Per Game (average total rebounds per game).
+        - Example: "5.7"
+
+        APG: STRING
+        - Description: Assists Per Game (average assists per game).
+        - Example: "0.8"
+
+        SPG: STRING
+        - Description: Steals Per Game (average steals per game).
+        - Example: "1.4"
+
+        BPG: STRING
+        - Description: Blocks Per Game (average blocks per game).
+        - Example: "0.2"
+
+        TOPG: STRING
+        - Description: Turnovers Per Game (average turnovers per game).
+        - Example: "1.5"
+
+        FPG: STRING
+        - Description: Fouls Per Game (average personal fouls per game).
+        - Example: "0.0"
+
+        Eff: STRING
+        - Description: Player Efficiency Rating (a composite metric combining various stats into one number).
+        - Example: "8.1"
     
     Note: Always use the full table name `MBB`.`player_core_stats_view` in your SQL queries.
     
