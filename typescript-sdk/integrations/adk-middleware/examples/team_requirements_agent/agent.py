@@ -1,5 +1,5 @@
 from google.adk.agents import LlmAgent
-from google.adk.backends.gemini import types
+from google.genai import types
 from .tools import get_team_requirements
 
 

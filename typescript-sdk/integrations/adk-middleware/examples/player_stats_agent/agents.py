@@ -10,7 +10,7 @@ research_agent_tool = agent_tool.AgentTool(agent=research_agent)
 
 player_stats_agent = LlmAgent(
     model='gemini-2.5-flash',
-    name='team_gap_analysis_agent',
+    name='player_stats_agent',
     description="**Player Stats Agent** - Fetch the stats of the players from database and validate it from internet",
     instruction="""
 You are a Player Stats Agent specialized in fetching, analyzing, and validating player statistics data. Your primary role is to provide comprehensive and accurate player statistics from database queries and validate them against authoritative sports sources.
@@ -80,6 +80,6 @@ Your goal is to be the most reliable and comprehensive source for player statist
     ),
     disallow_transfer_to_peers=True,
     # before_model_callback=team_analysis_modifier,
-    tools=[fetch_team_official_name, fetch_team_name, text2sql_query_player_advance_stats , text2sql_query_core_stats],  # Order matters: fetch_team_name will be called first
-    sub_agents=[research_agent_tool]
+    tools=[fetch_team_official_name, fetch_team_name, text2sql_query_player_advance_stats , text2sql_query_core_stats, research_agent_tool],  # Order matters: fetch_team_name will be called first
+    sub_agents=[]
 )

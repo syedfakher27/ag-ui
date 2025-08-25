@@ -4,7 +4,7 @@ from google.adk.agents.callback_context import CallbackContext
 from typing import Optional
 from google.adk.agents import LlmAgent
 from .tools import render_pie_chart, render_bar_chart, render_series_bar_chart, render_data_matrix_grid , render_summary
-from ..human_in_the_loop.tools import text2sql_query_transfer_portal
+from ..transfer_portal_agent.tools import text2sql_query_transfer_portal
 from ..team_analysis.tools import fetch_team_official_name, fetch_team_name, fetch_team_basketball_data
 import json
 import re
