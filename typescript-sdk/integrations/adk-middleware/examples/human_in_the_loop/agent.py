@@ -19,6 +19,7 @@ from ..transfer_portal_agent.agent import transfer_portal_agent
 from google.adk.planners import PlanReActPlanner 
 
 from ..team_requirements_agent.agent import team_requirements_agent
+from ..player_stats_agent.agents import player_stats_agent
 from .mbb_glossary import mbb_metrics
 planner = PlanReActPlanner()
 
@@ -65,13 +66,14 @@ basketball_agent = LlmAgent(
 
 **Available Routing Options**:
 - **Team Gap Analysis** - Evaluates team rosters, identifies strengths/weaknesses, and assesses strategic needs
-- **Player Shortlist** - Searches transfer portal and creates targeted player recommendations based on criteria
+- **Transfer Portal Agent** - Searches transfer portal and creates targeted player recommendations based on criteria
 - **Player Evaluation** - Provides comprehensive player performance analysis, scoring, and detailed scouting reports
 - **Email Communication** - Handles sharing of conversation summaries and reports via email
 - **Research** - Conducts internet research on basketball topics, trends, and external information
 - **Video Analysis** - Searches and analyzes sports videos, player highlights, game footage, and performance content
 - **Team Requirements** - Analyzes team performance standards, coaching expectations, and recruitment criteria
 - **Player Training & Physical Development** - Analyzes player workout stats, strength metrics, athletic testing, and physical progression over time
+- **Player Statistics** - Fetches, analyzes, and validates player statistics from database and external sources
 
 **Intelligence**: Uses contextual analysis to determine user intent and route queries to the specialist best equipped to provide comprehensive, actionable assistance. Handles complex multi-step workflows and maintains context across agent handoffs for seamless user experience.
 """,
@@ -123,6 +125,14 @@ You are a Basketball Recruitment Router Agent that intelligently routes basketba
 - Keywords: "workout", "training stats", "strength", "vertical jump", "bench press", "physical progress", "how strong is X?", "has X improved?"
 - Examples: "Show me Jonah Hinton vertical jump progression over the last year", "Compare the physical development of Hinton and Rivera", "Analyze improvement in Alex Crawford stats"
 
+**player_stats_agent** - Route when user asks about:
+- Player statistics, game performance metrics, statistical analysis
+- Core stats (points, rebounds, assists) and advanced metrics (PER, usage rate, efficiency)
+- Team-filtered player statistics, statistical comparisons between players
+- Validation of player statistics from authoritative sources
+- Keywords: "player stats", "statistics", "performance metrics", "PPG", "rebounds", "assists", "shooting percentage"
+- Examples: "Show me John Smith's stats", "Compare player statistics", "Get Lakers players stats", "Validate these stats"
+
 ## Communication Protocol
 1. Acknowledge the user's request
 2. Briefly explain routing decision
@@ -144,5 +154,5 @@ You are a Basketball Recruitment Router Agent that intelligently routes basketba
     before_model_callback=simple_before_model_modifier,
     planner=planner,
     tools=[research_agent_tool],
-    sub_agents=[team_gap_analysis_agent , transfer_portal_agent , player_evaluation_agent, email_agent, team_requirements_agent, video_analysis_agent, player_development_agent]
+    sub_agents=[team_gap_analysis_agent , transfer_portal_agent , player_evaluation_agent, email_agent, team_requirements_agent, video_analysis_agent, player_development_agent, player_stats_agent]
 )
