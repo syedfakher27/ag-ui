@@ -402,6 +402,30 @@ const TransferPortalAssistant = () => {
   },
   });
 
+  useCopilotAction({
+    name: "search_player_development_tool",
+    parameters: [
+      {
+        name: "query",
+        type: "string",
+      },
+      {
+        name: "meta_data",
+        type: "string",
+      },
+    ],
+    render: ({ args, result, status }) => {
+      return enableVerbose ? (
+        <ToolExecutionUI
+          toolName="search_player_development_tool"
+          args={args}
+          result={result}
+          status={status}
+        />
+      ) : null;
+    },
+  });
+
   const handleFilterChange = (filterType: string, value: any) => {
     setFilters(prev => ({
       ...prev,
