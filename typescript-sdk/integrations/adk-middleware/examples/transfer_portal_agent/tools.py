@@ -20,54 +20,58 @@ def text2sql_query_transfer_portal(
     Args:
         sql_query (str): SQL query to execute against the MBB.tp_player_all_stats table in Spanner database
         
-    Table Schema (MBB.tp_player_all_stats):
-        players: Unique player identifier  
-        Rank: Transfer ranking based on a 5-star system  
-        name: Player’s full name  
-        team: Current team affiliation  
-        new_team: New team affiliation (for transfers)  
-        class: Player’s class year (e.g., Freshman, Senior)  
-        position: Playing position (e.g., G, F, C) 
-        ------------Advance Stats Matrices-------------- 
-        obpr_predicted: Projected Offensive BPR for upcoming season  
-        dbpr_predicted: Projected Defensive BPR for upcoming season  
-        bpr_predicted: Projected overall BPR (OBPR + DBPR) for upcoming season  
-        notes: Additional notes or remarks  
-        recruit_rating_icon: High school recruit rating indicator  
-        dollar_value_string: Estimated dollar value representation  
-        height: Player’s height  
-        weight: Player’s weight  
-        possessions: Number of possessions played in most recent season  
-        obpr_prev: Previous season’s Offensive BPR  
-        dbpr_prev: Previous season’s Defensive BPR  
-        bpr_prev: Previous season’s overall BPR  
-        box_obpr_prev: Box-score based Offensive BPR (previous season)  
-        box_dbpr_prev: Box-score based Defensive BPR (previous season)  
-        box_bpr_prev: Box-score based overall BPR (previous season)  
-        plus_minus: Plus-minus value (points differential while on court)  
-        adj_team_off_eff: Adjusted team offensive efficiency (points per 100 possessions)  
-        adj_team_def_eff: Adjusted team defensive efficiency (points allowed per 100 possessions)  
-        adj_team_eff_margin: Adjusted efficiency margin (offensive – defensive)  
-        role: Offensive role estimate (1 = creator, 5 = receiver)  
-        eligible: Player’s eligibility status  
-        recent: Recent performance indicator 
-        ------------Core Stats Matrices--------------  
-        G: Number of games played by the player  
-        MPG: Minutes Per Game (average minutes played per game)  
-        PPG: Points Per Game (average points scored per game)  
-        FGPct: Field Goal Percentage (two-point and three-point combined), expressed as a number with one decimal (e.g., 49.6 = 49.6%)  
-        TwoFGPct: Two-Point Field Goal Percentage (percentage of made 2-pointers)  
-        ThreeFGPct: Three-Point Field Goal Percentage (percentage of made 3-pointers)  
-        eFGPct: Effective Field Goal Percentage — adjusted FG% that accounts for 3-pointers being worth more  
-        FTPct: Free Throw Percentage  
-        RPG: Rebounds Per Game (average total rebounds per game)  
-        APG: Assists Per Game (average assists per game)  
-        SPG: Steals Per Game (average steals per game)  
-        BPG: Blocks Per Game (average blocks per game)  
-        TOPG: Turnovers Per Game (average turnovers per game)  
-        FPG: Fouls Per Game (average personal fouls per game)  
-        Eff: Player Efficiency Rating (a composite metric combining various stats into one number)
-    
+    # Table Schema (MBB.tp_player_all_stats)
+
+    ## Basic Player Information
+    - players (STRING): Unique player identifier  
+    - Rank (STRING): Transfer ranking based on a 5-star system  
+    - name (STRING): Player's full name  
+    - team (STRING): Current team affiliation  
+    - new_team (STRING): New team affiliation (for transfers)  
+    - class (STRING): Player's class year (e.g., Freshman, Senior)  
+    - position (STRING): Playing position (e.g., G, F, C)
+
+    ## Advance Stats Matrices
+    - obpr_predicted (STRING): Projected Offensive BPR for upcoming season  
+    - dbpr_predicted (STRING): Projected Defensive BPR for upcoming season  
+    - bpr_predicted (STRING): Projected overall BPR (OBPR + DBPR) for upcoming season  
+    - notes (STRING): Additional notes or remarks  
+    - recruit_rating_icon (STRING): High school recruit rating indicator  
+    - dollar_value_string (STRING): Estimated dollar value representation  
+    - height (STRING): Player's height  
+    - weight (STRING): Player's weight  
+    - possessions (STRING): Number of possessions played in most recent season  
+    - obpr_prev (STRING): Previous season's Offensive BPR  
+    - dbpr_prev (STRING): Previous season's Defensive BPR  
+    - bpr_prev (STRING): Previous season's overall BPR  
+    - box_obpr_prev (STRING): Box-score based Offensive BPR (previous season)  
+    - box_dbpr_prev (STRING): Box-score based Defensive BPR (previous season)  
+    - box_bpr_prev (STRING): Box-score based overall BPR (previous season)  
+    - plus_minus (STRING): Plus-minus value (points differential while on court)  
+    - adj_team_off_eff (STRING): Adjusted team offensive efficiency (points per 100 possessions)  
+    - adj_team_def_eff (STRING): Adjusted team defensive efficiency (points allowed per 100 possessions)  
+    - adj_team_eff_margin (STRING): Adjusted efficiency margin (offensive – defensive)  
+    - role (STRING): Offensive role estimate (1 = creator, 5 = receiver)  
+    - eligible (STRING): Player's eligibility status  
+    - recent (STRING): Recent performance indicator
+
+    ## Core Stats Matrices
+    - G (STRING): Number of games played by the player  
+    - MPG (STRING): Minutes Per Game (average minutes played per game)  
+    - PPG (STRING): Points Per Game (average points scored per game)  
+    - FGPct (STRING): Field Goal Percentage (two-point and three-point combined), expressed as a number with one decimal (e.g., 49.6 = 49.6%)  
+    - TwoFGPct (STRING): Two-Point Field Goal Percentage (percentage of made 2-pointers)  
+    - ThreeFGPct (STRING): Three-Point Field Goal Percentage (percentage of made 3-pointers)  
+    - eFGPct (STRING): Effective Field Goal Percentage — adjusted FG% that accounts for 3-pointers being worth more  
+    - FTPct (STRING): Free Throw Percentage  
+    - RPG (STRING): Rebounds Per Game (average total rebounds per game)  
+    - APG (STRING): Assists Per Game (average assists per game)  
+    - SPG (STRING): Steals Per Game (average steals per game)  
+    - BPG (STRING): Blocks Per Game (average blocks per game)  
+    - TOPG (STRING): Turnovers Per Game (average turnovers per game)  
+    - FPG (STRING): Fouls Per Game (average personal fouls per game)  
+    - Eff (STRING): Player Efficiency Rating (a composite metric combining various stats into one number)
+        
     Note: Always use the full table name `MBB`.`tp_player_all_stats` in your SQL queries.
     
     Returns:
