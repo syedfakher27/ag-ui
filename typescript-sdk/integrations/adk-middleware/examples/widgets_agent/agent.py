@@ -9,6 +9,9 @@ from ..team_analysis.tools import fetch_team_official_name, fetch_team_name, fet
 import json
 import re
 from datetime import datetime
+from google.adk.tools import agent_tool
+from ..research_agent.agent import research_agent
+from ..player_stats_agent.agents import player_stats_agent
 import base64
 import mimetypes
 import os
@@ -122,6 +125,8 @@ async def basketball_widget_modifier(
 
  
             
+research_agent_tool = agent_tool.AgentTool(agent=research_agent)
+player_stats_agent_tool = agent_tool.AgentTool(agent=player_stats_agent)
 
 
 basket_ball_widget_agent = LlmAgent(
@@ -150,11 +155,23 @@ Fetch basketball team data, player statistics, and transfer portal information, 
    - Query transfer portal player data including rankings, positions, and team changes
    - Handle SQL errors by analyzing and reconstructing queries
 
-3. **Available Data Sources**
+3. **Research Agent Integration**
+   - Use `research_agent_tool` for comprehensive web research and data gathering
+   - Leverage research capabilities for additional basketball context and insights
+   - Supplement team and player data with external research and analysis
+
+4. **Player Stats Agent Integration**
+   - Use `player_stats_agent_tool` for detailed player statistics and performance analysis
+   - Access comprehensive player metrics, advanced analytics, and statistical comparisons
+   - Enhance player data analysis with specialized statistical tools and insights
+
+5. **Available Data Sources**
    - **Team Statistics**: Current roster, season performance, efficiency ratings
    - **Player Statistics**: Individual performance metrics, advanced analytics
-   - **Transfer Portal**: Player rankings, BPR ratings, team transfers, eligibility
+   - **Transfer Portal**: Player rankings, BPR ratings , Core Stats Matrices , Advance Stats Matrices, team transfers, eligibility
    - **Historical Data**: Previous season comparisons and trends
+   - **Research Data**: Web-based research and external basketball insights
+   - **Player Analytics**: Detailed player stats, performance analysis, and statistical comparisons
 
 ### Phase 2: Data Analysis Framework
 
@@ -341,7 +358,7 @@ IMPORTANT: Focus on basketball insights and actionable intelligence rather than 
     ),
     disallow_transfer_to_peers=True,
     before_model_callback=basketball_widget_modifier,
-    tools=[fetch_team_official_name, fetch_team_name, fetch_team_basketball_data , text2sql_query_transfer_portal , render_pie_chart, render_bar_chart, render_series_bar_chart, render_data_matrix_grid , render_summary],
+    tools=[fetch_team_official_name, fetch_team_name, fetch_team_basketball_data , text2sql_query_transfer_portal, research_agent_tool, player_stats_agent_tool, render_pie_chart, render_bar_chart, render_series_bar_chart, render_data_matrix_grid , render_summary],
     sub_agents=[],
     output_key="basketball_widget_agent"
 )
