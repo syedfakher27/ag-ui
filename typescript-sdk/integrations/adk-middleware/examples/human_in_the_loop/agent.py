@@ -152,7 +152,7 @@ You are a Basketball Recruitment Router Agent that intelligently routes basketba
         top_k=40
     ),
     before_model_callback=simple_before_model_modifier,
-    planner=planner,
+    # planner=planner,
     tools=[research_agent_tool],
     sub_agents=[team_gap_analysis_agent , transfer_portal_agent , player_evaluation_agent, email_agent, team_requirements_agent, video_analysis_agent, player_development_agent, player_stats_agent]
 )
