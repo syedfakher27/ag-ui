@@ -360,5 +360,5 @@ IMPORTANT: Focus on basketball insights and actionable intelligence rather than 
     before_model_callback=basketball_widget_modifier,
     tools=[fetch_team_official_name, fetch_team_name, fetch_team_basketball_data , text2sql_query_transfer_portal, research_agent_tool, player_stats_agent_tool, render_pie_chart, render_bar_chart, render_series_bar_chart, render_data_matrix_grid , render_summary],
     sub_agents=[],
-    output_key="basketball_widget_agent"
+    output_key="agent_message"
 )
