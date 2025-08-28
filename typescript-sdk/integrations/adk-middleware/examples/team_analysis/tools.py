@@ -177,7 +177,7 @@ def fetch_team_basketball_data(team_name: str) -> Dict[str, Any]:
         player_stats_response.raise_for_status()
         
         player_stats_data = player_stats_response.json()
-        if player_stats_data.get('total', 0) > 0:
+        if player_stats_data.get('total_players', 0) > 0 and player_stats_data.get('data'):
             combined_data['player_stats'] = player_stats_data['data']
             combined_data['api_status']['player_stats_success'] = True
             print(f"✓ Player stats fetched successfully ({len(player_stats_data['data'])} players)")
@@ -254,7 +254,6 @@ def fetch_team_basketball_data(team_name: str) -> Dict[str, Any]:
     }
     
     return combined_data
-
 # Example usage
 if __name__ == "__main__":
     # Test fetch_team_name function
