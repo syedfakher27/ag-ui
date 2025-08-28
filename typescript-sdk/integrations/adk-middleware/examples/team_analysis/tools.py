@@ -163,7 +163,7 @@ def fetch_team_basketball_data(team_name: str) -> Dict[str, Any]:
     try:
         # 2. Fetch player stats
         print(f"Fetching player stats for {team_name}...")
-        player_stats_url = f"{base_url}/players-stats-mia/search-by-team"
+        player_stats_url = f"{base_url}/official-roasters/search"
         player_stats_body = {
             "team_name": team_name
         }
