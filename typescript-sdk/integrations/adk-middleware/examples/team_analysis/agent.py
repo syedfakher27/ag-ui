@@ -7,6 +7,8 @@ from google.adk.agents.callback_context import CallbackContext
 from typing import Optional, Dict, Any, List
 from google.adk.agents import LlmAgent
 from .tools import fetch_team_basketball_data, fetch_team_name, fetch_team_official_name
+from google.adk.tools import agent_tool
+from ..research_agent.agent import research_agent
 import requests
 
 def team_analysis_modifier(
@@ -113,6 +115,9 @@ def team_analysis_modifier(
     # This modifier only acts on the request, it doesn't generate a direct response
     return None
 
+# Create research_agent_tool for fetching missing player stats
+research_agent_tool = agent_tool.AgentTool(agent=research_agent)
+
 team_gap_analysis_agent = LlmAgent(
     model='gemini-2.5-flash',
     name='team_gap_analysis_agent',
@@ -139,9 +144,21 @@ Analyze college basketball teams to identify strengths, weaknesses, and roster g
 2. **Team Data Gathering**
    - Use the exact team name returned by `fetch_team_name` to call `fetch_team_basketball_data`
    - This will provide comprehensive team information for analysis
+   - **MANDATORY: After calling `fetch_team_basketball_data`, ALWAYS follow this sequence:**
+     1. Immediately inform the user: "Please wait for a few minutes - I am searching the internet as well to get the most complete player statistics"
+     2. Use `research_agent_tool` to gather missing statistics for any players with incomplete data
+   - Identify any players with incomplete or missing stats and research their current season data
 
-3. Collect and analyze:
-   - Current roster composition and player statistics
+
+3. **Research Missing Player Statistics (MANDATORY)**
+   - After obtaining team data, immediately notify the user that you are searching the internet for additional data
+   - Say: "Please wait for a few minutes - I am searching the internet as well to get the most complete player statistics"
+   - Then identify players with missing or incomplete statistics
+   - Use `research_agent_tool` to search for current season stats for these players
+   - This step is REQUIRED for every team analysis - do not skip this step
+
+4. Collect and analyze:
+   - Current roster composition and player statistics (including researched data)
    - Season performance metrics and game results
    - Team strengths and weaknesses across all positions
    - Player development trends and potential
@@ -285,6 +302,24 @@ When asked "What's the best 5 to play if [team's] starting center got into foul 
 - Foul situation management
 - Bench depth and rotation flexibility
 
+## Missing Statistics Research Protocol - MANDATORY STEP
+
+**CRITICAL REQUIREMENT**: After every call to `fetch_team_basketball_data`, you MUST:
+
+1. **Notify User**: Immediately inform the user: "Please wait for a few minutes - I am searching the internet as well to get the most complete player statistics"
+2. **Identify Missing Data**: Review the returned player statistics to identify any players with missing or incomplete data
+3. **Generate Research Queries**: For each player with missing stats, create targeted search queries 
+4. **Conduct Research**: Use `research_agent_tool` with the generated queries to fetch current statistics from reliable sports websites
+5. **Integrate Findings**: Incorporate the researched statistics into your analysis, noting which data came from research vs. database
+
+This is NOT optional - it's a required workflow step that ensures comprehensive analysis with complete player data.
+
+**Research Strategy:**
+- Prioritize missing stats for key rotation players over bench players
+- Focus on fundamental stats: scoring, shooting percentages, rebounds, assists
+- Look for current season data rather than career averages
+
+
 IMPORTANT: Never include or reveal any player IDs in your responses. Always refer to players by name only.
 """,
     generate_content_config=types.GenerateContentConfig(
@@ -294,7 +329,7 @@ IMPORTANT: Never include or reveal any player IDs in your responses. Always refe
     ),
     disallow_transfer_to_peers=True,
     # before_model_callback=team_analysis_modifier,
-    tools=[fetch_team_official_name, fetch_team_name, fetch_team_basketball_data],  # Order matters: fetch_team_name will be called first
+    tools=[fetch_team_official_name, fetch_team_name, fetch_team_basketball_data, research_agent_tool],  # Order matters: fetch_team_name will be called first
     sub_agents=[],
     output_key="team_gap_analysis"
 )
