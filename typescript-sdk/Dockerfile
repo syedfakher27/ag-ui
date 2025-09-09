@@ -22,6 +22,6 @@ EXPOSE 3000
 
 CMD ["pnpm", "start"]
 
-# gcloud builds submit -t gcr.io/slamsportsai/slams-agui-app
+# gcloud builds submit -t gcr.io/slamsportsai/savent-agui-app
 
-# gcloud run deploy slams-agui-app --image gcr.io/slamsportsai/slams-agui-app --platform managed --region us-central1 --allow-unauthenticated
+# gcloud run deploy savent-agui-app --image gcr.io/slamsportsai/savent-agui-app --platform managed --region us-central1 --allow-unauthenticated

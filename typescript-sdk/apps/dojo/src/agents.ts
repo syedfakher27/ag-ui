@@ -15,7 +15,7 @@ import { CrewAIAgent } from "@ag-ui/crewai";
 import { mastra } from "./mastra";
 import axios from 'axios';
 
-const ADK_BACKEND = 'https://agui-adk-hzh2wqmavq-uc.a.run.app'
+const ADK_BACKEND = 'https://savent-agui-adk-359065791766.us-central1.run.app'
 class AdkAgent extends ServerStarterAgent {
   client = {
     threads: {
@@ -78,8 +78,8 @@ export const agentsIntegrations: AgentIntegrationConfig[] = [
       return {
         agentic_chat: new ServerStarterAgent({ url: "http://localhost:8000/chat" }),
         tool_based_generative_ui: new ServerStarterAgent({ url: "http://localhost:8000/adk-tool-based-generative-ui" }),
-        human_in_the_loop: new AdkAgent({ url: "http://localhost:8000/adk-human-in-loop-agent" }),
-        // human_in_the_loop: new AdkAgent({ url: `${ADK_BACKEND}/adk-human-in-loop-agent` }),
+        // human_in_the_loop: new AdkAgent({ url: "http://localhost:8000/adk-human-in-loop-agent" }),
+        human_in_the_loop: new AdkAgent({ url: `${ADK_BACKEND}/adk-human-in-loop-agent` }),
         shared_state: new ServerStarterAgent({ url: "http://localhost:8000/adk-shared-state-agent" }),
       };
     },
