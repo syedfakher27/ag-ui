@@ -20,6 +20,7 @@ from google.adk.planners import PlanReActPlanner
 
 from ..team_requirements_agent.agent import team_requirements_agent
 from ..player_stats_agent.agents import player_stats_agent
+from .savant_mlb_agent import savant_mlb_agent
 from .mbb_glossary import mbb_metrics
 planner = PlanReActPlanner()
 
@@ -74,6 +75,7 @@ basketball_agent = LlmAgent(
 - **Team Requirements** - Analyzes team performance standards, coaching expectations, and recruitment criteria
 - **Player Training & Physical Development** - Analyzes player workout stats, strength metrics, athletic testing, and physical progression over time
 - **Player Statistics** - Fetches, analyzes, and validates player statistics from database and external sources
+- **Baseball Savant MLB** - Specialized agent for fetching and analyzing advanced baseball statistics, Statcast data, and MLB performance metrics
 
 **Intelligence**: Uses contextual analysis to determine user intent and route queries to the specialist best equipped to provide comprehensive, actionable assistance. Handles complex multi-step workflows and maintains context across agent handoffs for seamless user experience.
 """,
@@ -133,6 +135,15 @@ You are a Basketball Recruitment Router Agent that intelligently routes basketba
 - Keywords: "player stats", "statistics", "performance metrics", "PPG", "rebounds", "assists", "shooting percentage"
 - Examples: "Show me John Smith's stats", "Compare player statistics", "Get Lakers players stats", "Validate these stats"
 
+**savant_mlb_agent** - Route when user asks about:
+- Baseball statistics, MLB player performance, baseball analytics
+- Traditional baseball stats (batting average, ERA, home runs, RBIs)
+- Advanced baseball metrics (xwOBA, xBA, barrel rate, exit velocity, spin rate)
+- Statcast data, pitch tracking, batted ball metrics
+- Baseball player comparisons and performance analysis
+- Keywords: "baseball stats", "MLB", "batting average", "ERA", "home runs", "exit velocity", "spin rate", "savant"
+- Examples: "Show me Aaron Judge's stats", "Compare pitcher ERAs", "Get Yankees batting stats", "Aaron Judge exit velocity"
+
 ## Communication Protocol
 1. Acknowledge the user's request
 2. Briefly explain routing decision
@@ -154,5 +165,5 @@ You are a Basketball Recruitment Router Agent that intelligently routes basketba
     before_model_callback=simple_before_model_modifier,
     # planner=planner,
     tools=[research_agent_tool],
-    sub_agents=[team_gap_analysis_agent , transfer_portal_agent , player_evaluation_agent, email_agent, team_requirements_agent, video_analysis_agent, player_development_agent, player_stats_agent]
+    sub_agents=[team_gap_analysis_agent , transfer_portal_agent , player_evaluation_agent, email_agent, team_requirements_agent, video_analysis_agent, player_development_agent, player_stats_agent, savant_mlb_agent]
 )

@@ -246,6 +246,243 @@ players=[
 ]
 
 
+def text2sql_query_savant_mlb(
+    tool_context: ToolContext,
+    sql_query: str
+):
+    """
+    Execute a SQL query on the Spanner database to retrieve baseball savant MLB data.
+    
+    This tool allows natural language to SQL conversion for querying the MBB.savant_mlb table.
+    If the query has errors, the agent will attempt to fix them and retry.
+    
+    Args:
+        sql_query (str): SQL query to execute against the MBB.savant_mlb table in Spanner database
+        
+    Table Schema (MBB.savant_mlb):
+        Primary Key: player_id (INT64) - Unique identifier for the player
+        
+        Core Columns:
+        - pitches: INT64 - Total number of pitches
+        - player_id: INT64 NOT NULL - Unique identifier for the player (Primary Key)
+        - player_name: STRING(255) - Full name of the baseball player
+        - total_pitches: INT64 - Total pitches thrown or faced
+        - hits: INT64 - Total hits
+        - abs: INT64 - At-bats
+        - whiffs: INT64 - Swings and misses
+        - swings: INT64 - Total swings
+        - takes: INT64 - Pitches taken (not swung at)
+        - pa: INT64 - Plate appearances
+        - bip: INT64 - Balls in play
+        - singles: INT64 - Single hits
+        - doubles: INT64 - Double hits
+        - triples: INT64 - Triple hits
+        - hrs: INT64 - Home runs
+        - so: INT64 - Strikeouts
+        - bb: INT64 - Walks (base on balls)
+        - barrels_total: INT64 - Total barrels (optimal contact metric)
+        
+        Percentage/Rate Statistics:
+        - pitch_percent: FLOAT64 - Pitch usage percentage
+        - ba: FLOAT64 - Batting average
+        - iso: FLOAT64 - Isolated power (slugging - batting average)
+        - babip: FLOAT64 - Batting average on balls in play
+        - slg: FLOAT64 - Slugging percentage
+        - woba: FLOAT64 - Weighted on-base average
+        - xwoba: FLOAT64 - Expected weighted on-base average
+        - xba: FLOAT64 - Expected batting average
+        - k_percent: FLOAT64 - Strikeout percentage
+        - bb_percent: FLOAT64 - Walk percentage
+        - hardhit_percent: FLOAT64 - Hard hit percentage
+        - barrels_per_bbe_percent: FLOAT64 - Barrels per batted ball event percentage
+        - barrels_per_pa_percent: FLOAT64 - Barrels per plate appearance percentage
+        - obp: FLOAT64 - On-base percentage
+        - xobp: FLOAT64 - Expected on-base percentage
+        - xslg: FLOAT64 - Expected slugging percentage
+        - swing_miss_percent: FLOAT64 - Swing and miss percentage
+        
+        Physical/Kinematic Metrics:
+        - launch_speed: FLOAT64 - Average exit velocity
+        - launch_angle: FLOAT64 - Average launch angle
+        - spin_rate: INT64 - Pitch spin rate (RPM)
+        - velocity: FLOAT64 - Pitch velocity
+        - effective_speed: FLOAT64 - Effective velocity accounting for extension
+        - eff_min_vel: FLOAT64 - Minimum effective velocity
+        - release_extension: FLOAT64 - Release point extension
+        - release_pos_z: FLOAT64 - Vertical release position
+        - release_pos_x: FLOAT64 - Horizontal release position
+        - plate_x: FLOAT64 - Horizontal location at home plate
+        - plate_z: FLOAT64 - Vertical location at home plate
+        - bat_speed: FLOAT64 - Bat speed at contact
+        - swing_length: FLOAT64 - Length of swing path
+        - arm_angle: FLOAT64 - Arm angle at release
+        - attack_angle: FLOAT64 - Bat's attack angle
+        - attack_direction: FLOAT64 - Direction of bat's attack
+        - swing_path_tilt: FLOAT64 - Tilt of swing path
+        - rate_ideal_attack_angle: FLOAT64 - Rate of ideal attack angles
+        
+        Advanced Metrics:
+        - api_break_z_with_gravity: FLOAT64 - Vertical break including gravity
+        - api_break_z_induced: FLOAT64 - Induced vertical break
+        - api_break_x_arm: FLOAT64 - Horizontal break from arm side
+        - api_break_x_batter_in: FLOAT64 - Horizontal break toward batter
+        - hyper_speed: FLOAT64 - Hyper speed metric
+        - bbdist: FLOAT64 - Batted ball distance
+        - batter_run_value_per_100: FLOAT64 - Batter run value per 100 pitches
+        - pitcher_run_value_per_100: FLOAT64 - Pitcher run value per 100 pitches
+        - pitcher_run_exp: FLOAT64 - Pitcher run expectancy
+        - run_exp: FLOAT64 - Run expectancy
+        - xbadiff: FLOAT64 - Difference between actual and expected batting average
+        - xobpdiff: FLOAT64 - Difference between actual and expected OBP
+        - xslgdiff: FLOAT64 - Difference between actual and expected SLG
+        - wobadiff: FLOAT64 - Difference between actual and expected wOBA
+        
+        Position-specific Metrics:
+        - pos3_int_start_distance: FLOAT64 - First baseman starting distance
+        - pos4_int_start_distance: FLOAT64 - Second baseman starting distance
+        - pos5_int_start_distance: FLOAT64 - Third baseman starting distance
+        - pos6_int_start_distance: FLOAT64 - Shortstop starting distance
+        - pos7_int_start_distance: FLOAT64 - Left fielder starting distance
+        - pos8_int_start_distance: FLOAT64 - Center fielder starting distance
+        - pos9_int_start_distance: FLOAT64 - Right fielder starting distance
+        
+        Intercept Metrics:
+        - intercept_ball_minus_batter_pos_x_inches: FLOAT64 - X-axis intercept difference
+        - intercept_ball_minus_batter_pos_y_inches: FLOAT64 - Y-axis intercept difference
+    
+    Note: Always use the full table name `MBB`.`savant_mlb` in your SQL queries.
+    
+    Returns:
+        dict: Query results with baseball savant MLB data
+        
+    Raises:
+        Exception: If database connection fails or query cannot be executed after retry
+    """
+    print(f'-------------text2sql_query_savant_mlb---------------')
+    print(f'Executing SQL Query: {sql_query}')
+    
+    # Initialize Spanner client
+    instance_id = os.environ.get('SPANNER_INSTANCE_ID','slam-spanner')
+    database_id = os.environ.get('SPANNER_DATABASE_ID','slam-db')
+    project_id = os.environ.get('GOOGLE_CLOUD_PROJECT','slamsportsai')
+    
+    max_retries = 3
+    current_retry = 0
+    
+    while current_retry < max_retries:
+        try:
+            # Create Spanner client
+            spanner_client = spanner.Client(project=project_id)
+            instance = spanner_client.instance(instance_id)
+            database = instance.database(database_id)
+            
+            # Modify query to ensure max 50 records to prevent model overflow
+            modified_query = sql_query
+            if "LIMIT" not in sql_query.upper():
+                modified_query = f"{sql_query} LIMIT 50"
+            else:
+                # Extract existing limit and ensure it's not more than 50
+                import re
+                limit_match = re.search(r'LIMIT\s+(\d+)', sql_query, re.IGNORECASE)
+                if limit_match:
+                    existing_limit = int(limit_match.group(1))
+                    if existing_limit > 50:
+                        modified_query = re.sub(r'LIMIT\s+\d+', 'LIMIT 50', sql_query, flags=re.IGNORECASE)
+            
+            print(f"Modified Query (max 50 records): {modified_query}")
+            
+            # Execute the query
+            with database.snapshot() as snapshot:
+                results = snapshot.execute_sql(modified_query)
+                
+                # Convert results to list of dictionaries
+                players_data = []
+                columns = None
+                
+                try:
+                    # Process results row by row to avoid snapshot reuse issues
+                    first_row = True
+                    for row in results:
+                        if first_row:
+                            # Get column names from the first row's metadata
+                            if hasattr(results, '_metadata') and results._metadata and hasattr(results._metadata, 'row_type'):
+                                columns = [field.name for field in results.fields]
+                            else:
+                                raise Exception("Query results do not contain proper metadata/schema information.")
+                            first_row = False
+                        
+                        # Process the row
+                        player_dict = {}
+                        for i, value in enumerate(row):
+                            player_dict[columns[i]] = value
+                        players_data.append(player_dict)
+                    
+                    # If no rows were processed but query succeeded
+                    if not players_data and columns is None:
+                        print("Query executed successfully but returned no records.")
+                        return {
+                            "success": True,
+                            "data": [],
+                            "total_records": 0,
+                            "query": sql_query,
+                            "columns": []
+                        }
+                        
+                except Exception as field_error:
+                    # If we still can't process results, there's a deeper issue
+                    raise Exception(f"Query executed but failed to process results: {str(field_error)}. This may indicate authentication, permissions, or schema issues.")
+                
+                print(f"Query executed successfully. Retrieved {len(players_data)} records.")
+                
+                # Store results in tool context
+                tool_context.state["tool_context"] = sql_query
+                
+                return {
+                    "success": True,
+                    "data": players_data,
+                    "total_records": len(players_data),
+                    "query": sql_query,
+                    "columns": columns
+                }
+                
+        except Exception as e:
+            traceback.print_exc()
+            current_retry += 1
+            error_msg = str(e)
+            print(f"SQL Query Error (Attempt {current_retry}/{max_retries}): {error_msg}")
+            
+            if current_retry >= max_retries:
+                # After max retries, return error for agent to handle
+                return {
+                    "success": False,
+                    "error": error_msg,
+                    "query": sql_query,
+                    "suggestion": "Please check the SQL syntax and table schema. The table name is `MBB`.`savant_mlb` and common issues include: incorrect column names, missing WHERE clauses, or syntax errors."
+                }
+            
+            # For certain errors, suggest fixes
+            if "not found" in error_msg.lower() or "invalid" in error_msg.lower():
+                print(f"Query error detected. Agent should fix and retry. Error: {error_msg}")
+                # Let the agent handle the error and retry with a corrected query
+                return {
+                    "success": False,
+                    "error": error_msg,
+                    "query": sql_query,
+                    "retry_suggestion": f"SQL error encountered: {error_msg}. Please fix the query and try again. Remember to use `MBB`.`savant_mlb` as the table name.",
+                    "can_retry": True,
+                    "attempts_remaining": max_retries - current_retry
+                }
+            
+            # For other errors, continue retrying with same query
+            continue
+    
+    return {
+        "success": False,
+        "error": f"Query failed after {max_retries} attempts",
+        "query": sql_query
+    }
+
+
 # if __name__=="__main__":
 #     result = text2sql_query_transfer_portal("SELECT player_name, bpr_predicted FROM MBB.tp_player_view WHERE position = 'PG' AND (new_team IS NULL OR new_team = '' OR new_team = 'nan') ORDER BY bpr_predicted DESC LIMIT 5")
 #     print('result==>',result)
