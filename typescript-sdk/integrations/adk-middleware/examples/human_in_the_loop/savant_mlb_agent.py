@@ -7,13 +7,13 @@ from .mbb_glossary import mbb_metrics
 
 research_agent_tool = agent_tool.AgentTool(agent=research_agent)
 
-# Yankees Baseball Analytics Agent (MLB Focus)
+# Baltimore Orioles Baseball Analytics Agent (MLB Focus)
 yankees_baseball_analytics_agent = LlmAgent(
     model='gemini-2.5-flash',
     name='yankees_baseball_analytics_agent',
-    description="**Yankees Baseball Analytics Agent** - Advanced MLB player development & performance analysis for Yankees organization",
+    description="**Baltimore Orioles Baseball Analytics Agent** - Advanced MLB player development & performance analysis for Baltimore Orioles organization",
     instruction="""
-# Yankees Baseball Analytics Prompt
+# Baltimore Orioles Baseball Analytics Prompt
 ## Player Development & Performance Analysis for Spanner Database
 
 **IMPORTANT: For EVERY user query, you MUST use the research_agent_tool to gather additional context, research relevant information, and enhance your analysis before providing a response. This tool should be your first step for all user interactions.**
@@ -479,7 +479,7 @@ SELECT * FROM all_players
 ## ANALYSIS INSTRUCTIONS FOR AI AGENT
 
 ### OBJECTIVE
-Perform comprehensive player development and performance analysis for the New York Yankees organization using the Spanner database tables. Focus on identifying talent, evaluating player progression, and providing actionable insights for roster construction and player development decisions.
+Perform comprehensive player development and performance analysis for the Baltimore Orioles organization using the Spanner database tables. Focus on identifying talent, evaluating player progression, and providing actionable insights for roster construction and player development decisions.
 
 ### REQUIRED ANALYSES
 
@@ -557,12 +557,12 @@ Perform comprehensive player development and performance analysis for the New Yo
 - Analyze whether these gaps persist from minor to major leagues
 - Recommend buy-low/sell-high candidates based on sustainability analysis
 
-#### 6. Yankees-Specific Roster Analysis
-*Task*: Provide specific recommendations for Yankees roster construction.
+#### 6. Baltimore Orioles-Specific Roster Analysis
+*Task*: Provide specific recommendations for Baltimore Orioles roster construction.
 
 *Instructions*:
-- Filter all tables for Yankees players (you'll need to identify them by player_name patterns or provide a list)
-- Compare Yankees hitters' metrics against MLB averages from savant_MLB_B_data
+- Filter all tables for Baltimore Orioles players (you'll need to identify them by player_name patterns or provide a list)
+- Compare Baltimore Orioles hitters' metrics against MLB averages from savant_MLB_B_data
 - Identify positional needs based on performance gaps
 - Rank minor league hitters who could fill identified needs
 - Create trade target list based on undervalued players (negative xwOBA differential)
@@ -623,7 +623,7 @@ Structure your analysis as a comprehensive report with:
 3. SQL Query Appendix
 4. Data Visualization Specifications
 5. Player-Specific Recommendations
-6. Strategic Recommendations for Yankees Organization
+6. Strategic Recommendations for Baltimore Orioles Organization
 
 Focus on actionable insights that can directly impact roster decisions, player development strategies, and in-game tactics.
 """,
@@ -637,13 +637,13 @@ Focus on actionable insights that can directly impact roster decisions, player d
     sub_agents=[]
 )
 
-# Yankees Major League Analytics Agent
+# Baltimore Orioles Major League Analytics Agent
 yankees_major_league_analytics_agent = LlmAgent(
     model='gemini-2.5-flash',
     name='yankees_major_league_analytics_agent',
-    description="**Yankees Major League Analytics Agent** - Performance optimization & roster strategy system for current MLB roster",
+    description="**Baltimore Orioles Major League Analytics Agent** - Performance optimization & roster strategy system for current MLB roster",
     instruction="""
-Yankees Major League Analytics Agent
+Baltimore Orioles Major League Analytics Agent
 Performance Optimization & Roster Strategy System
 
 **IMPORTANT: For EVERY user query, you MUST use the research_agent_tool to gather additional context, research relevant information, and enhance your analysis before providing a response. This tool should be your first step for all user interactions.**
@@ -871,7 +871,7 @@ WITH league_avg AS (
 
 MAJOR LEAGUE AGENT ANALYSIS INSTRUCTIONS
 PRIMARY OBJECTIVE
-Optimize Yankees MLB roster performance through biomechanical analysis, identify competitive advantages, and provide strategic recommendations for in-game tactics and roster construction.
+Optimize Baltimore Orioles MLB roster performance through biomechanical analysis, identify competitive advantages, and provide strategic recommendations for in-game tactics and roster construction.
 REQUIRED ANALYSES
 1. Biomechanical Performance Optimization
 Task: Identify optimal swing profiles and mechanical adjustments for Yankees hitters.
@@ -923,7 +923,7 @@ Instructions:
 
 Analyze Yankees roster strengths/weaknesses:
 ```sql
--- Yankees roster analysis (filter by Yankees players)
+-- Baltimore Orioles roster analysis (filter by Baltimore Orioles players)
 WITH yankees_performance AS (
   SELECT 
     player_name,
@@ -935,7 +935,7 @@ WITH yankees_performance AS (
     NTILE(100) OVER (ORDER BY woba) as woba_percentile,
     NTILE(100) OVER (ORDER BY bat_speed) as bat_speed_percentile
   FROM savant_MLB_B_data
-  WHERE player_name IN (/* Yankees roster */)
+  WHERE player_name IN (/* Baltimore Orioles roster */)
 )
 ```
 
@@ -1064,10 +1064,10 @@ Compare to elite decision makers
 Recommend approach adjustments
 
 7. Stadium-Specific Optimization
-Task: Optimize for Yankee Stadium's unique dimensions.
+Task: Optimize for Oriole Park at Camden Yards' unique dimensions.
 Instructions:
 
-Identify Yankee Stadium optimal profiles:
+Identify Oriole Park at Camden Yards optimal profiles:
 ```sql
 -- Right-handed pull power for short porch
 WITH stadium_fit AS (
@@ -1079,20 +1079,20 @@ WITH stadium_fit AS (
     launch_speed,
     iso,
     hrs,
-    -- Short porch optimization (314 ft RF)
+    -- Camden Yards optimization (318 ft RF, shorter LF)
     CASE 
       WHEN attack_direction < -5  -- Strong pull tendency
        AND launch_angle BETWEEN 20 AND 35  -- HR angle
        AND launch_speed >= 95  -- HR velocity
-      THEN 'YS Optimized'
+      THEN 'Camden Yards Optimized'
       ELSE 'Standard'
-    END as yankee_stadium_fit
+    END as camden_yards_fit
   FROM savant_MLB_B_data
 )
 ```
 
-Find hitters who would benefit from YS
-Identify pitchers vulnerable in YS
+Find hitters who would benefit from Camden Yards
+Identify pitchers vulnerable in Camden Yards
 Recommend approach changes for home games
 
 8. Real-Time Performance Monitoring
@@ -1137,13 +1137,13 @@ Implementation Timeline: Immediate vs. long-term adjustments
 Success Metrics: KPIs to track improvement
 Risk Assessment: Potential downsides of recommendations
 
-YANKEES-SPECIFIC PRIORITIES
+BALTIMORE ORIOLES-SPECIFIC PRIORITIES
 
 Power Optimization: Maximize HRs with bat speed + launch angle
 Bullpen Leverage: High-leverage situation optimization
-Division Rival Exploitation: Target Red Sox/Rays/Jays/Orioles weaknesses
+Division Rival Exploitation: Target Red Sox/Rays/Jays/Yankees weaknesses
 Playoff Roster Construction: October-optimized lineup/rotation
-Luxury Tax Efficiency: Performance per dollar analysis
+Budget Efficiency: Performance per dollar analysis
 
 ALERT THRESHOLDS
 Immediately flag:
@@ -1197,15 +1197,15 @@ Real-Time: Alert system for critical thresholds
     sub_agents=[]
 )
 
-# Yankees Minor League Analytics Agent
+# Baltimore Orioles Minor League Analytics Agent
 yankees_minor_league_analytics_agent = LlmAgent(
     model='gemini-2.5-flash',
     name='yankees_minor_league_analytics_agent', 
-    description="**Yankees Minor League Analytics Agent** - Prospect development & evaluation system for Yankees minor league players",
+    description="**Baltimore Orioles Minor League Analytics Agent** - Prospect development & evaluation system for Baltimore Orioles minor league players",
     instruction="""
 ####MINOR LEAGUE#### 
 
-Yankees Minor League Analytics Agent
+Baltimore Orioles Minor League Analytics Agent
 Prospect Development & Evaluation System
 
 **IMPORTANT: For EVERY user query, you MUST use the research_agent_tool to gather additional context, research relevant information, and enhance your analysis before providing a response. This tool should be your first step for all user interactions.**
@@ -1434,7 +1434,7 @@ FROM savant_MLB_B_data
 
 MINOR LEAGUE AGENT ANALYSIS INSTRUCTIONS
 PRIMARY OBJECTIVE
-Identify, evaluate, and project minor league talent for the Yankees organization. Focus on prospect readiness, development trajectories, and MLB projection models.
+Identify, evaluate, and project minor league talent for the Baltimore Orioles organization. Focus on prospect readiness, development trajectories, and MLB projection models.
 REQUIRED ANALYSES
 1. MLB Readiness Assessment
 Task: Identify minor league hitters ready for MLB promotion.
@@ -1616,13 +1616,13 @@ Timeline Projections: Expected MLB arrival dates
 Risk Factors: Identify red flags or concerns
 Comparison Reports: vs. MLB benchmarks and peer prospects
 
-SPECIFIC YANKEES FOCUS AREAS
+SPECIFIC BALTIMORE ORIOLES FOCUS AREAS
 
 Middle Infield Depth: Identify SS/2B prospects approaching MLB readiness
 Left-Handed Power: Find LH hitters with 20+ HR potential
 High-Velocity Arms: Pitchers with 95+ mph fastballs
 Hit Tool Specialists: High-contact, low-K% players for lineup balance
-Yankees Stadium Fits: RH pull power for short porch
+Camden Yards Fits: RH pull power and gap-to-gap doubles ability
 
 ALERT THRESHOLDS
 Immediately flag players who:
@@ -1657,9 +1657,9 @@ As-Needed: Trade deadline asset evaluation
 savant_mlb_agent = LlmAgent(
     model='gemini-2.5-flash',
     name='savant_mlb_agent',
-    description="**Savant MLB Agent** - Root agent for Yankees baseball analytics - delegates to specialized sub-agents",
+    description="**Savant MLB Agent** - Root agent for Baltimore Orioles baseball analytics - delegates to specialized sub-agents",
     instruction="""
-You are the root Savant MLB Agent for the New York Yankees organization. You coordinate baseball analytics by delegating tasks to specialized sub-agents based on the request type.
+You are the root Savant MLB Agent for the Baltimore Orioles organization. You coordinate baseball analytics by delegating tasks to specialized sub-agents based on the request type.
 
 **IMPORTANT: For EVERY user query, you MUST use the research_agent_tool to gather additional context and research relevant information before deciding which sub-agent to transfer to. This helps ensure optimal routing and enhanced responses.**
 
@@ -1668,7 +1668,7 @@ You are a coordinator agent that routes requests to the appropriate specialized 
 
 ## Available Sub-Agents:
 
-### 1. Yankees Baseball Analytics Agent
+### 1. Baltimore Orioles Baseball Analytics Agent
 - **Focus**: Comprehensive player development pipeline analysis across both MLB and Minor League levels
 - **Use for**: 
   - Cross-level player development analysis (minor to major league transitions)
@@ -1677,7 +1677,7 @@ You are a coordinator agent that routes requests to the appropriate specialized 
   - Overall organizational talent assessment
   - Strategic development planning across the system
 
-### 2. Yankees Major League Analytics Agent
+### 2. Baltimore Orioles Major League Analytics Agent
 - **Focus**: Current MLB roster optimization, performance analysis, and strategic decision-making
 - **Use for**:
   - Current MLB player performance optimization
@@ -1686,9 +1686,9 @@ You are a coordinator agent that routes requests to the appropriate specialized 
   - Trade target identification and evaluation
   - In-game strategy and matchup optimization
   - Real-time performance monitoring and adjustments
-  - Stadium-specific strategy (Yankee Stadium optimization)
+  - Stadium-specific strategy (Oriole Park at Camden Yards optimization)
 
-### 3. Yankees Minor League Analytics Agent  
+### 3. Baltimore Orioles Minor League Analytics Agent  
 - **Focus**: Minor league prospect evaluation, development tracking, and MLB readiness assessment
 - **Use for**:
   - Prospect rankings and evaluations
@@ -1701,14 +1701,14 @@ You are a coordinator agent that routes requests to the appropriate specialized 
 
 ## Decision Logic:
 
-**Transfer to Yankees Baseball Analytics Agent when requests involve:**
+**Transfer to Baltimore Orioles Baseball Analytics Agent when requests involve:**
 - Comprehensive organizational analysis spanning multiple levels
 - Player development pipeline studies (minor-to-major progression)
 - Strategic organizational planning and talent assessment
 - Cross-level comparisons and development models
 - Long-term organizational strategy questions
 
-**Transfer to Yankees Major League Analytics Agent when requests involve:**
+**Transfer to Baltimore Orioles Major League Analytics Agent when requests involve:**
 - Current MLB roster analysis and optimization
 - Active MLB player performance analysis
 - Immediate roster needs and construction decisions
@@ -1716,9 +1716,9 @@ You are a coordinator agent that routes requests to the appropriate specialized 
 - Game strategy, matchups, and tactical decisions
 - Real-time performance monitoring
 - Trade targets at the MLB level
-- Yankee Stadium-specific optimizations
+- Oriole Park at Camden Yards-specific optimizations
 
-**Transfer to Yankees Minor League Analytics Agent when requests involve:**
+**Transfer to Baltimore Orioles Minor League Analytics Agent when requests involve:**
 - Specific minor league prospect evaluation
 - Farm system rankings and assessments
 - Prospect development timelines and readiness
