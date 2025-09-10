@@ -1,0 +1,341 @@
+# Baseball Savant Data Dictionary
+
+## Table: savant_MLB_B_data
+MLB batters statistics data
+
+- **savant_MLB_B_data.row_id** = Unique row identifier (primary key)
+- **savant_MLB_B_data.pitches** = Pitch type or classification
+- **savant_MLB_B_data.player_id** = Unique MLB player identifier
+- **savant_MLB_B_data.player_name** = Player's full name (Last, First format)
+- **savant_MLB_B_data.total_pitches** = Total number of pitches seen
+- **savant_MLB_B_data.pitch_percent** = Percentage of specific pitch type seen
+- **savant_MLB_B_data.ba** = Batting Average (hits/at-bats)
+- **savant_MLB_B_data.iso** = Isolated Power (slugging percentage minus batting average)
+- **savant_MLB_B_data.babip** = Batting Average on Balls In Play
+- **savant_MLB_B_data.slg** = Slugging Percentage (total bases/at-bats)
+- **savant_MLB_B_data.woba** = Weighted On-Base Average
+- **savant_MLB_B_data.xwoba** = Expected Weighted On-Base Average (Statcast)
+- **savant_MLB_B_data.xba** = Expected Batting Average (Statcast)
+- **savant_MLB_B_data.hits** = Total number of hits
+- **savant_MLB_B_data.abs** = At-bats (plate appearances minus walks, HBP, sacrifices)
+- **savant_MLB_B_data.launch_speed** = Average exit velocity off the bat (mph)
+- **savant_MLB_B_data.launch_angle** = Average launch angle of batted balls (degrees)
+- **savant_MLB_B_data.spin_rate** = Average spin rate of pitches seen (rpm)
+- **savant_MLB_B_data.velocity** = Average velocity of pitches seen (mph)
+- **savant_MLB_B_data.effective_speed** = Perceived velocity accounting for extension
+- **savant_MLB_B_data.whiffs** = Number of swings and misses
+- **savant_MLB_B_data.swings** = Total number of swings
+- **savant_MLB_B_data.takes** = Number of pitches not swung at
+- **savant_MLB_B_data.eff_min_vel** = Effective minimum velocity
+- **savant_MLB_B_data.release_extension** = Pitcher's release point extension (feet)
+- **savant_MLB_B_data.pos3_int_start_distance** = First baseman's starting position distance
+- **savant_MLB_B_data.pos4_int_start_distance** = Second baseman's starting position distance
+- **savant_MLB_B_data.pos5_int_start_distance** = Third baseman's starting position distance
+- **savant_MLB_B_data.pos6_int_start_distance** = Shortstop's starting position distance
+- **savant_MLB_B_data.pos7_int_start_distance** = Left fielder's starting position distance
+- **savant_MLB_B_data.pos8_int_start_distance** = Center fielder's starting position distance
+- **savant_MLB_B_data.pos9_int_start_distance** = Right fielder's starting position distance
+- **savant_MLB_B_data.pitcher_run_exp** = Pitcher's run expectancy
+- **savant_MLB_B_data.run_exp** = Run expectancy value
+- **savant_MLB_B_data.bat_speed** = Average bat speed (mph)
+- **savant_MLB_B_data.swing_length** = Average swing length (feet)
+- **savant_MLB_B_data.pa** = Plate Appearances
+- **savant_MLB_B_data.bip** = Balls In Play
+- **savant_MLB_B_data.singles** = Number of singles hit
+- **savant_MLB_B_data.doubles** = Number of doubles hit
+- **savant_MLB_B_data.triples** = Number of triples hit
+- **savant_MLB_B_data.hrs** = Number of home runs hit
+- **savant_MLB_B_data.so** = Strikeouts
+- **savant_MLB_B_data.k_percent** = Strikeout percentage (K/PA)
+- **savant_MLB_B_data.bb** = Walks (bases on balls)
+- **savant_MLB_B_data.bb_percent** = Walk percentage (BB/PA)
+- **savant_MLB_B_data.api_break_z_with_gravity** = Vertical break with gravity (inches)
+- **savant_MLB_B_data.api_break_z_induced** = Induced vertical break (inches)
+- **savant_MLB_B_data.api_break_x_arm** = Horizontal break arm-side (inches)
+- **savant_MLB_B_data.api_break_x_batter_in** = Horizontal break toward batter (inches)
+- **savant_MLB_B_data.hyper_speed** = Hyper speed metric
+- **savant_MLB_B_data.bbdist** = Average batted ball distance (feet)
+- **savant_MLB_B_data.hardhit_percent** = Hard-hit percentage (exit velocity ≥95 mph)
+- **savant_MLB_B_data.barrels_per_bbe_percent** = Barrels per batted ball event percentage
+- **savant_MLB_B_data.barrels_per_pa_percent** = Barrels per plate appearance percentage
+- **savant_MLB_B_data.release_pos_z** = Vertical release position (feet)
+- **savant_MLB_B_data.release_pos_x** = Horizontal release position (feet)
+- **savant_MLB_B_data.plate_x** = Horizontal plate location (feet)
+- **savant_MLB_B_data.plate_z** = Vertical plate location (feet)
+- **savant_MLB_B_data.obp** = On-Base Percentage
+- **savant_MLB_B_data.barrels_total** = Total number of barrels
+- **savant_MLB_B_data.batter_run_value_per_100** = Batter run value per 100 pitches
+- **savant_MLB_B_data.xobp** = Expected On-Base Percentage
+- **savant_MLB_B_data.xslg** = Expected Slugging Percentage
+- **savant_MLB_B_data.pitcher_run_value_per_100** = Pitcher run value per 100 pitches
+- **savant_MLB_B_data.xbadiff** = Difference between actual and expected batting average
+- **savant_MLB_B_data.xobpdiff** = Difference between actual and expected OBP
+- **savant_MLB_B_data.xslgdiff** = Difference between actual and expected slugging
+- **savant_MLB_B_data.wobadiff** = Difference between actual and expected wOBA
+- **savant_MLB_B_data.swing_miss_percent** = Swing and miss percentage
+- **savant_MLB_B_data.arm_angle** = Pitcher's arm angle (degrees)
+- **savant_MLB_B_data.attack_angle** = Bat's attack angle (degrees)
+- **savant_MLB_B_data.attack_direction** = Direction of bat attack
+- **savant_MLB_B_data.swing_path_tilt** = Tilt of swing path (degrees)
+- **savant_MLB_B_data.rate_ideal_attack_angle** = Rate of ideal attack angle achievement
+- **savant_MLB_B_data.intercept_ball_minus_batter_pos_x_inches** = Horizontal ball-bat intercept difference (inches)
+- **savant_MLB_B_data.intercept_ball_minus_batter_pos_y_inches** = Vertical ball-bat intercept difference (inches)
+
+## Table: savant_MLB_P_data
+MLB pitchers statistics data
+
+- **savant_MLB_P_data.row_id** = Unique row identifier (primary key)
+- **savant_MLB_P_data.pitches** = Pitch type or classification
+- **savant_MLB_P_data.player_id** = Unique MLB player identifier
+- **savant_MLB_P_data.player_name** = Player's full name (Last, First format)
+- **savant_MLB_P_data.total_pitches** = Total number of pitches thrown
+- **savant_MLB_P_data.pitch_percent** = Percentage of specific pitch type thrown
+- **savant_MLB_P_data.ba** = Batting Average against
+- **savant_MLB_P_data.iso** = Isolated Power against
+- **savant_MLB_P_data.babip** = Batting Average on Balls In Play against
+- **savant_MLB_P_data.slg** = Slugging Percentage against
+- **savant_MLB_P_data.woba** = Weighted On-Base Average against
+- **savant_MLB_P_data.xwoba** = Expected Weighted On-Base Average against
+- **savant_MLB_P_data.xba** = Expected Batting Average against
+- **savant_MLB_P_data.hits** = Total hits allowed
+- **savant_MLB_P_data.abs** = At-bats against
+- **savant_MLB_P_data.launch_speed** = Average exit velocity allowed (mph)
+- **savant_MLB_P_data.launch_angle** = Average launch angle allowed (degrees)
+- **savant_MLB_P_data.spin_rate** = Average spin rate of pitches (rpm)
+- **savant_MLB_P_data.velocity** = Average pitch velocity (mph)
+- **savant_MLB_P_data.effective_speed** = Perceived velocity with extension
+- **savant_MLB_P_data.whiffs** = Number of swings and misses generated
+- **savant_MLB_P_data.swings** = Total swings against
+- **savant_MLB_P_data.takes** = Number of pitches not swung at
+- **savant_MLB_P_data.eff_min_vel** = Effective minimum velocity
+- **savant_MLB_P_data.release_extension** = Release point extension (feet)
+- **savant_MLB_P_data.pos3_int_start_distance** = First baseman's positioning
+- **savant_MLB_P_data.pos4_int_start_distance** = Second baseman's positioning
+- **savant_MLB_P_data.pos5_int_start_distance** = Third baseman's positioning
+- **savant_MLB_P_data.pos6_int_start_distance** = Shortstop's positioning
+- **savant_MLB_P_data.pos7_int_start_distance** = Left fielder's positioning
+- **savant_MLB_P_data.pos8_int_start_distance** = Center fielder's positioning
+- **savant_MLB_P_data.pos9_int_start_distance** = Right fielder's positioning
+- **savant_MLB_P_data.pitcher_run_exp** = Pitcher's run expectancy
+- **savant_MLB_P_data.run_exp** = Run expectancy value
+- **savant_MLB_P_data.bat_speed** = Average bat speed of hitters faced (mph)
+- **savant_MLB_P_data.swing_length** = Average swing length of hitters faced (feet)
+- **savant_MLB_P_data.pa** = Plate Appearances against
+- **savant_MLB_P_data.bip** = Balls In Play allowed
+- **savant_MLB_P_data.singles** = Singles allowed
+- **savant_MLB_P_data.doubles** = Doubles allowed
+- **savant_MLB_P_data.triples** = Triples allowed
+- **savant_MLB_P_data.hrs** = Home runs allowed
+- **savant_MLB_P_data.so** = Strikeouts recorded
+- **savant_MLB_P_data.k_percent** = Strikeout percentage
+- **savant_MLB_P_data.bb** = Walks allowed
+- **savant_MLB_P_data.bb_percent** = Walk percentage
+- **savant_MLB_P_data.api_break_z_with_gravity** = Vertical break with gravity (inches)
+- **savant_MLB_P_data.api_break_z_induced** = Induced vertical break (inches)
+- **savant_MLB_P_data.api_break_x_arm** = Horizontal break arm-side (inches)
+- **savant_MLB_P_data.api_break_x_batter_in** = Horizontal break toward batter (inches)
+- **savant_MLB_P_data.hyper_speed** = Hyper speed metric
+- **savant_MLB_P_data.bbdist** = Average batted ball distance allowed (feet)
+- **savant_MLB_P_data.hardhit_percent** = Hard-hit percentage allowed
+- **savant_MLB_P_data.barrels_per_bbe_percent** = Barrels per batted ball event allowed
+- **savant_MLB_P_data.barrels_per_pa_percent** = Barrels per plate appearance allowed
+- **savant_MLB_P_data.release_pos_z** = Vertical release position (feet)
+- **savant_MLB_P_data.release_pos_x** = Horizontal release position (feet)
+- **savant_MLB_P_data.plate_x** = Average horizontal plate location (feet)
+- **savant_MLB_P_data.plate_z** = Average vertical plate location (feet)
+- **savant_MLB_P_data.obp** = On-Base Percentage against
+- **savant_MLB_P_data.barrels_total** = Total barrels allowed
+- **savant_MLB_P_data.batter_run_value_per_100** = Batter run value per 100 pitches
+- **savant_MLB_P_data.xobp** = Expected On-Base Percentage against
+- **savant_MLB_P_data.xslg** = Expected Slugging Percentage against
+- **savant_MLB_P_data.pitcher_run_value_per_100** = Pitcher run value per 100 pitches
+- **savant_MLB_P_data.xbadiff** = Difference between actual and expected BA against
+- **savant_MLB_P_data.xobpdiff** = Difference between actual and expected OBP against
+- **savant_MLB_P_data.xslgdiff** = Difference between actual and expected SLG against
+- **savant_MLB_P_data.wobadiff** = Difference between actual and expected wOBA against
+- **savant_MLB_P_data.swing_miss_percent** = Swing and miss percentage generated
+- **savant_MLB_P_data.arm_angle** = Pitcher's arm angle (degrees)
+- **savant_MLB_P_data.attack_angle** = Average attack angle faced (degrees)
+- **savant_MLB_P_data.attack_direction** = Average attack direction faced
+- **savant_MLB_P_data.swing_path_tilt** = Average swing path tilt faced (degrees)
+- **savant_MLB_P_data.rate_ideal_attack_angle** = Rate of ideal attack angle by hitters
+- **savant_MLB_P_data.intercept_ball_minus_batter_pos_x_inches** = Horizontal ball-bat intercept difference (inches)
+- **savant_MLB_P_data.intercept_ball_minus_batter_pos_y_inches** = Vertical ball-bat intercept difference (inches)
+
+## Table: savant_minor_league_hitters
+Minor league hitters statistics data
+
+- **savant_minor_league_hitters.row_id** = Unique row identifier (primary key)
+- **savant_minor_league_hitters.pitches** = Pitch type or classification
+- **savant_minor_league_hitters.player_id** = Unique player identifier
+- **savant_minor_league_hitters.player_name** = Player's full name (Last, First format)
+- **savant_minor_league_hitters.total_pitches** = Total number of pitches seen
+- **savant_minor_league_hitters.pitch_percent** = Percentage of specific pitch type seen
+- **savant_minor_league_hitters.ba** = Batting Average
+- **savant_minor_league_hitters.iso** = Isolated Power
+- **savant_minor_league_hitters.babip** = Batting Average on Balls In Play
+- **savant_minor_league_hitters.slg** = Slugging Percentage
+- **savant_minor_league_hitters.woba** = Weighted On-Base Average
+- **savant_minor_league_hitters.xwoba** = Expected Weighted On-Base Average
+- **savant_minor_league_hitters.xba** = Expected Batting Average
+- **savant_minor_league_hitters.hits** = Total number of hits
+- **savant_minor_league_hitters.abs** = At-bats
+- **savant_minor_league_hitters.launch_speed** = Average exit velocity (mph)
+- **savant_minor_league_hitters.launch_angle** = Average launch angle (degrees)
+- **savant_minor_league_hitters.spin_rate** = Average spin rate of pitches seen (rpm)
+- **savant_minor_league_hitters.velocity** = Average velocity of pitches seen (mph)
+- **savant_minor_league_hitters.effective_speed** = Perceived velocity with extension
+- **savant_minor_league_hitters.whiffs** = Number of swings and misses
+- **savant_minor_league_hitters.swings** = Total number of swings
+- **savant_minor_league_hitters.takes** = Number of pitches not swung at
+- **savant_minor_league_hitters.eff_min_vel** = Effective minimum velocity
+- **savant_minor_league_hitters.release_extension** = Pitcher's release extension (feet)
+- **savant_minor_league_hitters.pos3_int_start_distance** = First baseman's positioning
+- **savant_minor_league_hitters.pos4_int_start_distance** = Second baseman's positioning
+- **savant_minor_league_hitters.pos5_int_start_distance** = Third baseman's positioning
+- **savant_minor_league_hitters.pos6_int_start_distance** = Shortstop's positioning
+- **savant_minor_league_hitters.pos7_int_start_distance** = Left fielder's positioning
+- **savant_minor_league_hitters.pos8_int_start_distance** = Center fielder's positioning
+- **savant_minor_league_hitters.pos9_int_start_distance** = Right fielder's positioning
+- **savant_minor_league_hitters.pitcher_run_exp** = Pitcher's run expectancy
+- **savant_minor_league_hitters.run_exp** = Run expectancy value
+- **savant_minor_league_hitters.bat_speed** = Average bat speed (mph)
+- **savant_minor_league_hitters.swing_length** = Average swing length (feet)
+- **savant_minor_league_hitters.pa** = Plate Appearances
+- **savant_minor_league_hitters.bip** = Balls In Play
+- **savant_minor_league_hitters.singles** = Number of singles
+- **savant_minor_league_hitters.doubles** = Number of doubles
+- **savant_minor_league_hitters.triples** = Number of triples
+- **savant_minor_league_hitters.hrs** = Number of home runs
+- **savant_minor_league_hitters.so** = Strikeouts
+- **savant_minor_league_hitters.k_percent** = Strikeout percentage
+- **savant_minor_league_hitters.bb** = Walks
+- **savant_minor_league_hitters.bb_percent** = Walk percentage
+- **savant_minor_league_hitters.api_break_z_with_gravity** = Vertical break with gravity (inches)
+- **savant_minor_league_hitters.api_break_z_induced** = Induced vertical break (inches)
+- **savant_minor_league_hitters.api_break_x_arm** = Horizontal break arm-side (inches)
+- **savant_minor_league_hitters.api_break_x_batter_in** = Horizontal break toward batter (inches)
+- **savant_minor_league_hitters.hyper_speed** = Hyper speed metric
+- **savant_minor_league_hitters.bbdist** = Average batted ball distance (feet)
+- **savant_minor_league_hitters.hardhit_percent** = Hard-hit percentage
+- **savant_minor_league_hitters.barrels_per_bbe_percent** = Barrels per batted ball event
+- **savant_minor_league_hitters.barrels_per_pa_percent** = Barrels per plate appearance
+- **savant_minor_league_hitters.release_pos_z** = Vertical release position (feet)
+- **savant_minor_league_hitters.release_pos_x** = Horizontal release position (feet)
+- **savant_minor_league_hitters.plate_x** = Horizontal plate location (feet)
+- **savant_minor_league_hitters.plate_z** = Vertical plate location (feet)
+- **savant_minor_league_hitters.obp** = On-Base Percentage
+- **savant_minor_league_hitters.barrels_total** = Total number of barrels
+- **savant_minor_league_hitters.batter_run_value_per_100** = Batter run value per 100 pitches
+- **savant_minor_league_hitters.xobp** = Expected On-Base Percentage
+- **savant_minor_league_hitters.xslg** = Expected Slugging Percentage
+- **savant_minor_league_hitters.pitcher_run_value_per_100** = Pitcher run value per 100 pitches
+- **savant_minor_league_hitters.xbadiff** = Difference between actual and expected BA
+- **savant_minor_league_hitters.xobpdiff** = Difference between actual and expected OBP
+- **savant_minor_league_hitters.xslgdiff** = Difference between actual and expected SLG
+- **savant_minor_league_hitters.wobadiff** = Difference between actual and expected wOBA
+- **savant_minor_league_hitters.swing_miss_percent** = Swing and miss percentage
+- **savant_minor_league_hitters.arm_angle** = Pitcher's arm angle (degrees)
+- **savant_minor_league_hitters.attack_angle** = Bat's attack angle (degrees)
+- **savant_minor_league_hitters.attack_direction** = Direction of bat attack
+- **savant_minor_league_hitters.swing_path_tilt** = Tilt of swing path (degrees)
+- **savant_minor_league_hitters.rate_ideal_attack_angle** = Rate of ideal attack angle
+- **savant_minor_league_hitters.intercept_ball_minus_batter_pos_x_inches** = Horizontal ball-bat intercept difference (inches)
+- **savant_minor_league_hitters.intercept_ball_minus_batter_pos_y_inches** = Vertical ball-bat intercept difference (inches)
+
+## Table: savant_minor_leagur_pitchers
+Minor league pitchers statistics data
+
+- **savant_minor_leagur_pitchers.row_id** = Unique row identifier (primary key)
+- **savant_minor_leagur_pitchers.pitches** = Pitch type or classification
+- **savant_minor_leagur_pitchers.player_id** = Unique player identifier
+- **savant_minor_leagur_pitchers.player_name** = Player's full name (Last, First format)
+- **savant_minor_leagur_pitchers.total_pitches** = Total number of pitches thrown
+- **savant_minor_leagur_pitchers.pitch_percent** = Percentage of specific pitch type thrown
+- **savant_minor_leagur_pitchers.ba** = Batting Average against
+- **savant_minor_leagur_pitchers.iso** = Isolated Power against
+- **savant_minor_leagur_pitchers.babip** = Batting Average on Balls In Play against
+- **savant_minor_leagur_pitchers.slg** = Slugging Percentage against
+- **savant_minor_leagur_pitchers.woba** = Weighted On-Base Average against
+- **savant_minor_leagur_pitchers.xwoba** = Expected Weighted On-Base Average against
+- **savant_minor_leagur_pitchers.xba** = Expected Batting Average against
+- **savant_minor_leagur_pitchers.hits** = Total hits allowed
+- **savant_minor_leagur_pitchers.abs** = At-bats against
+- **savant_minor_leagur_pitchers.launch_speed** = Average exit velocity allowed (mph)
+- **savant_minor_leagur_pitchers.launch_angle** = Average launch angle allowed (degrees)
+- **savant_minor_leagur_pitchers.spin_rate** = Average spin rate (rpm)
+- **savant_minor_leagur_pitchers.velocity** = Average pitch velocity (mph)
+- **savant_minor_leagur_pitchers.effective_speed** = Perceived velocity with extension
+- **savant_minor_leagur_pitchers.whiffs** = Number of swings and misses generated
+- **savant_minor_leagur_pitchers.swings** = Total swings against
+- **savant_minor_leagur_pitchers.takes** = Number of pitches not swung at
+- **savant_minor_leagur_pitchers.eff_min_vel** = Effective minimum velocity
+- **savant_minor_leagur_pitchers.release_extension** = Release point extension (feet)
+- **savant_minor_leagur_pitchers.pos3_int_start_distance** = First baseman's positioning
+- **savant_minor_leagur_pitchers.pos4_int_start_distance** = Second baseman's positioning
+- **savant_minor_leagur_pitchers.pos5_int_start_distance** = Third baseman's positioning
+- **savant_minor_leagur_pitchers.pos6_int_start_distance** = Shortstop's positioning
+- **savant_minor_leagur_pitchers.pos7_int_start_distance** = Left fielder's positioning
+- **savant_minor_leagur_pitchers.pos8_int_start_distance** = Center fielder's positioning
+- **savant_minor_leagur_pitchers.pos9_int_start_distance** = Right fielder's positioning
+- **savant_minor_leagur_pitchers.pitcher_run_exp** = Pitcher's run expectancy
+- **savant_minor_leagur_pitchers.run_exp** = Run expectancy value
+- **savant_minor_leagur_pitchers.bat_speed** = Average bat speed of hitters faced (mph)
+- **savant_minor_leagur_pitchers.swing_length** = Average swing length of hitters faced (feet)
+- **savant_minor_leagur_pitchers.pa** = Plate Appearances against
+- **savant_minor_leagur_pitchers.bip** = Balls In Play allowed
+- **savant_minor_leagur_pitchers.singles** = Singles allowed
+- **savant_minor_leagur_pitchers.doubles** = Doubles allowed
+- **savant_minor_leagur_pitchers.triples** = Triples allowed
+- **savant_minor_leagur_pitchers.hrs** = Home runs allowed
+- **savant_minor_leagur_pitchers.so** = Strikeouts recorded
+- **savant_minor_leagur_pitchers.k_percent** = Strikeout percentage
+- **savant_minor_leagur_pitchers.bb** = Walks allowed
+- **savant_minor_leagur_pitchers.bb_percent** = Walk percentage
+- **savant_minor_leagur_pitchers.api_break_z_with_gravity** = Vertical break with gravity (inches)
+- **savant_minor_leagur_pitchers.api_break_z_induced** = Induced vertical break (inches)
+- **savant_minor_leagur_pitchers.api_break_x_arm** = Horizontal break arm-side (inches)
+- **savant_minor_leagur_pitchers.api_break_x_batter_in** = Horizontal break toward batter (inches)
+- **savant_minor_leagur_pitchers.hyper_speed** = Hyper speed metric
+- **savant_minor_leagur_pitchers.bbdist** = Average batted ball distance allowed (feet)
+- **savant_minor_leagur_pitchers.hardhit_percent** = Hard-hit percentage allowed
+- **savant_minor_leagur_pitchers.barrels_per_bbe_percent** = Barrels per batted ball event allowed
+- **savant_minor_leagur_pitchers.barrels_per_pa_percent** = Barrels per plate appearance allowed
+- **savant_minor_leagur_pitchers.release_pos_z** = Vertical release position (feet)
+- **savant_minor_leagur_pitchers.release_pos_x** = Horizontal release position (feet)
+- **savant_minor_leagur_pitchers.plate_x** = Average horizontal plate location (feet)
+- **savant_minor_leagur_pitchers.plate_z** = Average vertical plate location (feet)
+- **savant_minor_leagur_pitchers.obp** = On-Base Percentage against
+- **savant_minor_leagur_pitchers.barrels_total** = Total barrels allowed
+- **savant_minor_leagur_pitchers.batter_run_value_per_100** = Batter run value per 100 pitches
+- **savant_minor_leagur_pitchers.xobp** = Expected On-Base Percentage against
+- **savant_minor_leagur_pitchers.xslg** = Expected Slugging Percentage against
+- **savant_minor_leagur_pitchers.pitcher_run_value_per_100** = Pitcher run value per 100 pitches
+- **savant_minor_leagur_pitchers.xbadiff** = Difference between actual and expected BA against
+- **savant_minor_leagur_pitchers.xobpdiff** = Difference between actual and expected OBP against
+- **savant_minor_leagur_pitchers.xslgdiff** = Difference between actual and expected SLG against
+- **savant_minor_leagur_pitchers.wobadiff** = Difference between actual and expected wOBA against
+- **savant_minor_leagur_pitchers.swing_miss_percent** = Swing and miss percentage generated
+- **savant_minor_leagur_pitchers.arm_angle** = Pitcher's arm angle (degrees)
+- **savant_minor_leagur_pitchers.attack_angle** = Average attack angle faced (degrees)
+- **savant_minor_leagur_pitchers.attack_direction** = Average attack direction faced
+- **savant_minor_leagur_pitchers.swing_path_tilt** = Average swing path tilt faced (degrees)
+- **savant_minor_leagur_pitchers.rate_ideal_attack_angle** = Rate of ideal attack angle by hitters
+- **savant_minor_leagur_pitchers.intercept_ball_minus_batter_pos_x_inches** = Horizontal ball-bat intercept difference (inches)
+- **savant_minor_leagur_pitchers.intercept_ball_minus_batter_pos_y_inches** = Vertical ball-bat intercept difference (inches)
+
+## Glossary of Key Baseball Terms
+
+- **BA (Batting Average)**: Hits divided by at-bats, measures hitting success rate
+- **OBP (On-Base Percentage)**: Times on base divided by plate appearances
+- **SLG (Slugging Percentage)**: Total bases divided by at-bats, measures power
+- **ISO (Isolated Power)**: SLG minus BA, pure measure of extra-base hit power
+- **wOBA (Weighted On-Base Average)**: Comprehensive offensive value metric
+- **BABIP**: Batting average on balls put in play (excludes home runs and strikeouts)
+- **Barrel**: Optimal combination of exit velocity and launch angle
+- **Hard-Hit**: Batted balls with exit velocity of 95+ mph
+- **Launch Angle**: Vertical angle at which ball leaves the bat
+- **Exit Velocity/Launch Speed**: Speed of ball off the bat
+- **Spin Rate**: Revolutions per minute of the pitched ball
+- **Release Extension**: How far in front of the rubber the pitcher releases the ball
+- **Expected Stats (xBA, xSLG, xwOBA)**: Statcast metrics based on quality of contact
