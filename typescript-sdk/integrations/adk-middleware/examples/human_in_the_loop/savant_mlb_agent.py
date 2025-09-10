@@ -26,86 +26,397 @@ yankees_baseball_analytics_agent = LlmAgent(
 3. *savant_minor_league_hitters* - Minor league batters (1,174 records)
 4. *savant_minor_leagur_pitchers* - Minor league pitchers (1,634 records)
 
-### Key Column Definitions
+### Table: savant_MLB_B_data - MLB Batters Statistics Data
 
-#### Player Identification
-- *player_id* (INTEGER): Unique identifier for each player - PRIMARY KEY for joining tables
-- *player_name* (STRING): Player's full name
+#### Core Fields
+- *row_id* (INTEGER): Unique row identifier (primary key)
+- *pitches* (STRING): Pitch type or classification
+- *player_id* (INTEGER): Unique MLB player identifier - PRIMARY KEY for joins
+- *player_name* (STRING): Player's full name (Last, First format)
+- *total_pitches* (INTEGER): Total number of pitches seen
+- *pitch_percent* (FLOAT64): Percentage of specific pitch type seen
 
 #### Offensive Performance Metrics
-- *ba* (FLOAT64): Batting average
-- *obp* (FLOAT64): On-base percentage
-- *slg* (FLOAT64): Slugging percentage
-- *iso* (FLOAT64): Isolated power (SLG - BA)
-- *woba* (FLOAT64): Weighted on-base average
-- *babip* (FLOAT64): Batting average on balls in play
+- *ba* (FLOAT64): Batting Average (hits/at-bats)
+- *obp* (FLOAT64): On-Base Percentage
+- *slg* (FLOAT64): Slugging Percentage (total bases/at-bats)
+- *iso* (FLOAT64): Isolated Power (slugging percentage minus batting average)
+- *woba* (FLOAT64): Weighted On-Base Average
+- *babip* (FLOAT64): Batting Average on Balls In Play
 
 #### Expected Metrics (Statcast)
-- *xba* (FLOAT64): Expected batting average based on exit velocity and launch angle
-- *xobp* (FLOAT64): Expected on-base percentage
-- *xslg* (FLOAT64): Expected slugging percentage
-- *xwoba* (FLOAT64): Expected weighted on-base average
-- *xbadiff* (FLOAT64): Difference between actual BA and xBA
-- *xobpdiff* (FLOAT64): Difference between actual OBP and xOBP
-- *xslgdiff* (FLOAT64): Difference between actual SLG and xSLG
-- *wobadiff* (FLOAT64): Difference between actual wOBA and xwOBA
+- *xba* (FLOAT64): Expected Batting Average (Statcast)
+- *xobp* (FLOAT64): Expected On-Base Percentage
+- *xslg* (FLOAT64): Expected Slugging Percentage
+- *xwoba* (FLOAT64): Expected Weighted On-Base Average (Statcast)
+- *xbadiff* (FLOAT64): Difference between actual and expected batting average
+- *xobpdiff* (FLOAT64): Difference between actual and expected OBP
+- *xslgdiff* (FLOAT64): Difference between actual and expected slugging
+- *wobadiff* (FLOAT64): Difference between actual and expected wOBA
 
 #### Batted Ball Data
-- *launch_speed* (FLOAT64): Average exit velocity in mph
-- *launch_angle* (FLOAT64): Average launch angle in degrees
-- *bbdist* (FLOAT64/INTEGER): Average batted ball distance
-- *hardhit_percent* (FLOAT64): Percentage of batted balls hit 95+ mph
-- *barrels_total* (FLOAT64/INTEGER): Total number of barrels
+- *hits* (INTEGER): Total number of hits
+- *abs* (INTEGER): At-bats (plate appearances minus walks, HBP, sacrifices)
+- *launch_speed* (FLOAT64): Average exit velocity off the bat (mph)
+- *launch_angle* (FLOAT64): Average launch angle of batted balls (degrees)
+- *bbdist* (INTEGER): Average batted ball distance (feet)
+- *hardhit_percent* (FLOAT64): Hard-hit percentage (exit velocity ≥95 mph)
+- *barrels_total* (INTEGER): Total number of barrels
 - *barrels_per_bbe_percent* (FLOAT64): Barrels per batted ball event percentage
 - *barrels_per_pa_percent* (FLOAT64): Barrels per plate appearance percentage
 
-#### Biomechanical Metrics (MLB only)
-- *bat_speed* (FLOAT64): Average bat speed in mph [NULL for minor league data]
-- *swing_length* (FLOAT64): Average swing length in feet [NULL for minor league data]
-- *attack_angle* (FLOAT64): Vertical bat angle at impact [NULL for minor league data]
-- *attack_direction* (FLOAT64): Horizontal bat angle at impact [NULL for minor league data]
-- *swing_path_tilt* (FLOAT64): Swing plane angle [NULL for minor league data]
-- *rate_ideal_attack_angle* (FLOAT64): Percentage of swings at ideal attack angle [NULL for minor league data]
+#### Biomechanical Metrics (MLB Exclusive)
+- *bat_speed* (FLOAT64): Average bat speed (mph)
+- *swing_length* (FLOAT64): Average swing length (feet)
+- *attack_angle* (FLOAT64): Bat's attack angle (degrees)
+- *attack_direction* (FLOAT64): Direction of bat attack
+- *swing_path_tilt* (FLOAT64): Tilt of swing path (degrees)
+- *rate_ideal_attack_angle* (FLOAT64): Rate of ideal attack angle achievement
+- *intercept_ball_minus_batter_pos_x_inches* (FLOAT64): Horizontal ball-bat intercept difference (inches)
+- *intercept_ball_minus_batter_pos_y_inches* (FLOAT64): Vertical ball-bat intercept difference (inches)
 
-#### Plate Discipline
-- *pa* (INTEGER): Plate appearances
+#### Plate Discipline & Swing Data
+- *pa* (INTEGER): Plate Appearances
+- *bip* (INTEGER): Balls In Play
+- *singles* (INTEGER): Number of singles hit
+- *doubles* (INTEGER): Number of doubles hit
+- *triples* (INTEGER): Number of triples hit
+- *hrs* (INTEGER): Number of home runs hit
+- *so* (INTEGER): Strikeouts
+- *k_percent* (FLOAT64): Strikeout percentage (K/PA)
+- *bb* (INTEGER): Walks (bases on balls)
+- *bb_percent* (FLOAT64): Walk percentage (BB/PA)
+- *whiffs* (INTEGER): Number of swings and misses
+- *swings* (INTEGER): Total number of swings
+- *takes* (INTEGER): Number of pitches not swung at
+- *swing_miss_percent* (FLOAT64): Swing and miss percentage
+
+#### Pitching Data Faced
+- *spin_rate* (INTEGER): Average spin rate of pitches seen (rpm)
+- *velocity* (FLOAT64): Average velocity of pitches seen (mph)
+- *effective_speed* (FLOAT64): Perceived velocity accounting for extension
+- *eff_min_vel* (FLOAT64): Effective minimum velocity
+- *release_extension* (FLOAT64): Pitcher's release point extension (feet)
+- *release_pos_z* (FLOAT64): Vertical release position (feet)
+- *release_pos_x* (FLOAT64): Horizontal release position (feet)
+- *plate_x* (FLOAT64): Horizontal plate location (feet)
+- *plate_z* (FLOAT64): Vertical plate location (feet)
+- *arm_angle* (FLOAT64): Pitcher's arm angle (degrees)
+
+#### Pitch Movement Data
+- *api_break_z_with_gravity* (FLOAT64): Vertical break with gravity (inches)
+- *api_break_z_induced* (FLOAT64): Induced vertical break (inches)
+- *api_break_x_arm* (FLOAT64): Horizontal break arm-side (inches)
+- *api_break_x_batter_in* (FLOAT64): Horizontal break toward batter (inches)
+- *hyper_speed* (FLOAT64): Hyper speed metric
+
+#### Run Value & Performance Metrics
+- *pitcher_run_exp* (FLOAT64): Pitcher's run expectancy
+- *run_exp* (FLOAT64): Run expectancy value
+- *batter_run_value_per_100* (FLOAT64): Batter run value per 100 pitches
+- *pitcher_run_value_per_100* (FLOAT64): Pitcher run value per 100 pitches
+
+#### Defensive Positioning Data
+- *pos3_int_start_distance* (INTEGER): First baseman's starting position distance
+- *pos4_int_start_distance* (INTEGER): Second baseman's starting position distance
+- *pos5_int_start_distance* (INTEGER): Third baseman's starting position distance
+- *pos6_int_start_distance* (INTEGER): Shortstop's starting position distance
+- *pos7_int_start_distance* (INTEGER): Left fielder's starting position distance
+- *pos8_int_start_distance* (INTEGER): Center fielder's starting position distance
+- *pos9_int_start_distance* (INTEGER): Right fielder's starting position distance
+
+### Table: savant_MLB_P_data - MLB Pitchers Statistics Data
+
+#### Core Fields
+- *row_id* (INTEGER): Unique row identifier (primary key)
+- *pitches* (STRING): Pitch type or classification
+- *player_id* (INTEGER): Unique MLB player identifier - PRIMARY KEY for joins
+- *player_name* (STRING): Player's full name (Last, First format)
+- *total_pitches* (INTEGER): Total number of pitches thrown
+- *pitch_percent* (FLOAT64): Percentage of specific pitch type thrown
+
+#### Performance Against (Pitching Stats)
+- *ba* (FLOAT64): Batting Average against
+- *obp* (FLOAT64): On-Base Percentage against
+- *slg* (FLOAT64): Slugging Percentage against
+- *iso* (FLOAT64): Isolated Power against
+- *woba* (FLOAT64): Weighted On-Base Average against
+- *babip* (FLOAT64): Batting Average on Balls In Play against
+- *xba* (FLOAT64): Expected Batting Average against
+- *xobp* (FLOAT64): Expected On-Base Percentage against
+- *xslg* (FLOAT64): Expected Slugging Percentage against
+- *xwoba* (FLOAT64): Expected Weighted On-Base Average against
+- *xbadiff* (FLOAT64): Difference between actual and expected BA against
+- *xobpdiff* (FLOAT64): Difference between actual and expected OBP against
+- *xslgdiff* (FLOAT64): Difference between actual and expected SLG against
+- *wobadiff* (FLOAT64): Difference between actual and expected wOBA against
+
+#### Results & Volume Data
+- *hits* (INTEGER): Total hits allowed
+- *abs* (INTEGER): At-bats against
+- *pa* (INTEGER): Plate Appearances against
+- *bip* (INTEGER): Balls In Play allowed
+- *singles* (INTEGER): Singles allowed
+- *doubles* (INTEGER): Doubles allowed
+- *triples* (INTEGER): Triples allowed
+- *hrs* (INTEGER): Home runs allowed
+- *so* (INTEGER): Strikeouts recorded
+- *k_percent* (FLOAT64): Strikeout percentage
+- *bb* (INTEGER): Walks allowed
+- *bb_percent* (FLOAT64): Walk percentage
+
+#### Contact Quality Allowed
+- *launch_speed* (FLOAT64): Average exit velocity allowed (mph)
+- *launch_angle* (FLOAT64): Average launch angle allowed (degrees)
+- *bbdist* (INTEGER): Average batted ball distance allowed (feet)
+- *hardhit_percent* (FLOAT64): Hard-hit percentage allowed
+- *barrels_total* (INTEGER): Total barrels allowed
+- *barrels_per_bbe_percent* (FLOAT64): Barrels per batted ball event allowed
+- *barrels_per_pa_percent* (FLOAT64): Barrels per plate appearance allowed
+
+#### Pitch Characteristics
+- *spin_rate* (INTEGER): Average spin rate of pitches (rpm)
+- *velocity* (FLOAT64): Average pitch velocity (mph)
+- *effective_speed* (FLOAT64): Perceived velocity with extension
+- *eff_min_vel* (FLOAT64): Effective minimum velocity
+- *release_extension* (FLOAT64): Release point extension (feet)
+- *release_pos_z* (FLOAT64): Vertical release position (feet)
+- *release_pos_x* (FLOAT64): Horizontal release position (feet)
+- *plate_x* (FLOAT64): Average horizontal plate location (feet)
+- *plate_z* (FLOAT64): Average vertical plate location (feet)
+- *arm_angle* (FLOAT64): Pitcher's arm angle (degrees)
+
+#### Pitch Movement
+- *api_break_z_with_gravity* (FLOAT64): Vertical break with gravity (inches)
+- *api_break_z_induced* (FLOAT64): Induced vertical break (inches)
+- *api_break_x_arm* (FLOAT64): Horizontal break arm-side (inches)
+- *api_break_x_batter_in* (FLOAT64): Horizontal break toward batter (inches)
+- *hyper_speed* (FLOAT64): Hyper speed metric
+
+#### Hitter Behavior Against
+- *whiffs* (INTEGER): Number of swings and misses generated
+- *swings* (INTEGER): Total swings against
+- *takes* (INTEGER): Number of pitches not swung at
+- *swing_miss_percent* (FLOAT64): Swing and miss percentage generated
+- *bat_speed* (FLOAT64): Average bat speed of hitters faced (mph)
+- *swing_length* (FLOAT64): Average swing length of hitters faced (feet)
+- *attack_angle* (FLOAT64): Average attack angle faced (degrees)
+- *attack_direction* (FLOAT64): Average attack direction faced
+- *swing_path_tilt* (FLOAT64): Average swing path tilt faced (degrees)
+- *rate_ideal_attack_angle* (FLOAT64): Rate of ideal attack angle by hitters
+- *intercept_ball_minus_batter_pos_x_inches* (FLOAT64): Horizontal ball-bat intercept difference (inches)
+- *intercept_ball_minus_batter_pos_y_inches* (FLOAT64): Vertical ball-bat intercept difference (inches)
+
+#### Run Value Metrics
+- *pitcher_run_exp* (FLOAT64): Pitcher's run expectancy
+- *run_exp* (FLOAT64): Run expectancy value
+- *batter_run_value_per_100* (FLOAT64): Batter run value per 100 pitches
+- *pitcher_run_value_per_100* (FLOAT64): Pitcher run value per 100 pitches
+
+#### Defensive Positioning
+- *pos3_int_start_distance* (INTEGER): First baseman's positioning
+- *pos4_int_start_distance* (INTEGER): Second baseman's positioning
+- *pos5_int_start_distance* (INTEGER): Third baseman's positioning
+- *pos6_int_start_distance* (INTEGER): Shortstop's positioning
+- *pos7_int_start_distance* (INTEGER): Left fielder's positioning
+- *pos8_int_start_distance* (INTEGER): Center fielder's positioning
+- *pos9_int_start_distance* (INTEGER): Right fielder's positioning
+
+### Table: savant_minor_league_hitters - Minor League Hitters Statistics Data
+
+#### Core Fields
+- *row_id* (INTEGER): Unique row identifier (primary key)
+- *pitches* (STRING): Pitch type or classification
+- *player_id* (INTEGER): Unique player identifier - PRIMARY KEY for joins
+- *player_name* (STRING): Player's full name (Last, First format)
+- *total_pitches* (INTEGER): Total number of pitches seen
+- *pitch_percent* (FLOAT64): Percentage of specific pitch type seen
+
+#### Performance Metrics (Note: NO biomechanical data like bat_speed, swing_length, etc.)
+- *ba* (FLOAT64): Batting Average
+- *obp* (FLOAT64): On-Base Percentage
+- *slg* (FLOAT64): Slugging Percentage
+- *iso* (FLOAT64): Isolated Power
+- *woba* (FLOAT64): Weighted On-Base Average
+- *babip* (FLOAT64): Batting Average on Balls In Play
+- *xba* (FLOAT64): Expected Batting Average
+- *xobp* (FLOAT64): Expected On-Base Percentage
+- *xslg* (FLOAT64): Expected Slugging Percentage
+- *xwoba* (FLOAT64): Expected Weighted On-Base Average
+- *xbadiff* (FLOAT64): Difference between actual and expected BA
+- *xobpdiff* (FLOAT64): Difference between actual and expected OBP
+- *xslgdiff* (FLOAT64): Difference between actual and expected SLG
+- *wobadiff* (FLOAT64): Difference between actual and expected wOBA
+
+#### Contact & Results
+- *hits* (INTEGER): Total number of hits
 - *abs* (INTEGER): At-bats
-- *hits* (INTEGER): Total hits
-- *singles* (INTEGER): Singles
-- *doubles* (INTEGER): Doubles
-- *triples* (INTEGER): Triples
-- *hrs* (INTEGER): Home runs
+- *pa* (INTEGER): Plate Appearances
+- *bip* (INTEGER): Balls In Play
+- *singles* (INTEGER): Number of singles
+- *doubles* (INTEGER): Number of doubles
+- *triples* (INTEGER): Number of triples
+- *hrs* (INTEGER): Number of home runs
 - *so* (INTEGER): Strikeouts
 - *k_percent* (FLOAT64): Strikeout percentage
 - *bb* (INTEGER): Walks
 - *bb_percent* (FLOAT64): Walk percentage
-- *whiffs* (INTEGER): Swing and misses
-- *swings* (INTEGER): Total swings
-- *takes* (INTEGER): Pitches not swung at
-- *swing_miss_percent* (FLOAT64): Whiff rate
 
-#### Pitching Metrics
-- *velocity* (FLOAT64): Average pitch velocity in mph
-- *effective_speed* (FLOAT64): Perceived velocity accounting for extension
-- *spin_rate* (FLOAT64/INTEGER): Average spin rate in rpm
-- *release_extension* (FLOAT64): Release point extension in feet
-- *release_pos_z* (FLOAT64): Vertical release point
-- *release_pos_x* (FLOAT64): Horizontal release point
+#### Batted Ball Quality
+- *launch_speed* (FLOAT64): Average exit velocity (mph)
+- *launch_angle* (FLOAT64): Average launch angle (degrees)
+- *bbdist* (INTEGER): Average batted ball distance (feet)
+- *hardhit_percent* (FLOAT64): Hard-hit percentage
+- *barrels_total* (INTEGER): Total number of barrels
+- *barrels_per_bbe_percent* (FLOAT64): Barrels per batted ball event
+- *barrels_per_pa_percent* (FLOAT64): Barrels per plate appearance
+
+#### Swing Data & Approach
+- *whiffs* (INTEGER): Number of swings and misses
+- *swings* (INTEGER): Total number of swings
+- *takes* (INTEGER): Number of pitches not swung at
+- *swing_miss_percent* (FLOAT64): Swing and miss percentage
+
+#### Pitching Faced
+- *spin_rate* (INTEGER): Average spin rate of pitches seen (rpm)
+- *velocity* (FLOAT64): Average velocity of pitches seen (mph)
+- *effective_speed* (FLOAT64): Perceived velocity with extension
+- *eff_min_vel* (FLOAT64): Effective minimum velocity
+- *release_extension* (FLOAT64): Pitcher's release extension (feet)
+- *release_pos_z* (FLOAT64): Vertical release position (feet)
+- *release_pos_x* (FLOAT64): Horizontal release position (feet)
+- *plate_x* (FLOAT64): Horizontal plate location (feet)
+- *plate_z* (FLOAT64): Vertical plate location (feet)
+- *arm_angle* (FLOAT64): Pitcher's arm angle (degrees)
 
 #### Pitch Movement
-- *api_break_z_with_gravity* (FLOAT64): Total vertical break including gravity
-- *api_break_z_induced* (FLOAT64): Vertical break from spin
-- *api_break_x_arm* (FLOAT64): Horizontal break arm-side
-- *api_break_x_batter_in* (FLOAT64): Horizontal break into batter
+- *api_break_z_with_gravity* (FLOAT64): Vertical break with gravity (inches)
+- *api_break_z_induced* (FLOAT64): Induced vertical break (inches)
+- *api_break_x_arm* (FLOAT64): Horizontal break arm-side (inches)
+- *api_break_x_batter_in* (FLOAT64): Horizontal break toward batter (inches)
+- *hyper_speed* (FLOAT64): Hyper speed metric
 
-#### Run Value Metrics
-- *pitcher_run_exp* (FLOAT64): Run expectancy from pitcher perspective
-- *run_exp* (FLOAT64): Run expectancy
-- *batter_run_value_per_100* (FLOAT64): Batting runs above average per 100 pitches
-- *pitcher_run_value_per_100* (FLOAT64): Pitching runs above average per 100 pitches
+#### Limited Biomechanical Data (Usually NULL for Minor League)
+- *bat_speed* (FLOAT64): Average bat speed (mph) - Usually NULL
+- *swing_length* (FLOAT64): Average swing length (feet) - Usually NULL
+- *attack_angle* (FLOAT64): Bat's attack angle (degrees) - Usually NULL
+- *attack_direction* (FLOAT64): Direction of bat attack - Usually NULL
+- *swing_path_tilt* (FLOAT64): Tilt of swing path (degrees) - Usually NULL
+- *rate_ideal_attack_angle* (FLOAT64): Rate of ideal attack angle - Usually NULL
+- *intercept_ball_minus_batter_pos_x_inches* (FLOAT64): Horizontal ball-bat intercept difference (inches) - Usually NULL
+- *intercept_ball_minus_batter_pos_y_inches* (FLOAT64): Vertical ball-bat intercept difference (inches) - Usually NULL
+
+#### Run Value & Performance
+- *pitcher_run_exp* (FLOAT64): Pitcher's run expectancy
+- *run_exp* (FLOAT64): Run expectancy value
+- *batter_run_value_per_100* (FLOAT64): Batter run value per 100 pitches
+- *pitcher_run_value_per_100* (FLOAT64): Pitcher run value per 100 pitches
 
 #### Defensive Positioning
-- *pos3_int_start_distance* through *pos9_int_start_distance* (INTEGER): Starting distance for each fielder position
+- *pos3_int_start_distance* (INTEGER): First baseman's positioning
+- *pos4_int_start_distance* (INTEGER): Second baseman's positioning
+- *pos5_int_start_distance* (INTEGER): Third baseman's positioning
+- *pos6_int_start_distance* (INTEGER): Shortstop's positioning
+- *pos7_int_start_distance* (INTEGER): Left fielder's positioning
+- *pos8_int_start_distance* (INTEGER): Center fielder's positioning
+- *pos9_int_start_distance* (INTEGER): Right fielder's positioning
+
+### Table: savant_minor_leagur_pitchers - Minor League Pitchers Statistics Data
+
+#### Core Fields
+- *row_id* (INTEGER): Unique row identifier (primary key)
+- *pitches* (STRING): Pitch type or classification
+- *player_id* (INTEGER): Unique player identifier - PRIMARY KEY for joins
+- *player_name* (STRING): Player's full name (Last, First format)
+- *total_pitches* (INTEGER): Total number of pitches thrown
+- *pitch_percent* (FLOAT64): Percentage of specific pitch type thrown
+
+#### Performance Against
+- *ba* (FLOAT64): Batting Average against
+- *obp* (FLOAT64): On-Base Percentage against
+- *slg* (FLOAT64): Slugging Percentage against
+- *iso* (FLOAT64): Isolated Power against
+- *woba* (FLOAT64): Weighted On-Base Average against
+- *babip* (FLOAT64): Batting Average on Balls In Play against
+- *xba* (FLOAT64): Expected Batting Average against
+- *xobp* (FLOAT64): Expected On-Base Percentage against
+- *xslg* (FLOAT64): Expected Slugging Percentage against
+- *xwoba* (FLOAT64): Expected Weighted On-Base Average against
+- *xbadiff* (FLOAT64): Difference between actual and expected BA against
+- *xobpdiff* (FLOAT64): Difference between actual and expected OBP against
+- *xslgdiff* (FLOAT64): Difference between actual and expected SLG against
+- *wobadiff* (FLOAT64): Difference between actual and expected wOBA against
+
+#### Results & Volume
+- *hits* (INTEGER): Total hits allowed
+- *abs* (INTEGER): At-bats against
+- *pa* (INTEGER): Plate Appearances against
+- *bip* (INTEGER): Balls In Play allowed
+- *singles* (INTEGER): Singles allowed
+- *doubles* (INTEGER): Doubles allowed
+- *triples* (INTEGER): Triples allowed
+- *hrs* (INTEGER): Home runs allowed
+- *so* (INTEGER): Strikeouts recorded
+- *k_percent* (FLOAT64): Strikeout percentage
+- *bb* (INTEGER): Walks allowed
+- *bb_percent* (FLOAT64): Walk percentage
+
+#### Contact Quality Allowed
+- *launch_speed* (FLOAT64): Average exit velocity allowed (mph)
+- *launch_angle* (FLOAT64): Average launch angle allowed (degrees)
+- *bbdist* (INTEGER): Average batted ball distance allowed (feet)
+- *hardhit_percent* (FLOAT64): Hard-hit percentage allowed
+- *barrels_total* (INTEGER): Total barrels allowed
+- *barrels_per_bbe_percent* (FLOAT64): Barrels per batted ball event allowed
+- *barrels_per_pa_percent* (FLOAT64): Barrels per plate appearance allowed
+
+#### Pitch Characteristics
+- *spin_rate* (INTEGER): Average spin rate (rpm)
+- *velocity* (FLOAT64): Average pitch velocity (mph)
+- *effective_speed* (FLOAT64): Perceived velocity with extension
+- *eff_min_vel* (FLOAT64): Effective minimum velocity
+- *release_extension* (FLOAT64): Release point extension (feet)
+- *release_pos_z* (FLOAT64): Vertical release position (feet)
+- *release_pos_x* (FLOAT64): Horizontal release position (feet)
+- *plate_x* (FLOAT64): Average horizontal plate location (feet)
+- *plate_z* (FLOAT64): Average vertical plate location (feet)
+- *arm_angle* (FLOAT64): Pitcher's arm angle (degrees)
+
+#### Pitch Movement
+- *api_break_z_with_gravity* (FLOAT64): Vertical break with gravity (inches)
+- *api_break_z_induced* (FLOAT64): Induced vertical break (inches)
+- *api_break_x_arm* (FLOAT64): Horizontal break arm-side (inches)
+- *api_break_x_batter_in* (FLOAT64): Horizontal break toward batter (inches)
+- *hyper_speed* (FLOAT64): Hyper speed metric
+
+#### Hitter Behavior Against
+- *whiffs* (INTEGER): Number of swings and misses generated
+- *swings* (INTEGER): Total swings against
+- *takes* (INTEGER): Number of pitches not swung at
+- *swing_miss_percent* (FLOAT64): Swing and miss percentage generated
+- *bat_speed* (FLOAT64): Average bat speed of hitters faced (mph)
+- *swing_length* (FLOAT64): Average swing length of hitters faced (feet)
+- *attack_angle* (FLOAT64): Average attack angle faced (degrees)
+- *attack_direction* (FLOAT64): Average attack direction faced
+- *swing_path_tilt* (FLOAT64): Average swing path tilt faced (degrees)
+- *rate_ideal_attack_angle* (FLOAT64): Rate of ideal attack angle by hitters
+- *intercept_ball_minus_batter_pos_x_inches* (FLOAT64): Horizontal ball-bat intercept difference (inches)
+- *intercept_ball_minus_batter_pos_y_inches* (FLOAT64): Vertical ball-bat intercept difference (inches)
+
+#### Run Value Metrics
+- *pitcher_run_exp* (FLOAT64): Pitcher's run expectancy
+- *run_exp* (FLOAT64): Run expectancy value
+- *batter_run_value_per_100* (FLOAT64): Batter run value per 100 pitches
+- *pitcher_run_value_per_100* (FLOAT64): Pitcher run value per 100 pitches
+
+#### Defensive Positioning
+- *pos3_int_start_distance* (INTEGER): First baseman's positioning
+- *pos4_int_start_distance* (INTEGER): Second baseman's positioning
+- *pos5_int_start_distance* (INTEGER): Third baseman's positioning
+- *pos6_int_start_distance* (INTEGER): Shortstop's positioning
+- *pos7_int_start_distance* (INTEGER): Left fielder's positioning
+- *pos8_int_start_distance* (INTEGER): Center fielder's positioning
+- *pos9_int_start_distance* (INTEGER): Right fielder's positioning
 
 ---
 
@@ -344,56 +655,201 @@ Reference Tables (For Development Context)
 savant_minor_league_hitters - Minor league batters (1,174 records) - For prospect context
 savant_minor_leagur_pitchers - Minor league pitchers (1,634 records) - For prospect context
 
-Key Column Definitions
-Player Identification
+### Table: savant_MLB_B_data - MLB Batters (PRIMARY FOCUS)
 
-player_id (INTEGER): Unique identifier - PRIMARY KEY for joins
-player_name (STRING): Player's full name
+#### Core Fields
+- row_id (INTEGER): Unique row identifier (primary key)
+- pitches (STRING): Pitch type or classification
+- player_id (INTEGER): Unique MLB player identifier - PRIMARY KEY for joins
+- player_name (STRING): Player's full name (Last, First format)
+- total_pitches (INTEGER): Total number of pitches seen
+- pitch_percent (FLOAT64): Percentage of specific pitch type seen
 
-Advanced Biomechanics (MLB EXCLUSIVE)
+#### Advanced Biomechanics (MLB EXCLUSIVE)
+- bat_speed (FLOAT64): Average bat speed in mph
+- swing_length (FLOAT64): Average swing length in feet
+- attack_angle (FLOAT64): Vertical bat angle at impact (degrees)
+- attack_direction (FLOAT64): Horizontal bat angle (degrees)
+- swing_path_tilt (FLOAT64): Swing plane angle
+- rate_ideal_attack_angle (FLOAT64): % swings at optimal attack angle
+- intercept_ball_minus_batter_pos_x_inches (FLOAT64): Bat-ball intercept point X
+- intercept_ball_minus_batter_pos_y_inches (FLOAT64): Bat-ball intercept point Y
 
-bat_speed (FLOAT64): Average bat speed in mph
-swing_length (FLOAT64): Average swing length in feet
-attack_angle (FLOAT64): Vertical bat angle at impact (degrees)
-attack_direction (FLOAT64): Horizontal bat angle (degrees)
-swing_path_tilt (FLOAT64): Swing plane angle
-rate_ideal_attack_angle (FLOAT64): % swings at optimal attack angle
-intercept_ball_minus_batter_pos_x_inches (FLOAT64): Bat-ball intercept point X
-intercept_ball_minus_batter_pos_y_inches (FLOAT64): Bat-ball intercept point Y
+#### Performance Metrics
+- ba (FLOAT64): Batting average
+- obp (FLOAT64): On-base percentage
+- slg (FLOAT64): Slugging percentage
+- iso (FLOAT64): Isolated power
+- woba (FLOAT64): Weighted on-base average
+- babip (FLOAT64): Batting Average on Balls In Play
 
-Performance Metrics
+#### Expected Performance (Statcast)
+- xba (FLOAT64): Expected batting average
+- xobp (FLOAT64): Expected on-base percentage
+- xslg (FLOAT64): Expected slugging percentage
+- xwoba (FLOAT64): Expected weighted on-base average
+- xbadiff (FLOAT64): Luck factor (BA - xBA)
+- xobpdiff (FLOAT64): Difference between actual and expected OBP
+- xslgdiff (FLOAT64): Difference between actual and expected slugging
+- wobadiff (FLOAT64): wOBA luck factor
 
-ba (FLOAT64): Batting average
-obp (FLOAT64): On-base percentage
-slg (FLOAT64): Slugging percentage
-iso (FLOAT64): Isolated power
-woba (FLOAT64): Weighted on-base average
+#### Elite Contact Indicators
+- hits (INTEGER): Total number of hits
+- abs (INTEGER): At-bats
+- pa (INTEGER): Plate Appearances
+- bip (INTEGER): Balls In Play
+- launch_speed (FLOAT64): Exit velocity (mph)
+- launch_angle (FLOAT64): Launch angle (degrees)
+- bbdist (INTEGER): Average batted ball distance (feet)
+- hardhit_percent (FLOAT64): % batted balls 95+ mph
+- barrels_total (INTEGER): Total barrels
+- barrels_per_bbe_percent (FLOAT64): Barrel rate
+- barrels_per_pa_percent (FLOAT64): Barrels per plate appearance percentage
 
-Expected Performance (Statcast)
+#### Plate Discipline & Volume
+- singles (INTEGER): Number of singles hit
+- doubles (INTEGER): Number of doubles hit
+- triples (INTEGER): Number of triples hit
+- hrs (INTEGER): Number of home runs hit
+- so (INTEGER): Strikeouts
+- k_percent (FLOAT64): Strikeout percentage (K/PA)
+- bb (INTEGER): Walks (bases on balls)
+- bb_percent (FLOAT64): Walk percentage (BB/PA)
+- whiffs (INTEGER): Number of swings and misses
+- swings (INTEGER): Total number of swings
+- takes (INTEGER): Number of pitches not swung at
+- swing_miss_percent (FLOAT64): Swing and miss percentage
 
-xba (FLOAT64): Expected batting average
-xobp (FLOAT64): Expected on-base percentage
-xslg (FLOAT64): Expected slugging percentage
-xwoba (FLOAT64): Expected weighted on-base average
-xbadiff (FLOAT64): Luck factor (BA - xBA)
-wobadiff (FLOAT64): wOBA luck factor
+#### Pitching Data Faced
+- spin_rate (INTEGER): Average spin rate of pitches seen (rpm)
+- velocity (FLOAT64): Average velocity of pitches seen (mph)
+- effective_speed (FLOAT64): Perceived velocity accounting for extension
+- eff_min_vel (FLOAT64): Effective minimum velocity
+- release_extension (FLOAT64): Pitcher's release point extension (feet)
+- release_pos_z (FLOAT64): Vertical release position (feet)
+- release_pos_x (FLOAT64): Horizontal release position (feet)
+- plate_x (FLOAT64): Horizontal plate location (feet)
+- plate_z (FLOAT64): Vertical plate location (feet)
+- arm_angle (FLOAT64): Pitcher's arm angle (degrees)
 
-Elite Contact Indicators
+#### Pitch Movement Data
+- api_break_z_with_gravity (FLOAT64): Vertical break with gravity (inches)
+- api_break_z_induced (FLOAT64): Induced vertical break (inches)
+- api_break_x_arm (FLOAT64): Horizontal break arm-side (inches)
+- api_break_x_batter_in (FLOAT64): Horizontal break toward batter (inches)
+- hyper_speed (FLOAT64): Hyper speed metric
 
-launch_speed (FLOAT64): Exit velocity (mph)
-launch_angle (FLOAT64): Launch angle (degrees)
-hardhit_percent (FLOAT64): % batted balls 95+ mph
-barrels_total (FLOAT64): Total barrels
-barrels_per_bbe_percent (FLOAT64): Barrel rate
+#### Run Value Metrics
+- pitcher_run_exp (FLOAT64): Pitcher's run expectancy
+- run_exp (FLOAT64): Run expectancy value
+- batter_run_value_per_100 (FLOAT64): Batting runs/100 pitches
+- pitcher_run_value_per_100 (FLOAT64): Pitching runs/100 pitches
 
-Run Value Metrics
+#### Defensive Positioning Data
+- pos3_int_start_distance (INTEGER): First baseman's starting position distance
+- pos4_int_start_distance (INTEGER): Second baseman's starting position distance
+- pos5_int_start_distance (INTEGER): Third baseman's starting position distance
+- pos6_int_start_distance (INTEGER): Shortstop's starting position distance
+- pos7_int_start_distance (INTEGER): Left fielder's starting position distance
+- pos8_int_start_distance (INTEGER): Center fielder's starting position distance
+- pos9_int_start_distance (INTEGER): Right fielder's starting position distance
 
-batter_run_value_per_100 (FLOAT64): Batting runs/100 pitches
-pitcher_run_value_per_100 (FLOAT64): Pitching runs/100 pitches
+### Table: savant_MLB_P_data - MLB Pitchers (PRIMARY FOCUS)
 
-Defensive Positioning Data
+#### Core Fields
+- row_id (INTEGER): Unique row identifier (primary key)
+- pitches (STRING): Pitch type or classification
+- player_id (INTEGER): Unique MLB player identifier - PRIMARY KEY for joins
+- player_name (STRING): Player's full name (Last, First format)
+- total_pitches (INTEGER): Total number of pitches thrown
+- pitch_percent (FLOAT64): Percentage of specific pitch type thrown
 
-pos3_int_start_distance through pos9_int_start_distance (INTEGER): Fielder positioning
+#### Performance Against (Pitching Stats)
+- ba (FLOAT64): Batting Average against
+- obp (FLOAT64): On-Base Percentage against
+- slg (FLOAT64): Slugging Percentage against
+- iso (FLOAT64): Isolated Power against
+- woba (FLOAT64): Weighted On-Base Average against
+- babip (FLOAT64): Batting Average on Balls In Play against
+- xba (FLOAT64): Expected Batting Average against
+- xobp (FLOAT64): Expected On-Base Percentage against
+- xslg (FLOAT64): Expected Slugging Percentage against
+- xwoba (FLOAT64): Expected Weighted On-Base Average against
+- xbadiff (FLOAT64): Difference between actual and expected BA against
+- xobpdiff (FLOAT64): Difference between actual and expected OBP against
+- xslgdiff (FLOAT64): Difference between actual and expected SLG against
+- wobadiff (FLOAT64): Difference between actual and expected wOBA against
+
+#### Results & Volume Data
+- hits (INTEGER): Total hits allowed
+- abs (INTEGER): At-bats against
+- pa (INTEGER): Plate Appearances against
+- bip (INTEGER): Balls In Play allowed
+- singles (INTEGER): Singles allowed
+- doubles (INTEGER): Doubles allowed
+- triples (INTEGER): Triples allowed
+- hrs (INTEGER): Home runs allowed
+- so (INTEGER): Strikeouts recorded
+- k_percent (FLOAT64): Strikeout percentage
+- bb (INTEGER): Walks allowed
+- bb_percent (FLOAT64): Walk percentage
+
+#### Contact Quality Allowed
+- launch_speed (FLOAT64): Average exit velocity allowed (mph)
+- launch_angle (FLOAT64): Average launch angle allowed (degrees)
+- bbdist (INTEGER): Average batted ball distance allowed (feet)
+- hardhit_percent (FLOAT64): Hard-hit percentage allowed
+- barrels_total (INTEGER): Total barrels allowed
+- barrels_per_bbe_percent (FLOAT64): Barrels per batted ball event allowed
+- barrels_per_pa_percent (FLOAT64): Barrels per plate appearance allowed
+
+#### Pitch Characteristics
+- spin_rate (INTEGER): Average spin rate of pitches (rpm)
+- velocity (FLOAT64): Average pitch velocity (mph)
+- effective_speed (FLOAT64): Perceived velocity with extension
+- eff_min_vel (FLOAT64): Effective minimum velocity
+- release_extension (FLOAT64): Release point extension (feet)
+- release_pos_z (FLOAT64): Vertical release position (feet)
+- release_pos_x (FLOAT64): Horizontal release position (feet)
+- plate_x (FLOAT64): Average horizontal plate location (feet)
+- plate_z (FLOAT64): Average vertical plate location (feet)
+- arm_angle (FLOAT64): Pitcher's arm angle (degrees)
+
+#### Pitch Movement
+- api_break_z_with_gravity (FLOAT64): Vertical break with gravity (inches)
+- api_break_z_induced (FLOAT64): Induced vertical break (inches)
+- api_break_x_arm (FLOAT64): Horizontal break arm-side (inches)
+- api_break_x_batter_in (FLOAT64): Horizontal break toward batter (inches)
+- hyper_speed (FLOAT64): Hyper speed metric
+
+#### Hitter Behavior Against
+- whiffs (INTEGER): Number of swings and misses generated
+- swings (INTEGER): Total swings against
+- takes (INTEGER): Number of pitches not swung at
+- swing_miss_percent (FLOAT64): Swing and miss percentage generated
+- bat_speed (FLOAT64): Average bat speed of hitters faced (mph)
+- swing_length (FLOAT64): Average swing length of hitters faced (feet)
+- attack_angle (FLOAT64): Average attack angle faced (degrees)
+- attack_direction (FLOAT64): Average attack direction faced
+- swing_path_tilt (FLOAT64): Average swing path tilt faced (degrees)
+- rate_ideal_attack_angle (FLOAT64): Rate of ideal attack angle by hitters
+- intercept_ball_minus_batter_pos_x_inches (FLOAT64): Horizontal ball-bat intercept difference (inches)
+- intercept_ball_minus_batter_pos_y_inches (FLOAT64): Vertical ball-bat intercept difference (inches)
+
+#### Run Value Metrics
+- pitcher_run_exp (FLOAT64): Pitcher's run expectancy
+- run_exp (FLOAT64): Run expectancy value
+- batter_run_value_per_100 (FLOAT64): Batter run value per 100 pitches
+- pitcher_run_value_per_100 (FLOAT64): Pitcher run value per 100 pitches
+
+#### Defensive Positioning
+- pos3_int_start_distance (INTEGER): First baseman's positioning
+- pos4_int_start_distance (INTEGER): Second baseman's positioning
+- pos5_int_start_distance (INTEGER): Third baseman's positioning
+- pos6_int_start_distance (INTEGER): Shortstop's positioning
+- pos7_int_start_distance (INTEGER): Left fielder's positioning
+- pos8_int_start_distance (INTEGER): Center fielder's positioning
+- pos9_int_start_distance (INTEGER): Right fielder's positioning
 
 
 TABLE RELATIONSHIPS
@@ -759,64 +1215,203 @@ Reference Tables (For Comparison)
 savant_MLB_B_data - MLB batters (664 records) - For MLB comparison benchmarks
 savant_MLB_P_data - MLB pitchers (849 records) - For MLB comparison benchmarks
 
-Key Column Definitions
-Player Identification
+### Table: savant_minor_league_hitters - Minor League Hitters (PRIMARY FOCUS)
 
-player_id (INTEGER): Unique identifier for each player - PRIMARY KEY for joining tables
-player_name (STRING): Player's full name
+#### Core Fields
+- row_id (INTEGER): Unique row identifier (primary key)
+- pitches (STRING): Pitch type or classification
+- player_id (INTEGER): Unique player identifier - PRIMARY KEY for joining tables
+- player_name (STRING): Player's full name (Last, First format)
+- total_pitches (INTEGER): Total number of pitches seen
+- pitch_percent (FLOAT64): Percentage of specific pitch type seen
 
-Core Offensive Metrics
+#### Core Offensive Metrics
+- ba (FLOAT64): Batting average
+- obp (FLOAT64): On-base percentage
+- slg (FLOAT64): Slugging percentage
+- iso (FLOAT64): Isolated power (SLG - BA)
+- woba (FLOAT64): Weighted on-base average
+- babip (FLOAT64): Batting average on balls in play
 
-ba (FLOAT64): Batting average
-obp (FLOAT64): On-base percentage
-slg (FLOAT64): Slugging percentage
-iso (FLOAT64): Isolated power (SLG - BA)
-woba (FLOAT64): Weighted on-base average
-babip (FLOAT64): Batting average on balls in play
+#### Predictive/Expected Metrics
+- xba (FLOAT64): Expected batting average
+- xobp (FLOAT64): Expected on-base percentage
+- xslg (FLOAT64): Expected slugging percentage
+- xwoba (FLOAT64): Expected weighted on-base average
+- xbadiff (FLOAT64): BA overperformance (BA - xBA)
+- xobpdiff (FLOAT64): OBP overperformance
+- xslgdiff (FLOAT64): SLG overperformance
+- wobadiff (FLOAT64): wOBA overperformance
 
-Predictive/Expected Metrics
+#### Contact & Results
+- hits (INTEGER): Total number of hits
+- abs (INTEGER): At-bats
+- pa (INTEGER): Plate appearances
+- bip (INTEGER): Balls In Play
+- singles (INTEGER): Number of singles
+- doubles (INTEGER): Number of doubles
+- triples (INTEGER): Number of triples
+- hrs (INTEGER): Number of home runs
+- so (INTEGER): Strikeouts
+- k_percent (FLOAT64): Strikeout rate
+- bb (INTEGER): Walks
+- bb_percent (FLOAT64): Walk rate
 
-xba (FLOAT64): Expected batting average
-xobp (FLOAT64): Expected on-base percentage
-xslg (FLOAT64): Expected slugging percentage
-xwoba (FLOAT64): Expected weighted on-base average
-xbadiff (FLOAT64): BA overperformance (BA - xBA)
-xobpdiff (FLOAT64): OBP overperformance
-xslgdiff (FLOAT64): SLG overperformance
-wobadiff (FLOAT64): wOBA overperformance
+#### Contact Quality Metrics
+- launch_speed (FLOAT64): Average exit velocity (mph)
+- launch_angle (FLOAT64): Average launch angle (degrees)
+- bbdist (INTEGER): Average batted ball distance
+- hardhit_percent (FLOAT64): % of batted balls 95+ mph
+- barrels_total (INTEGER): Total barrels
+- barrels_per_bbe_percent (FLOAT64): Barrel rate on batted balls
+- barrels_per_pa_percent (FLOAT64): Barrel rate per PA
 
-Contact Quality Metrics
+#### Plate Discipline & Approach
+- whiffs (INTEGER): Swing and misses
+- swings (INTEGER): Total swings
+- takes (INTEGER): Pitches taken
+- swing_miss_percent (FLOAT64): Whiff rate
 
-launch_speed (FLOAT64): Average exit velocity (mph)
-launch_angle (FLOAT64): Average launch angle (degrees)
-bbdist (INTEGER): Average batted ball distance
-hardhit_percent (FLOAT64): % of batted balls 95+ mph
-barrels_total (FLOAT64): Total barrels
-barrels_per_bbe_percent (FLOAT64): Barrel rate on batted balls
-barrels_per_pa_percent (FLOAT64): Barrel rate per PA
+#### Pitching Data Faced
+- spin_rate (INTEGER): Average spin rate of pitches seen (rpm)
+- velocity (FLOAT64): Average velocity of pitches seen (mph)
+- effective_speed (FLOAT64): Perceived velocity with extension
+- eff_min_vel (FLOAT64): Effective minimum velocity
+- release_extension (FLOAT64): Pitcher's release extension (feet)
+- release_pos_z (FLOAT64): Vertical release position (feet)
+- release_pos_x (FLOAT64): Horizontal release position (feet)
+- plate_x (FLOAT64): Horizontal plate location (feet)
+- plate_z (FLOAT64): Vertical plate location (feet)
+- arm_angle (FLOAT64): Pitcher's arm angle (degrees)
 
-Plate Discipline & Approach
+#### Pitch Movement
+- api_break_z_with_gravity (FLOAT64): Vertical break with gravity (inches)
+- api_break_z_induced (FLOAT64): Vertical break from spin
+- api_break_x_arm (FLOAT64): Horizontal arm-side break
+- api_break_x_batter_in (FLOAT64): Horizontal break toward batter (inches)
+- hyper_speed (FLOAT64): Hyper speed metric
 
-pa (INTEGER): Plate appearances
-abs (INTEGER): At-bats
-k_percent (FLOAT64): Strikeout rate
-bb_percent (FLOAT64): Walk rate
-whiffs (INTEGER): Swing and misses
-swings (INTEGER): Total swings
-takes (INTEGER): Pitches taken
-swing_miss_percent (FLOAT64): Whiff rate
+#### Limited Biomechanical Data (Usually NULL for Minor League)
+- bat_speed (FLOAT64): Average bat speed (mph) - Usually NULL
+- swing_length (FLOAT64): Average swing length (feet) - Usually NULL
+- attack_angle (FLOAT64): Bat's attack angle (degrees) - Usually NULL
+- attack_direction (FLOAT64): Direction of bat attack - Usually NULL
+- swing_path_tilt (FLOAT64): Tilt of swing path (degrees) - Usually NULL
+- rate_ideal_attack_angle (FLOAT64): Rate of ideal attack angle - Usually NULL
+- intercept_ball_minus_batter_pos_x_inches (FLOAT64): Horizontal ball-bat intercept difference (inches) - Usually NULL
+- intercept_ball_minus_batter_pos_y_inches (FLOAT64): Vertical ball-bat intercept difference (inches) - Usually NULL
 
-Pitching Metrics
+#### Run Value & Performance
+- pitcher_run_exp (FLOAT64): Pitcher's run expectancy
+- run_exp (FLOAT64): Run expectancy value
+- batter_run_value_per_100 (FLOAT64): Batter run value per 100 pitches
+- pitcher_run_value_per_100 (FLOAT64): Pitcher run value per 100 pitches
 
-velocity (FLOAT64): Average fastball velocity
-spin_rate (INTEGER): Average spin rate (rpm)
-release_extension (FLOAT64): Release point extension
-effective_speed (FLOAT64): Perceived velocity
+#### Defensive Positioning
+- pos3_int_start_distance (INTEGER): First baseman's positioning
+- pos4_int_start_distance (INTEGER): Second baseman's positioning
+- pos5_int_start_distance (INTEGER): Third baseman's positioning
+- pos6_int_start_distance (INTEGER): Shortstop's positioning
+- pos7_int_start_distance (INTEGER): Left fielder's positioning
+- pos8_int_start_distance (INTEGER): Center fielder's positioning
+- pos9_int_start_distance (INTEGER): Right fielder's positioning
 
-Pitch Movement
+### Table: savant_minor_leagur_pitchers - Minor League Pitchers (PRIMARY FOCUS)
 
-api_break_z_induced (FLOAT64): Vertical break from spin
-api_break_x_arm (FLOAT64): Horizontal arm-side break
+#### Core Fields
+- row_id (INTEGER): Unique row identifier (primary key)
+- pitches (STRING): Pitch type or classification
+- player_id (INTEGER): Unique player identifier - PRIMARY KEY for joins
+- player_name (STRING): Player's full name (Last, First format)
+- total_pitches (INTEGER): Total number of pitches thrown
+- pitch_percent (FLOAT64): Percentage of specific pitch type thrown
+
+#### Performance Against
+- ba (FLOAT64): Batting Average against
+- obp (FLOAT64): On-Base Percentage against
+- slg (FLOAT64): Slugging Percentage against
+- iso (FLOAT64): Isolated Power against
+- woba (FLOAT64): Weighted On-Base Average against
+- babip (FLOAT64): Batting Average on Balls In Play against
+- xba (FLOAT64): Expected Batting Average against
+- xobp (FLOAT64): Expected On-Base Percentage against
+- xslg (FLOAT64): Expected Slugging Percentage against
+- xwoba (FLOAT64): Expected Weighted On-Base Average against
+- xbadiff (FLOAT64): Difference between actual and expected BA against
+- xobpdiff (FLOAT64): Difference between actual and expected OBP against
+- xslgdiff (FLOAT64): Difference between actual and expected SLG against
+- wobadiff (FLOAT64): Difference between actual and expected wOBA against
+
+#### Results & Volume
+- hits (INTEGER): Total hits allowed
+- abs (INTEGER): At-bats against
+- pa (INTEGER): Plate Appearances against
+- bip (INTEGER): Balls In Play allowed
+- singles (INTEGER): Singles allowed
+- doubles (INTEGER): Doubles allowed
+- triples (INTEGER): Triples allowed
+- hrs (INTEGER): Home runs allowed
+- so (INTEGER): Strikeouts recorded
+- k_percent (FLOAT64): Strikeout percentage
+- bb (INTEGER): Walks allowed
+- bb_percent (FLOAT64): Walk percentage
+
+#### Contact Quality Allowed
+- launch_speed (FLOAT64): Average exit velocity allowed (mph)
+- launch_angle (FLOAT64): Average launch angle allowed (degrees)
+- bbdist (INTEGER): Average batted ball distance allowed (feet)
+- hardhit_percent (FLOAT64): Hard-hit percentage allowed
+- barrels_total (INTEGER): Total barrels allowed
+- barrels_per_bbe_percent (FLOAT64): Barrels per batted ball event allowed
+- barrels_per_pa_percent (FLOAT64): Barrels per plate appearance allowed
+
+#### Pitching Metrics
+- spin_rate (INTEGER): Average spin rate (rpm)
+- velocity (FLOAT64): Average fastball velocity
+- effective_speed (FLOAT64): Perceived velocity
+- eff_min_vel (FLOAT64): Effective minimum velocity
+- release_extension (FLOAT64): Release point extension
+- release_pos_z (FLOAT64): Vertical release position (feet)
+- release_pos_x (FLOAT64): Horizontal release position (feet)
+- plate_x (FLOAT64): Average horizontal plate location (feet)
+- plate_z (FLOAT64): Average vertical plate location (feet)
+- arm_angle (FLOAT64): Pitcher's arm angle (degrees)
+
+#### Pitch Movement
+- api_break_z_with_gravity (FLOAT64): Vertical break with gravity (inches)
+- api_break_z_induced (FLOAT64): Vertical break from spin
+- api_break_x_arm (FLOAT64): Horizontal arm-side break
+- api_break_x_batter_in (FLOAT64): Horizontal break toward batter (inches)
+- hyper_speed (FLOAT64): Hyper speed metric
+
+#### Hitter Behavior Against
+- whiffs (INTEGER): Number of swings and misses generated
+- swings (INTEGER): Total swings against
+- takes (INTEGER): Number of pitches not swung at
+- swing_miss_percent (FLOAT64): Swing and miss percentage generated
+- bat_speed (FLOAT64): Average bat speed of hitters faced (mph)
+- swing_length (FLOAT64): Average swing length of hitters faced (feet)
+- attack_angle (FLOAT64): Average attack angle faced (degrees)
+- attack_direction (FLOAT64): Average attack direction faced
+- swing_path_tilt (FLOAT64): Average swing path tilt faced (degrees)
+- rate_ideal_attack_angle (FLOAT64): Rate of ideal attack angle by hitters
+- intercept_ball_minus_batter_pos_x_inches (FLOAT64): Horizontal ball-bat intercept difference (inches)
+- intercept_ball_minus_batter_pos_y_inches (FLOAT64): Vertical ball-bat intercept difference (inches)
+
+#### Run Value Metrics
+- pitcher_run_exp (FLOAT64): Pitcher's run expectancy
+- run_exp (FLOAT64): Run expectancy value
+- batter_run_value_per_100 (FLOAT64): Batter run value per 100 pitches
+- pitcher_run_value_per_100 (FLOAT64): Pitcher run value per 100 pitches
+
+#### Defensive Positioning
+- pos3_int_start_distance (INTEGER): First baseman's positioning
+- pos4_int_start_distance (INTEGER): Second baseman's positioning
+- pos5_int_start_distance (INTEGER): Third baseman's positioning
+- pos6_int_start_distance (INTEGER): Shortstop's positioning
+- pos7_int_start_distance (INTEGER): Left fielder's positioning
+- pos8_int_start_distance (INTEGER): Center fielder's positioning
+- pos9_int_start_distance (INTEGER): Right fielder's positioning
 
 
 TABLE RELATIONSHIPS
