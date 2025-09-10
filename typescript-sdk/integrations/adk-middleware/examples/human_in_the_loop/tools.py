@@ -251,109 +251,13 @@ def text2sql_query_savant_mlb(
     sql_query: str
 ):
     """
-    Execute a SQL query on the Spanner database to retrieve baseball savant MLB data.
-    
-    This tool allows natural language to SQL conversion for querying the MBB.savant_mlb table.
-    If the query has errors, the agent will attempt to fix them and retry.
+    Execute a SQL query on the Spanner database.
     
     Args:
-        sql_query (str): SQL query to execute against the MBB.savant_mlb table in Spanner database
-        
-    Table Schema (MBB.savant_mlb):
-        Primary Key: player_id (INT64) - Unique identifier for the player
-        
-        Core Columns:
-        - pitches: INT64 - Total number of pitches
-        - player_id: INT64 NOT NULL - Unique identifier for the player (Primary Key)
-        - player_name: STRING(255) - Full name of the baseball player
-        - total_pitches: INT64 - Total pitches thrown or faced
-        - hits: INT64 - Total hits
-        - abs: INT64 - At-bats
-        - whiffs: INT64 - Swings and misses
-        - swings: INT64 - Total swings
-        - takes: INT64 - Pitches taken (not swung at)
-        - pa: INT64 - Plate appearances
-        - bip: INT64 - Balls in play
-        - singles: INT64 - Single hits
-        - doubles: INT64 - Double hits
-        - triples: INT64 - Triple hits
-        - hrs: INT64 - Home runs
-        - so: INT64 - Strikeouts
-        - bb: INT64 - Walks (base on balls)
-        - barrels_total: INT64 - Total barrels (optimal contact metric)
-        
-        Percentage/Rate Statistics:
-        - pitch_percent: FLOAT64 - Pitch usage percentage
-        - ba: FLOAT64 - Batting average
-        - iso: FLOAT64 - Isolated power (slugging - batting average)
-        - babip: FLOAT64 - Batting average on balls in play
-        - slg: FLOAT64 - Slugging percentage
-        - woba: FLOAT64 - Weighted on-base average
-        - xwoba: FLOAT64 - Expected weighted on-base average
-        - xba: FLOAT64 - Expected batting average
-        - k_percent: FLOAT64 - Strikeout percentage
-        - bb_percent: FLOAT64 - Walk percentage
-        - hardhit_percent: FLOAT64 - Hard hit percentage
-        - barrels_per_bbe_percent: FLOAT64 - Barrels per batted ball event percentage
-        - barrels_per_pa_percent: FLOAT64 - Barrels per plate appearance percentage
-        - obp: FLOAT64 - On-base percentage
-        - xobp: FLOAT64 - Expected on-base percentage
-        - xslg: FLOAT64 - Expected slugging percentage
-        - swing_miss_percent: FLOAT64 - Swing and miss percentage
-        
-        Physical/Kinematic Metrics:
-        - launch_speed: FLOAT64 - Average exit velocity
-        - launch_angle: FLOAT64 - Average launch angle
-        - spin_rate: INT64 - Pitch spin rate (RPM)
-        - velocity: FLOAT64 - Pitch velocity
-        - effective_speed: FLOAT64 - Effective velocity accounting for extension
-        - eff_min_vel: FLOAT64 - Minimum effective velocity
-        - release_extension: FLOAT64 - Release point extension
-        - release_pos_z: FLOAT64 - Vertical release position
-        - release_pos_x: FLOAT64 - Horizontal release position
-        - plate_x: FLOAT64 - Horizontal location at home plate
-        - plate_z: FLOAT64 - Vertical location at home plate
-        - bat_speed: FLOAT64 - Bat speed at contact
-        - swing_length: FLOAT64 - Length of swing path
-        - arm_angle: FLOAT64 - Arm angle at release
-        - attack_angle: FLOAT64 - Bat's attack angle
-        - attack_direction: FLOAT64 - Direction of bat's attack
-        - swing_path_tilt: FLOAT64 - Tilt of swing path
-        - rate_ideal_attack_angle: FLOAT64 - Rate of ideal attack angles
-        
-        Advanced Metrics:
-        - api_break_z_with_gravity: FLOAT64 - Vertical break including gravity
-        - api_break_z_induced: FLOAT64 - Induced vertical break
-        - api_break_x_arm: FLOAT64 - Horizontal break from arm side
-        - api_break_x_batter_in: FLOAT64 - Horizontal break toward batter
-        - hyper_speed: FLOAT64 - Hyper speed metric
-        - bbdist: FLOAT64 - Batted ball distance
-        - batter_run_value_per_100: FLOAT64 - Batter run value per 100 pitches
-        - pitcher_run_value_per_100: FLOAT64 - Pitcher run value per 100 pitches
-        - pitcher_run_exp: FLOAT64 - Pitcher run expectancy
-        - run_exp: FLOAT64 - Run expectancy
-        - xbadiff: FLOAT64 - Difference between actual and expected batting average
-        - xobpdiff: FLOAT64 - Difference between actual and expected OBP
-        - xslgdiff: FLOAT64 - Difference between actual and expected SLG
-        - wobadiff: FLOAT64 - Difference between actual and expected wOBA
-        
-        Position-specific Metrics:
-        - pos3_int_start_distance: FLOAT64 - First baseman starting distance
-        - pos4_int_start_distance: FLOAT64 - Second baseman starting distance
-        - pos5_int_start_distance: FLOAT64 - Third baseman starting distance
-        - pos6_int_start_distance: FLOAT64 - Shortstop starting distance
-        - pos7_int_start_distance: FLOAT64 - Left fielder starting distance
-        - pos8_int_start_distance: FLOAT64 - Center fielder starting distance
-        - pos9_int_start_distance: FLOAT64 - Right fielder starting distance
-        
-        Intercept Metrics:
-        - intercept_ball_minus_batter_pos_x_inches: FLOAT64 - X-axis intercept difference
-        - intercept_ball_minus_batter_pos_y_inches: FLOAT64 - Y-axis intercept difference
-    
-    Note: Always use the full table name `MBB`.`savant_mlb` in your SQL queries.
+        sql_query (str): SQL query to execute against the Spanner database
     
     Returns:
-        dict: Query results with baseball savant MLB data
+        dict: Query results
         
     Raises:
         Exception: If database connection fails or query cannot be executed after retry
@@ -376,18 +280,22 @@ def text2sql_query_savant_mlb(
             instance = spanner_client.instance(instance_id)
             database = instance.database(database_id)
             
+            # Sanitize and modify query for Spanner compatibility
+            # Remove trailing semicolons as Spanner doesn't accept them
+            sanitized_query = sql_query.strip().rstrip(';').strip()
+            
             # Modify query to ensure max 50 records to prevent model overflow
-            modified_query = sql_query
-            if "LIMIT" not in sql_query.upper():
-                modified_query = f"{sql_query} LIMIT 50"
+            modified_query = sanitized_query
+            if "LIMIT" not in sanitized_query.upper():
+                modified_query = f"{sanitized_query} LIMIT 50"
             else:
                 # Extract existing limit and ensure it's not more than 50
                 import re
-                limit_match = re.search(r'LIMIT\s+(\d+)', sql_query, re.IGNORECASE)
+                limit_match = re.search(r'LIMIT\s+(\d+)', sanitized_query, re.IGNORECASE)
                 if limit_match:
                     existing_limit = int(limit_match.group(1))
                     if existing_limit > 50:
-                        modified_query = re.sub(r'LIMIT\s+\d+', 'LIMIT 50', sql_query, flags=re.IGNORECASE)
+                        modified_query = re.sub(r'LIMIT\s+\d+', 'LIMIT 50', sanitized_query, flags=re.IGNORECASE)
             
             print(f"Modified Query (max 50 records): {modified_query}")
             
@@ -434,8 +342,9 @@ def text2sql_query_savant_mlb(
                 
                 print(f"Query executed successfully. Retrieved {len(players_data)} records.")
                 
-                # Store results in tool context
-                tool_context.state["tool_context"] = sql_query
+                # Store results in tool context if it has state attribute
+                if hasattr(tool_context, 'state') and tool_context.state is not None:
+                    tool_context.state["tool_context"] = sql_query
                 
                 return {
                     "success": True,
@@ -483,6 +392,12 @@ def text2sql_query_savant_mlb(
     }
 
 
-# if __name__=="__main__":
-#     result = text2sql_query_transfer_portal("SELECT player_name, bpr_predicted FROM MBB.tp_player_view WHERE position = 'PG' AND (new_team IS NULL OR new_team = '' OR new_team = 'nan') ORDER BY bpr_predicted DESC LIMIT 5")
-#     print('result==>',result)
+if __name__=="__main__":
+    # Create a mock tool context for testing
+    class MockToolContext:
+        def __init__(self):
+            self.state = {}
+    
+    mock_context = MockToolContext()
+    result = text2sql_query_savant_mlb(tool_context=mock_context, sql_query="SELECT player_id, player_name, woba, k_percent, bb_percent, launch_speed, launch_angle, pa FROM savant_minor_league_hitters")
+    print('result==>',result)

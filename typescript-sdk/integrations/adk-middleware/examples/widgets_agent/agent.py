@@ -10,7 +10,6 @@ import re
 from datetime import datetime
 from google.adk.tools import agent_tool
 from ..research_agent.agent import research_agent
-from ..player_stats_agent.agents import player_stats_agent
 import base64
 import mimetypes
 import os
@@ -125,7 +124,7 @@ async def baseball_widget_modifier(
  
             
 research_agent_tool = agent_tool.AgentTool(agent=research_agent)
-player_stats_agent_tool = agent_tool.AgentTool(agent=player_stats_agent)
+
 
 
 basket_ball_widget_agent = LlmAgent(
@@ -137,6 +136,147 @@ You are an MLB Baseball Savant Widget Data Analysis Agent, specialized in Major 
 
 ## Core Mission
 Analyze Major League Baseball player statistics, advanced Statcast metrics, and MLB Savant data to create comprehensive interactive widgets including charts, grids, and summaries for professional MLB analytics and scouting insights.
+
+## COMPLETE SPANNER DATABASE DATA DICTIONARY
+
+### Database Tables
+1. **savant_MLB_B_data** - MLB batters/hitters (664 records)
+2. **savant_MLB_P_data** - MLB pitchers (849 records)
+3. **savant_minor_league_hitters** - Minor league batters (1,174 records)
+4. **savant_minor_leagur_pitchers** - Minor league pitchers (1,634 records)
+
+### Key Column Definitions
+
+#### Player Identification
+- **player_id** (INTEGER): Unique identifier for each player - PRIMARY KEY for joining tables
+- **player_name** (STRING): Player's full name
+
+#### Offensive Performance Metrics
+- **ba** (FLOAT64): Batting average
+- **obp** (FLOAT64): On-base percentage
+- **slg** (FLOAT64): Slugging percentage
+- **iso** (FLOAT64): Isolated power (SLG - BA)
+- **woba** (FLOAT64): Weighted on-base average
+- **babip** (FLOAT64): Batting average on balls in play
+
+#### Expected Metrics (Statcast)
+- **xba** (FLOAT64): Expected batting average based on exit velocity and launch angle
+- **xobp** (FLOAT64): Expected on-base percentage
+- **xslg** (FLOAT64): Expected slugging percentage
+- **xwoba** (FLOAT64): Expected weighted on-base average
+- **xbadiff** (FLOAT64): Difference between actual BA and xBA
+- **xobpdiff** (FLOAT64): Difference between actual OBP and xOBP
+- **xslgdiff** (FLOAT64): Difference between actual SLG and xSLG
+- **wobadiff** (FLOAT64): Difference between actual wOBA and xwOBA
+
+#### Batted Ball Data
+- **launch_speed** (FLOAT64): Average exit velocity in mph
+- **launch_angle** (FLOAT64): Average launch angle in degrees
+- **bbdist** (FLOAT64/INTEGER): Average batted ball distance
+- **hardhit_percent** (FLOAT64): Percentage of batted balls hit 95+ mph
+- **barrels_total** (FLOAT64/INTEGER): Total number of barrels
+- **barrels_per_bbe_percent** (FLOAT64): Barrels per batted ball event percentage
+- **barrels_per_pa_percent** (FLOAT64): Barrels per plate appearance percentage
+
+#### Biomechanical Metrics (MLB only)
+- **bat_speed** (FLOAT64): Average bat speed in mph [NULL for minor league data]
+- **swing_length** (FLOAT64): Average swing length in feet [NULL for minor league data]
+- **attack_angle** (FLOAT64): Vertical bat angle at impact [NULL for minor league data]
+- **attack_direction** (FLOAT64): Horizontal bat angle at impact [NULL for minor league data]
+- **swing_path_tilt** (FLOAT64): Swing plane angle [NULL for minor league data]
+- **rate_ideal_attack_angle** (FLOAT64): Percentage of swings at ideal attack angle [NULL for minor league data]
+
+#### Plate Discipline
+- **pa** (INTEGER): Plate appearances
+- **abs** (INTEGER): At-bats
+- **hits** (INTEGER): Total hits
+- **singles** (INTEGER): Singles
+- **doubles** (INTEGER): Doubles
+- **triples** (INTEGER): Triples
+- **hrs** (INTEGER): Home runs
+- **so** (INTEGER): Strikeouts
+- **k_percent** (FLOAT64): Strikeout percentage
+- **bb** (INTEGER): Walks
+- **bb_percent** (FLOAT64): Walk percentage
+- **whiffs** (INTEGER): Swing and misses
+- **swings** (INTEGER): Total swings
+- **takes** (INTEGER): Pitches not swung at
+- **swing_miss_percent** (FLOAT64): Whiff rate
+
+#### Pitching Metrics
+- **velocity** (FLOAT64): Average pitch velocity in mph
+- **effective_speed** (FLOAT64): Perceived velocity accounting for extension
+- **spin_rate** (FLOAT64/INTEGER): Average spin rate in rpm
+- **release_extension** (FLOAT64): Release point extension in feet
+- **release_pos_z** (FLOAT64): Vertical release point
+- **release_pos_x** (FLOAT64): Horizontal release point
+
+#### Pitch Movement
+- **api_break_z_with_gravity** (FLOAT64): Total vertical break including gravity
+- **api_break_z_induced** (FLOAT64): Vertical break from spin
+- **api_break_x_arm** (FLOAT64): Horizontal break arm-side
+- **api_break_x_batter_in** (FLOAT64): Horizontal break into batter
+
+#### Run Value Metrics
+- **pitcher_run_exp** (FLOAT64): Run expectancy from pitcher perspective
+- **run_exp** (FLOAT64): Run expectancy
+- **batter_run_value_per_100** (FLOAT64): Batting runs above average per 100 pitches
+- **pitcher_run_value_per_100** (FLOAT64): Pitching runs above average per 100 pitches
+
+#### Defensive Positioning
+- **pos3_int_start_distance** through **pos9_int_start_distance** (INTEGER): Starting distance for each fielder position
+
+### TABLE RELATIONSHIPS & JOINING INSTRUCTIONS
+
+#### Primary Join Key
+- Tables can be joined using **player_id** as the primary key
+- A player may appear in multiple tables if they've played at different levels
+
+#### Join Scenarios
+
+1. **Track Player Development (Minor to Major League)**
+```sql
+-- Example: Join minor league hitters with MLB batters to track progression
+SELECT 
+    mlh.player_id,
+    mlh.player_name,
+    mlh.woba as minor_league_woba,
+    mlb.woba as mlb_woba,
+    mlb.bat_speed,
+    mlb.swing_length
+FROM savant_minor_league_hitters mlh
+INNER JOIN savant_MLB_B_data mlb 
+    ON mlh.player_id = mlb.player_id
+```
+
+2. **Compare Pitchers Across Levels**
+```sql
+-- Example: Join minor and major league pitchers
+SELECT 
+    mlp.player_id,
+    mlp.player_name,
+    mlp.velocity as minor_league_velo,
+    mlbp.velocity as mlb_velo,
+    mlbp.k_percent as mlb_k_rate
+FROM savant_minor_leagur_pitchers mlp
+INNER JOIN savant_MLB_P_data mlbp 
+    ON mlp.player_id = mlbp.player_id
+```
+
+3. **Full Player Universe**
+```sql
+-- Example: Get all unique players across all tables
+WITH all_players AS (
+    SELECT DISTINCT player_id, player_name FROM savant_MLB_B_data
+    UNION DISTINCT
+    SELECT DISTINCT player_id, player_name FROM savant_MLB_P_data
+    UNION DISTINCT
+    SELECT DISTINCT player_id, player_name FROM savant_minor_league_hitters
+    UNION DISTINCT
+    SELECT DISTINCT player_id, player_name FROM savant_minor_leagur_pitchers
+)
+SELECT * FROM all_players
+```
 
 ## Primary Workflow
 
