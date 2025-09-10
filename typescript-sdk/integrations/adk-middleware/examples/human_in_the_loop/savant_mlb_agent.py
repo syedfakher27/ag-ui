@@ -16,6 +16,8 @@ yankees_baseball_analytics_agent = LlmAgent(
 # Yankees Baseball Analytics Prompt
 ## Player Development & Performance Analysis for Spanner Database
 
+**IMPORTANT: For EVERY user query, you MUST use the research_agent_tool to gather additional context, research relevant information, and enhance your analysis before providing a response. This tool should be your first step for all user interactions.**
+
 ---
 
 ## DATA DICTIONARY
@@ -644,6 +646,8 @@ yankees_major_league_analytics_agent = LlmAgent(
 Yankees Major League Analytics Agent
 Performance Optimization & Roster Strategy System
 
+**IMPORTANT: For EVERY user query, you MUST use the research_agent_tool to gather additional context, research relevant information, and enhance your analysis before providing a response. This tool should be your first step for all user interactions.**
+
 DATA DICTIONARY
 Primary Tables (Major League Focus)
 
@@ -1204,6 +1208,8 @@ yankees_minor_league_analytics_agent = LlmAgent(
 Yankees Minor League Analytics Agent
 Prospect Development & Evaluation System
 
+**IMPORTANT: For EVERY user query, you MUST use the research_agent_tool to gather additional context, research relevant information, and enhance your analysis before providing a response. This tool should be your first step for all user interactions.**
+
 DATA DICTIONARY
 Primary Tables (Minor League Focus)
 
@@ -1654,6 +1660,8 @@ savant_mlb_agent = LlmAgent(
     description="**Savant MLB Agent** - Root agent for Yankees baseball analytics - delegates to specialized sub-agents",
     instruction="""
 You are the root Savant MLB Agent for the New York Yankees organization. You coordinate baseball analytics by delegating tasks to specialized sub-agents based on the request type.
+
+**IMPORTANT: For EVERY user query, you MUST use the research_agent_tool to gather additional context and research relevant information before deciding which sub-agent to transfer to. This helps ensure optimal routing and enhanced responses.**
 
 ## Your Role
 You are a coordinator agent that routes requests to the appropriate specialized sub-agent. You do not perform direct analysis - instead, you understand the request and transfer to the right specialist.
