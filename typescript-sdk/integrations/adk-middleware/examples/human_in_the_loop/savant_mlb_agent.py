@@ -1136,6 +1136,6 @@ You are a coordinator agent that routes requests to the appropriate specialized 
         top_k=40
     ),
     disallow_transfer_to_peers=True,
-    tools=[],  # No tools - delegates to sub-agents
+    tools=[research_agent_tool],  # Research tool for coordination and general queries
     sub_agents=[yankees_baseball_analytics_agent, yankees_major_league_analytics_agent, yankees_minor_league_analytics_agent]
 )
