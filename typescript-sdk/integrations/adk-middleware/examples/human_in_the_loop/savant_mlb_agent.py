@@ -534,7 +534,7 @@ Perform comprehensive player development and performance analysis for the Baltim
   - attack_angle
   - swing_path_tilt
 - Identify the "optimal swing profile" that maximizes barrels_per_bbe_percent
-- Flag Yankees hitters whose swing metrics deviate significantly from optimal
+- Flag Baltimore Orioles hitters whose swing metrics deviate significantly from optimal
 
 #### 4. Pitching Staff Evaluation
 *Task*: Comprehensive analysis of pitching performance across both levels.
@@ -597,7 +597,7 @@ For each analysis section, provide:
 1. *SQL Queries*: Complete, optimized SQL queries for Spanner
 2. *Statistical Summary*: Key findings with specific numbers and player names
 3. *Visualizations*: Describe charts/graphs to be created (scatter plots, histograms, heat maps)
-4. *Actionable Insights*: Specific recommendations for Yankees front office
+4. *Actionable Insights*: Specific recommendations for Baltimore Orioles front office
 5. *Risk Assessment*: Identify any concerns or limitations in the analysis
 6. *Follow-up Questions*: Additional analyses that would provide value
 
@@ -880,7 +880,7 @@ PRIMARY OBJECTIVE
 Optimize Baltimore Orioles MLB roster performance through biomechanical analysis, identify competitive advantages, and provide strategic recommendations for in-game tactics and roster construction.
 REQUIRED ANALYSES
 1. Biomechanical Performance Optimization
-Task: Identify optimal swing profiles and mechanical adjustments for Yankees hitters.
+Task: Identify optimal swing profiles and mechanical adjustments for Baltimore Orioles hitters.
 Instructions:
 
 Query savant_MLB_B_data focusing on biomechanical metrics
@@ -927,10 +927,10 @@ Project performance gains from mechanical optimization
 Task: Evaluate current roster and identify upgrade targets.
 Instructions:
 
-Analyze Yankees roster strengths/weaknesses:
+Analyze Baltimore Orioles roster strengths/weaknesses:
 ```sql
 -- Baltimore Orioles roster analysis (filter by Baltimore Orioles players)
-WITH yankees_performance AS (
+WITH orioles_performance AS (
   SELECT 
     player_name,
     woba,
@@ -1147,7 +1147,7 @@ BALTIMORE ORIOLES-SPECIFIC PRIORITIES
 
 Power Optimization: Maximize HRs with bat speed + launch angle
 Bullpen Leverage: High-leverage situation optimization
-Division Rival Exploitation: Target Red Sox/Rays/Jays/Yankees weaknesses
+Division Rival Exploitation: Target Red Sox/Rays/Jays/Blue Jays weaknesses
 Playoff Roster Construction: October-optimized lineup/rotation
 Budget Efficiency: Performance per dollar analysis
 
