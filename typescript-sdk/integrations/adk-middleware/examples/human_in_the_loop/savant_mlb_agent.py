@@ -10,7 +10,7 @@ research_agent_tool = agent_tool.AgentTool(agent=research_agent)
 # Baltimore Orioles Baseball Analytics Agent (MLB Focus)
 yankees_baseball_analytics_agent = LlmAgent(
     model='gemini-2.5-flash',
-    name='yankees_baseball_analytics_agent',
+    name='baseball_analytics_agent',
     description="**Baltimore Orioles Baseball Analytics Agent** - Advanced MLB player development & performance analysis for Baltimore Orioles organization",
     instruction="""
 # Baltimore Orioles Baseball Analytics Prompt
@@ -37,6 +37,7 @@ yankees_baseball_analytics_agent = LlmAgent(
 - *player_name* (STRING): Player's full name (Last, First format)
 - *total_pitches* (INTEGER): Total number of pitches seen
 - *pitch_percent* (FLOAT64): Percentage of specific pitch type seen
+- *year* (STRING): Year of the data
 
 #### Offensive Performance Metrics
 - *ba* (FLOAT64): Batting Average (hits/at-bats)
@@ -136,6 +137,7 @@ yankees_baseball_analytics_agent = LlmAgent(
 - *player_name* (STRING): Player's full name (Last, First format)
 - *total_pitches* (INTEGER): Total number of pitches thrown
 - *pitch_percent* (FLOAT64): Percentage of specific pitch type thrown
+- *year* (STRING): Year of the data
 
 #### Performance Against (Pitching Stats)
 - *ba* (FLOAT64): Batting Average against
@@ -233,6 +235,7 @@ yankees_baseball_analytics_agent = LlmAgent(
 - *player_name* (STRING): Player's full name (Last, First format)
 - *total_pitches* (INTEGER): Total number of pitches seen
 - *pitch_percent* (FLOAT64): Percentage of specific pitch type seen
+- *year* (STRING): Year of the data
 
 #### Performance Metrics (Note: NO biomechanical data like bat_speed, swing_length, etc.)
 - *ba* (FLOAT64): Batting Average
@@ -332,6 +335,7 @@ yankees_baseball_analytics_agent = LlmAgent(
 - *player_name* (STRING): Player's full name (Last, First format)
 - *total_pitches* (INTEGER): Total number of pitches thrown
 - *pitch_percent* (FLOAT64): Percentage of specific pitch type thrown
+- *year* (STRING): Year of the data
 
 #### Performance Against
 - *ba* (FLOAT64): Batting Average against
@@ -640,7 +644,7 @@ Focus on actionable insights that can directly impact roster decisions, player d
 # Baltimore Orioles Major League Analytics Agent
 yankees_major_league_analytics_agent = LlmAgent(
     model='gemini-2.5-flash',
-    name='yankees_major_league_analytics_agent',
+    name='major_league_analytics_agent',
     description="**Baltimore Orioles Major League Analytics Agent** - Performance optimization & roster strategy system for current MLB roster",
     instruction="""
 Baltimore Orioles Major League Analytics Agent
@@ -668,6 +672,7 @@ savant_minor_leagur_pitchers - Minor league pitchers (1,634 records) - For prosp
 - player_name (STRING): Player's full name (Last, First format)
 - total_pitches (INTEGER): Total number of pitches seen
 - pitch_percent (FLOAT64): Percentage of specific pitch type seen
+- year (STRING): Year of the data
 
 #### Advanced Biomechanics (MLB EXCLUSIVE)
 - bat_speed (FLOAT64): Average bat speed in mph
@@ -767,6 +772,7 @@ savant_minor_leagur_pitchers - Minor league pitchers (1,634 records) - For prosp
 - player_name (STRING): Player's full name (Last, First format)
 - total_pitches (INTEGER): Total number of pitches thrown
 - pitch_percent (FLOAT64): Percentage of specific pitch type thrown
+- year (STRING): Year of the data
 
 #### Performance Against (Pitching Stats)
 - ba (FLOAT64): Batting Average against
@@ -1200,7 +1206,7 @@ Real-Time: Alert system for critical thresholds
 # Baltimore Orioles Minor League Analytics Agent
 yankees_minor_league_analytics_agent = LlmAgent(
     model='gemini-2.5-flash',
-    name='yankees_minor_league_analytics_agent', 
+    name='minor_league_analytics_agent', 
     description="**Baltimore Orioles Minor League Analytics Agent** - Prospect development & evaluation system for Baltimore Orioles minor league players",
     instruction="""
 ####MINOR LEAGUE#### 
@@ -1230,6 +1236,7 @@ savant_MLB_P_data - MLB pitchers (849 records) - For MLB comparison benchmarks
 - player_name (STRING): Player's full name (Last, First format)
 - total_pitches (INTEGER): Total number of pitches seen
 - pitch_percent (FLOAT64): Percentage of specific pitch type seen
+- year (STRING): Year of the data
 
 #### Core Offensive Metrics
 - ba (FLOAT64): Batting average
@@ -1331,6 +1338,7 @@ savant_MLB_P_data - MLB pitchers (849 records) - For MLB comparison benchmarks
 - player_name (STRING): Player's full name (Last, First format)
 - total_pitches (INTEGER): Total number of pitches thrown
 - pitch_percent (FLOAT64): Percentage of specific pitch type thrown
+- year (STRING): Year of the data
 
 #### Performance Against
 - ba (FLOAT64): Batting Average against
@@ -1656,7 +1664,7 @@ As-Needed: Trade deadline asset evaluation
 # Generic root agent without tools - delegates to sub-agents
 savant_mlb_agent = LlmAgent(
     model='gemini-2.5-flash',
-    name='savant_mlb_agent',
+    name='baseball_mlb_agent',
     description="**Savant MLB Agent** - Root agent for Baltimore Orioles baseball analytics - delegates to specialized sub-agents",
     instruction="""
 You are the root Savant MLB Agent for the Baltimore Orioles organization. You coordinate baseball analytics by delegating tasks to specialized sub-agents based on the request type.
