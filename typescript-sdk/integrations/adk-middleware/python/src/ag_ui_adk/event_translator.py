@@ -110,9 +110,10 @@ class EventTranslator:
             
             # Handle state changes
             if hasattr(adk_event, 'actions') and adk_event.actions and hasattr(adk_event.actions, 'state_delta') and adk_event.actions.state_delta:
-                yield self._create_state_delta_event(
+                async for event in self._create_state_delta_event(
                     adk_event.actions.state_delta, thread_id, run_id
-                )
+                ):
+                    yield event
                 
             
             # Handle custom events or metadata
@@ -382,22 +383,44 @@ class EventTranslator:
             else:
                 logger.debug(f"Skipping ToolCallResultEvent for long-running tool: {tool_call_id}")
   
-    def _create_state_delta_event(
+    async def _create_state_delta_event(
         self,
         state_delta: Dict[str, Any],
         thread_id: str,
         run_id: str
-    ) -> StateDeltaEvent:
+    ) -> AsyncGenerator[BaseEvent, None]:
         """Create a state delta event from ADK state changes.
-        
+
+        Checks if there's an unclosed TextMessageStartEvent and handles it properly
+        before sending the StateDeltaEvent, then restarts text streaming.
+
         Args:
             state_delta: The state changes from ADK
             thread_id: The AG-UI thread ID
             run_id: The AG-UI run ID
-            
-        Returns:
-            A StateDeltaEvent
+
+        Yields:
+            Events in order: TextMessageEndEvent (if needed), StateDeltaEvent, TextMessageStartEvent
         """
+        # Check if we have an unclosed TextMessageStartEvent
+        if self._is_streaming and self._streaming_message_id:
+            logger.info(f"📝 Unclosed TextMessageStartEvent detected before StateDeltaEvent. Closing message: {self._streaming_message_id}")
+
+            # Send TextMessageEndEvent to close the current text message
+            end_event = TextMessageEndEvent(
+                type=EventType.TEXT_MESSAGE_END,
+                message_id=self._streaming_message_id
+            )
+            logger.info(f"📤 TEXT_MESSAGE_END (before StateDelta): {end_event.model_dump_json()}")
+            yield end_event
+
+            # Reset streaming state temporarily
+            old_message_id = self._streaming_message_id
+            self._streaming_message_id = None
+            self._is_streaming = False
+        else:
+            old_message_id = None
+
         # Convert to JSON Patch format (RFC 6902)
         # Use "add" operation which works for both new and existing paths
         patches = []
@@ -407,11 +430,28 @@ class EventTranslator:
                 "path": f"/{key}",
                 "value": value
             })
-        
-        return StateDeltaEvent(
+
+        # Send the StateDeltaEvent
+        state_delta_event = StateDeltaEvent(
             type=EventType.STATE_DELTA,
             delta=patches
         )
+        logger.info(f"📤 STATE_DELTA: {state_delta_event.model_dump_json()}")
+        yield state_delta_event
+
+        # If we had an unclosed message, restart text streaming
+        if old_message_id:
+            # Start a new text message stream
+            self._streaming_message_id = str(uuid.uuid4())
+            self._is_streaming = True
+
+            start_event = TextMessageStartEvent(
+                type=EventType.TEXT_MESSAGE_START,
+                message_id=self._streaming_message_id,
+                role="assistant"
+            )
+            logger.info(f"📤 TEXT_MESSAGE_START (after StateDelta): {start_event.model_dump_json()}")
+            yield start_event
     
     def _create_state_snapshot_event(
         self,
