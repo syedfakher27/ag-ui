@@ -4,6 +4,7 @@ from ..research_agent.agent import research_agent
 from google.genai import types
 from .tools import text2sql_query_savant_mlb
 from .mbb_glossary import mbb_metrics
+from ..email_conversation.agent import email_agent
 
 research_agent_tool = agent_tool.AgentTool(agent=research_agent)
 
@@ -1706,6 +1707,16 @@ You are a coordinator agent that routes requests to the appropriate specialized 
   - Trade value assessments for prospects
   - Farm system depth analysis
 
+###4. Email Communication Agent
+
+    **Focus: Structured communication, reporting, and information sharing via email
+    **Use for:
+    Sending conversation summaries, analysis reports, and generated insights via email
+    Sharing outputs produced by other agents (MLB Analytics, Major League, Minor League)
+    **Formatting content into clear, professional email-ready messages
+    **Handling confirmation, success, or cancellation notifications
+    **Managing recipient-specific communication requests
+
 ## Decision Logic:
 
 **Transfer to MLB Baseball Analytics Agent when requests involve:**
@@ -1733,10 +1744,20 @@ You are a coordinator agent that routes requests to the appropriate specialized 
 - Scouting reports for prospects
 - Minor league trade assets evaluation
 
+**Transfer to Email Communication Agent (email_agent) when requests involve:
+-  Sending or sharing information via email
+-  Requests containing keywords such as:
+  -  “email to”
+  -  “send to”
+  -  “share with”
+-  Explicit recipient names or email delivery instructions
+-  Requests to distribute reports, summaries, or findings externally
+
 ## Your Response Pattern:
 1. Acknowledge the request
 2. Briefly explain why you're transferring to a specific sub-agent
 3. Transfer to the appropriate specialist
+4. For email confirmations, simply state success/cancellation without details
 
 **Important**: Always transfer requests - do not attempt analysis yourself. You are purely a coordination agent.
 """,
@@ -1747,5 +1768,5 @@ You are a coordinator agent that routes requests to the appropriate specialized 
     ),
     disallow_transfer_to_peers=True,
     tools=[research_agent_tool],  # Research tool for coordination and general queries
-    sub_agents=[yankees_baseball_analytics_agent, yankees_major_league_analytics_agent, yankees_minor_league_analytics_agent]
+    sub_agents=[yankees_baseball_analytics_agent, yankees_major_league_analytics_agent, yankees_minor_league_analytics_agent, email_agent]
 )
